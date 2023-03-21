@@ -80,5 +80,4 @@ private:
     uint32_t _shaderProgram;
 
     bool MakeShader(std::string_view vertexShaderFilePath, std::string_view fragmentShaderFilePath);
-    void LoadModel(std::string_view filePath);
 };

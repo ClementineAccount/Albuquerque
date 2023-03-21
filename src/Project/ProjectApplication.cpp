@@ -94,88 +94,7 @@ void ProjectApplication::Update()
 
 void ProjectApplication::RenderScene()
 {
-    const auto projection = glm::perspective(glm::radians(80.0f), 1920.0f / 1080.0f, 0.1f, 256.0f);
-    const auto view = glm::lookAt(
-        glm::vec3(3 * std::cos(glfwGetTime() / 4), 2, -3 * std::sin(glfwGetTime() / 4)),
-        glm::vec3(0, 0, 0),
-        glm::vec3(0, 1, 0));
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(_shaderProgram);
-    glUniformMatrix4fv(0, 1, false, glm::value_ptr(projection));
-    glUniformMatrix4fv(1, 1, false, glm::value_ptr(view));
-
-    struct ObjectData
-    {
-        uint32_t transformIndex;
-        uint32_t baseColorIndex;
-        uint32_t normalIndex;
-    };
-    struct BatchData
-    {
-        std::vector<ObjectData> objects;
-        std::vector<MeshIndirectInfo> indirectCommands;
-    };
-    std::vector<BatchData> objectBatches(_cubes.Commands.size());
-    std::vector<std::set<uint32_t>> textureHandles(_cubes.Commands.size());
-    for (const auto& mesh : _cubes.Meshes)
-    {
-        const auto index = mesh.BaseColorTexture / 16;
-        objectBatches[index].indirectCommands.emplace_back(MeshIndirectInfo
-        {
-            mesh.IndexCount,
-            1,
-            mesh.indexOffset,
-            mesh.VertexOffset,
-            1
-        });
-        objectBatches[index].objects.emplace_back(ObjectData
-        {
-            mesh.TransformIndex,
-            mesh.BaseColorTexture % 16,
-            mesh.NormalTexture
-        });
-        textureHandles[index].insert(_cubes.Textures[mesh.BaseColorTexture]);
-    }
-
-    glNamedBufferData(
-        _cubes.TransformData,
-        _cubes.Transforms.size() * sizeof(glm::mat4),
-        _cubes.Transforms.data(),
-        GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _cubes.TransformData);
-
-    for (uint32_t index = 0; const auto& batch : objectBatches)
-    {
-        glNamedBufferData(
-            _cubes.ObjectData[index],
-            batch.objects.size() * sizeof(ObjectData),
-            batch.objects.data(),
-            GL_DYNAMIC_DRAW);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _cubes.ObjectData[index]);
-
-        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _cubes.Commands[index]);
-        glNamedBufferData(
-            _cubes.Commands[index],
-            batch.indirectCommands.size() * sizeof(MeshIndirectInfo),
-            batch.indirectCommands.data(),
-            GL_DYNAMIC_DRAW);
-
-        for (uint32_t offset = 0; const auto texture : textureHandles[index])
-        {
-            glUniform1i(2 + offset, offset);
-            glActiveTexture(GL_TEXTURE0 + offset);
-            glBindTexture(GL_TEXTURE_2D, texture);
-            offset++;
-        }
-        glBindVertexArray(_cubes.InputLayout);
-        glMultiDrawElementsIndirect(
-            GL_TRIANGLES,
-            GL_UNSIGNED_INT,
-            nullptr,
-            batch.indirectCommands.size(),
-            sizeof(MeshIndirectInfo));
-        index++;
-    }
 }
 
 void ProjectApplication::RenderUI()
@@ -185,7 +104,6 @@ void ProjectApplication::RenderUI()
         ImGui::TextUnformatted("Hello World!");
         ImGui::End();
     }
-
     ImGui::ShowDemoWindow();
 }
 
