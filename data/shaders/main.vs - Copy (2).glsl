@@ -8,27 +8,11 @@ layout (location = 3) in vec4 iTangent;
 layout (location = 0) out vec2 oUvs;
 layout (location = 1) out flat uint oBaseColorIndex;
 
-layout (location = 0) uniform mat4 uProjection;
-layout (location = 1) uniform mat4 uView;
+layout (location = 0) uniform mat4 uView;
+layout (location = 1) uniform mat4 uProjection;
 
-struct ObjectData
-{
-    uint transformIndex;
-    uint baseColorIndex;
-    uint normalIndex;
-};
-
-layout (binding = 0) buffer BObjectData
-{
-    ObjectData[] objectData;
-};
-
-layout (binding = 1) buffer BTransforms
-{
-    mat4[] transforms;
-};
 
 void main()
 {
-    gl_Position = vec4(iPosition, 1.0);
+    gl_Position = uProjection * uView * vec4(iPosition, 1.0);
 }
