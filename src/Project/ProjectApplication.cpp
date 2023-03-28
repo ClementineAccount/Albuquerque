@@ -100,6 +100,33 @@ draw_call CreateTriangle()
 }
 
 
+
+draw_call CreateShape(std::vector<glm::vec3> const& positions, std::vector<uint32_t> indices)
+{
+    uint32_t vbo = 0;
+    uint32_t vao = 0;
+    uint32_t ibo = 0;
+
+    glCreateBuffers(1, &vbo);
+
+    glNamedBufferStorage(vbo, sizeof(glm::vec3) * positions.size(), positions.data(), GL_DYNAMIC_STORAGE_BIT);
+
+
+    glCreateBuffers(1, &ibo);
+    glNamedBufferStorage(ibo, sizeof(uint32_t) * indices.size(), indices.data(), GL_DYNAMIC_STORAGE_BIT);
+
+    glCreateVertexArrays(1, &vao);
+
+    glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(glm::vec3));
+    glEnableVertexArrayAttrib(vao, 0);
+    glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+
+    glVertexArrayElementBuffer(vao, ibo);
+    glVertexArrayAttribBinding(vao, 0, 0);
+
+    return draw_call{ false, vao, static_cast<GLsizei>(indices.size())};
+}
+
 draw_call CreateSquare()
 {
     //anti clockwise, based off ndc
@@ -134,8 +161,6 @@ draw_call CreateSquare()
 
     glCreateVertexArrays(1, &vao);
 
-
-
     glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(glm::vec3));
     glEnableVertexArrayAttrib(vao, 0);
     glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
@@ -154,10 +179,11 @@ draw_call CreateSquare()
 }
 
 
+
 void DrawHelloPrim(uint32_t shader_id, draw_call const& draw)
 {
 
-    constexpr glm::vec3 eyePos = glm::vec3(3.0f, 3.0f, 3.0f);
+    constexpr glm::vec3 eyePos = glm::vec3(10.0f, 10.0f, 10.0f);
     constexpr glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
 
     constexpr float fov = 90.0f;
@@ -187,12 +213,11 @@ void DrawHelloPrim(uint32_t shader_id, draw_call const& draw)
     //glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-//void DrawVAO(uint32_t shader_id, uint32_t vao)
-//{
-//    glUseProgram(shader_id);
-//    glBindVertexArray(vao);
-//    glDrawArrays(GL_TRIANGLES, 0, 3);
-//}
+
+
+
+
+
 
 bool ProjectApplication::Load()
 {
@@ -207,7 +232,19 @@ bool ProjectApplication::Load()
         return false;
     }
 
-    helloPrim = CreateSquare();
+    std::vector<glm::vec3> pos;
+    std::vector<uint32_t> indices;
+
+
+    MeshLoader loader;
+    Mesh mesh = loader.loadDeccers("./data/models/SM_Deccer_Cubes.gltf");
+
+    MeshLoadingTest::loadGLTF_Basic("./data/models/test_cube.gltf", pos, indices);
+
+
+    helloPrim = CreateShape(mesh.positions, mesh.indices);
+
+    //helloPrim = CreateSquare();
 
     return true;
 }

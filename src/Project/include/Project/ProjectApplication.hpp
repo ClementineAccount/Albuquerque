@@ -24,7 +24,9 @@ struct draw_call
 {
     bool drawArrays;
     uint32_t vao;
-    uint32_t numIndices;
+
+    //ogl doesn't use signed for this
+    int32_t numIndices;
 };
 
 
