@@ -303,6 +303,12 @@ bool ProjectApplication::Load()
 	return true;
 }
 
+//void DrawVAO(uint32_t shader_id, uint32_t vao)
+//{
+//    glUseProgram(shader_id);
+//    glBindVertexArray(vao);
+//    glDrawArrays(GL_TRIANGLES, 0, 3);
+//}
 
 
 
