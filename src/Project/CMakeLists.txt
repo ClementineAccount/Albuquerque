@@ -8,12 +8,13 @@ target_include_directories(spdlog PUBLIC include)
 
 set(sourceFiles
     Main.cpp
-    ProjectApplication.cpp
     MeshLoading.cpp
+    ProjectApplication.cpp
 )
 set(headerFiles
     include/Project/ProjectApplication.hpp
-    include/Project/MeshLoading.hpp
+    include/MeshLoading.h
+
 )
 add_executable(Project ${sourceFiles} ${headerFiles})
 add_dependencies(Project copy_data)

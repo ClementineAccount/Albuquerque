@@ -1,11 +1,11 @@
-#include <cgltf.h>
-//Usess cgltf to load .gltf files
+#pragma once
 
-
+#include <string>
+#include <vector>
+#include <glm/vec3.hpp>
 
 
 //To Do: Move this to its own files
-
 struct Vertex
 {
 	glm::vec3 pos;
@@ -26,12 +26,9 @@ struct Mesh
 
 
 
-//Uses fucnctions to load them. Stores local mesh files 
+//Uses functions to load meshes with cgltf. Stores local mesh files 
 class MeshLoader
 {
-
-
-
-
+	static Mesh loadGLTF(const char* filePath);
 };
 
