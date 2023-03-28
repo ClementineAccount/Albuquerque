@@ -42,6 +42,8 @@ protected:
 private:
     uint32_t _shaderProgram;
     draw_call helloPrim;
+
+    uint32_t vao_test = 0;
     
     bool MakeShader(std::string_view vertexShaderFilePath, std::string_view fragmentShaderFilePath);
 
