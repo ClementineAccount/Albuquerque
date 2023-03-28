@@ -33,6 +33,7 @@ set(sourceFiles
     Main.cpp
     SceneLoader.cpp
     ProjectApplication.cpp
+    MeshLoading.cpp
 )
 
 set(headerFiles
