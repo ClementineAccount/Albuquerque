@@ -30,5 +30,7 @@ layout (binding = 1) buffer BTransforms
 
 void main()
 {
-    gl_Position = vec4(iPosition, 1.0);
+    oUvs = iUv;
+    oBaseColorIndex = objectData[gl_DrawID].baseColorIndex;
+    gl_Position = uProjection * uView * transforms[objectData[gl_DrawID].transformIndex] * vec4(iPosition, 1.0);
 }

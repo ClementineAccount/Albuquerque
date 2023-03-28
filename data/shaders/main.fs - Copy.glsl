@@ -9,5 +9,5 @@ layout (location = 2) uniform sampler2D[16] uTextures;
 
 void main()
 {
-    oPixel = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    oPixel = vec4(texture(uTextures[iBaseColorIndex], iUvs).rgb, 1.0);
 }

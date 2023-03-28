@@ -19,6 +19,9 @@ struct Vertex
     glm::vec4 Tangent;
 };
 
+
+
+
 class ProjectApplication final : public Application
 {
 protected:
@@ -31,7 +34,8 @@ protected:
 
 private:
     uint32_t _shaderProgram;
-
+    uint32_t _draw_vao;
+    
     bool MakeShader(std::string_view vertexShaderFilePath, std::string_view fragmentShaderFilePath);
 
 };
