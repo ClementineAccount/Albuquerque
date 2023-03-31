@@ -13,6 +13,8 @@ struct Mesh
 
 	//To Do: Convert this to AOS later on (std::vector<Vertex>)
 	std::vector<glm::vec3> positions;
+
+	std::vector<glm::vec4> colors;
 };
 
 
@@ -87,6 +89,10 @@ private:
 		//3D only need to add support for 2D if the accessor states it
 		std::vector<glm::vec3> positions;
 		std::vector<uint32_t> indices;
+
+		glm::vec4 base_color_factor;
+
+		std::vector<glm::vec4> colorList;
 	};
 
 
@@ -100,5 +106,7 @@ private:
 		//For the testing but we use a local version for the deccers (to do: remove it ig)
 		std::vector<glm::vec3> positionsTest;
 		std::vector<Mesh::indexType> indicesTest;
+
+
 };
 

@@ -115,6 +115,8 @@ Mesh MeshLoader::loadDeccers(const char* filePath)
 		cgltf_accessor* accessorPos = nullptr;
 		cgltf_accessor* accessorIndices = nullptr;
 
+		cgltf_material* materialptr = nullptr;
+
 		accessorIndices = node_ptr->mesh->primitives[0].indices;
 
 		for (size_t i = 0; i < node_ptr->mesh->primitives[0].attributes_count; ++i)
@@ -122,6 +124,23 @@ Mesh MeshLoader::loadDeccers(const char* filePath)
 			if (accessorPos == nullptr && node_ptr->mesh->primitives[0].attributes[i].type == cgltf_attribute_type_position)
 				accessorPos = node_ptr->mesh->primitives[0].attributes[i].data;
 		}
+
+		//I have to learn how to instance stuff to know how to do it by the drawCount so instead we just have all the colors per vertex
+		//even tho its a lot of unnecessary memory for now lol
+		node_mesh_list[i].base_color_factor.r = node_ptr->mesh->primitives[0].material->pbr_metallic_roughness.base_color_factor[0];
+		node_mesh_list[i].base_color_factor.g = node_ptr->mesh->primitives[0].material->pbr_metallic_roughness.base_color_factor[1];
+		node_mesh_list[i].base_color_factor.b = node_ptr->mesh->primitives[0].material->pbr_metallic_roughness.base_color_factor[2];
+		node_mesh_list[i].base_color_factor.a = node_ptr->mesh->primitives[0].material->pbr_metallic_roughness.base_color_factor[3];
+
+
+		//Hardcode one of the cubes to be green 
+		//if (i == 4)
+		//{
+		//	node_mesh_list[i].base_color_factor.r = 0.0f;
+		//	node_mesh_list[i].base_color_factor.g = 1.0f;
+		//	node_mesh_list[i].base_color_factor.b = 0.0f;
+		//	node_mesh_list[i].base_color_factor.a = 1.0f;
+		//}
 
 		node_mesh_list[i].positions.resize(accessorPos->count);
 
@@ -135,6 +154,7 @@ Mesh MeshLoader::loadDeccers(const char* filePath)
 			node_mesh_list[i].positions[j].x *= node_mesh_list[i].local_scale.x;
 			node_mesh_list[i].positions[j].y *= node_mesh_list[i].local_scale.y;
 			node_mesh_list[i].positions[j].z *= node_mesh_list[i].local_scale.z;
+			node_mesh_list[i].colorList.push_back(node_mesh_list[i].base_color_factor);
 
 
 			node_mesh_list[i].positions[j].x += node_mesh_list[i].local_translate.x;
@@ -205,13 +225,14 @@ Mesh MeshLoader::loadDeccers(const char* filePath)
 			biggest_number = biggest_number < index ? index : biggest_number; });
 
 		combinedMesh.positions.insert(combinedMesh.positions.end(), mesh.positions.begin(), mesh.positions.end());
+		combinedMesh.colors.insert(combinedMesh.colors.end(), mesh.colorList.begin(), mesh.colorList.end());
 		combinedMesh.indices.insert(combinedMesh.indices.end(), mesh.indices.begin(), mesh.indices.end());
 
 		index_offset = biggest_number + 1;
 	}
 
-	return combinedMesh;
-}
+		return combinedMesh;
+}	
 
 
 

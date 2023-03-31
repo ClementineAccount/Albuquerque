@@ -101,7 +101,7 @@ draw_call CreateTriangle()
 
 
 
-draw_call CreateShape(std::vector<glm::vec3> const& positions, std::vector<uint32_t> indices)
+draw_call CreateShape(std::vector<glm::vec3> const& positions, std::vector<glm::vec4> const& colors, std::vector<uint32_t> indices)
 {
     uint32_t vbo = 0;
     uint32_t vao = 0;
@@ -109,7 +109,27 @@ draw_call CreateShape(std::vector<glm::vec3> const& positions, std::vector<uint3
 
     glCreateBuffers(1, &vbo);
 
-    glNamedBufferStorage(vbo, sizeof(glm::vec3) * positions.size(), positions.data(), GL_DYNAMIC_STORAGE_BIT);
+
+    //Really ineffiicent should be passsing in an array/vector of Vertex struct objects instead but lazy rn
+
+    std::vector<float> dataVertex;
+    for (auto const& pos : positions)
+    {
+        dataVertex.push_back(pos.x);
+        dataVertex.push_back(pos.y);
+        dataVertex.push_back(pos.z);
+    }
+
+    for (auto const& col : colors)
+    {
+        dataVertex.push_back(col.r);
+        dataVertex.push_back(col.g);
+        dataVertex.push_back(col.b);
+        dataVertex.push_back(col.a);
+    }
+
+
+    glNamedBufferStorage(vbo, sizeof(float) * dataVertex.size(), dataVertex.data(), GL_DYNAMIC_STORAGE_BIT);
 
 
     glCreateBuffers(1, &ibo);
@@ -117,9 +137,13 @@ draw_call CreateShape(std::vector<glm::vec3> const& positions, std::vector<uint3
 
     glCreateVertexArrays(1, &vao);
 
-    glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(glm::vec3));
+    glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(float) * 3.0f);
     glEnableVertexArrayAttrib(vao, 0);
     glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+
+    glVertexArrayVertexBuffer(vao, 1, vbo, sizeof(float) * positions.size() * 3, sizeof(float) * 4.0f);
+    glEnableVertexArrayAttrib(vao, 1);
+    glVertexArrayAttribFormat(vao, 1, 4, GL_FLOAT, GL_FALSE, 0);
 
     glVertexArrayElementBuffer(vao, ibo);
     glVertexArrayAttribBinding(vao, 0, 0);
@@ -242,7 +266,7 @@ bool ProjectApplication::Load()
     MeshLoadingTest::loadGLTF_Basic("./data/models/test_cube.gltf", pos, indices);
 
 
-    helloPrim = CreateShape(mesh.positions, mesh.indices);
+    helloPrim = CreateShape(mesh.positions, mesh.colors, mesh.indices);
 
     //helloPrim = CreateSquare();
 

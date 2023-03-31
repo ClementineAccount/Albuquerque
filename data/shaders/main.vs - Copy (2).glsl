@@ -1,7 +1,7 @@
 #version 460 core
 
 layout (location = 0) in vec3 iPosition;
-layout (location = 1) in vec4 iColor;
+layout (location = 1) in vec3 iNormal;
 layout (location = 2) in vec2 iUv;
 layout (location = 3) in vec4 iTangent;
 
@@ -30,7 +30,5 @@ layout (binding = 1) buffer BTransforms
 
 void main()
 {
-    oUvs = iUv;
-    oBaseColorIndex = objectData[gl_DrawID].baseColorIndex;
-    gl_Position = uProjection * uView * transforms[objectData[gl_DrawID].transformIndex] * vec4(iPosition, 1.0);
+    gl_Position = vec4(iPosition, 1.0);
 }
