@@ -10,14 +10,26 @@
 #include <string_view>
 #include <vector>
 #include <memory>
+//
+//struct Vertex
+//{
+//    glm::vec3 Position;
+//    glm::vec3 Normal;
+//    glm::vec2 Uv;
+//    glm::vec4 Tangent;
+//};
 
-struct Vertex
+//For draw_elements
+struct draw_call
 {
-    glm::vec3 Position;
-    glm::vec3 Normal;
-    glm::vec2 Uv;
-    glm::vec4 Tangent;
+    bool drawArrays;
+    uint32_t vao;
+
+    //ogl doesn't use signed for this
+    int32_t numIndices;
 };
+
+
 
 class ProjectApplication final : public Application
 {
@@ -31,7 +43,10 @@ protected:
 
 private:
     uint32_t _shaderProgram;
+    draw_call helloPrim;
 
+    uint32_t vao_test = 0;
+    
     bool MakeShader(std::string_view vertexShaderFilePath, std::string_view fragmentShaderFilePath);
 
 };

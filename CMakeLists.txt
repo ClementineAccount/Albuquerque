@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.15)
 
 project(Project)
 
@@ -12,7 +12,6 @@ if (${FORCE_COLORED_OUTPUT})
        add_compile_options (-fcolor-diagnostics)
     endif ()
 endif ()
-
 add_subdirectory(lib)
 add_subdirectory(src/Project.Library)
 add_subdirectory(src/Project)
