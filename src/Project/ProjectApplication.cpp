@@ -16,6 +16,13 @@
 
 #include <spdlog/spdlog.h>
 
+#include <Fwog/BasicTypes.h>
+#include <Fwog/Buffer.h>
+#include <Fwog/Pipeline.h>
+#include <Fwog/Rendering.h>
+#include <Fwog/Shader.h>
+
+
 #include <unordered_map>
 #include <filesystem>
 #include <algorithm>
@@ -37,31 +44,6 @@ static std::string Slurp(std::string_view path)
 
 namespace fs = std::filesystem;
 
-//static std::string FindTexturePath(const fs::path& basePath, const cgltf_image* image)
-//{
-//    std::string texturePath;
-//    if (!image->uri)
-//    {
-//        auto newPath = basePath / image->name;
-//        if (!newPath.has_extension())
-//        {
-//            if (std::strcmp(image->mime_type, "image/png") == 0)
-//            {
-//                newPath.replace_extension("png");
-//            }
-//            else if (std::strcmp(image->mime_type, "image/jpg") == 0)
-//            {
-//                newPath.replace_extension("jpg");
-//            }
-//        }
-//        texturePath = newPath.generic_string();
-//    }
-//    else
-//    {
-//        texturePath = (basePath / image->uri).generic_string();
-//    }
-//    return texturePath;
-//}
 
 void ProjectApplication::AfterCreatedUiContext()
 {
@@ -285,9 +267,13 @@ void ProjectApplication::Update()
 
 void ProjectApplication::RenderScene()
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    DrawHelloPrim(_shaderProgram, helloPrim);
+    //Fwog::Cmd::Draw(3, 1, 0, 0);
+
+
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    //DrawHelloPrim(_shaderProgram, helloPrim);
 }
 
 void ProjectApplication::RenderUI()
@@ -296,7 +282,7 @@ void ProjectApplication::RenderUI()
 
     ImGui::Begin("Window");
     {
-        ImGui::TextUnformatted("Hello World!");
+        ImGui::TextUnformatted("Hello F!");
         ImGui::End();
     }
 

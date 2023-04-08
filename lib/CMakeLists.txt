@@ -97,6 +97,16 @@ if(NOT cgltf_POPULATED)
 endif()
 
 #----------------------------------------------------------------------
+set(FWOG_BUILD_EXAMPLES false)
+FetchContent_Declare(
+    fwog
+    GIT_REPOSITORY https://github.com/ClementineAccount/Fwog.git
+    GIT_TAG        ecd4c31ec9b0f97c2e2b2b898d99b8d18dde498c
+)
+
+FetchContent_MakeAvailable(fwog)
+
+#----------------------------------------------------------------------
 
 FetchContent_Declare(
     stb_image
