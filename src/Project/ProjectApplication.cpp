@@ -185,7 +185,7 @@ bool ProjectApplication::Load()
     return true;
 }
 
-void ProjectApplication::Update()
+void ProjectApplication::Update(double dt)
 {
     if (IsKeyPressed(GLFW_KEY_ESCAPE))
     {
@@ -218,7 +218,7 @@ void ProjectApplication::RenderScene()
     Fwog::EndRendering();
 }
 
-void ProjectApplication::RenderUI()
+void ProjectApplication::RenderUI(double dt)
 {
     //This is needed or else there's a crash
     glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
@@ -226,6 +226,7 @@ void ProjectApplication::RenderUI()
     ImGui::Begin("Window");
     {
         ImGui::TextUnformatted("Hello F!");
+        ImGui::Text("Framerate: %.0f Hertz", 1 / dt);
         ImGui::End();
     }
 }

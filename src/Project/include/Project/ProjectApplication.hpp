@@ -126,8 +126,8 @@ protected:
     void BeforeDestroyUiContext() override;
     bool Load() override;
     void RenderScene() override;
-    void RenderUI() override;
-    void Update() override;
+    void RenderUI(double dt) override;
+    void Update(double dt) override;
 
 private:
     uint32_t _shaderProgram;
