@@ -3,7 +3,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include "include/MeshLoading.h"
 #include <Project/ProjectApplication.hpp>
 
 
@@ -45,6 +44,99 @@ static std::string Slurp(std::string_view path)
 namespace fs = std::filesystem;
 
 
+static constexpr char vert_shader_path[] = "data/shaders/FwogRacing/hello_car.vert.glsl";
+static constexpr char frag_shader_path[] = "data/shaders/FwogRacing/hello_car.frag.glsl";
+static constexpr char frag_texture_shader_path[] = "data/shaders/FwogRacing/hello_car_textured.frag.glsl";
+
+static constexpr char vert_line_shader_path[] = "data/shaders/FwogRacing/lines.vert.glsl";
+static constexpr char frag_line_shader_path[] = "data/shaders/FwogRacing/lines.frag.glsl";
+
+std::string ProjectApplication::LoadFile(std::string_view path)
+{
+    std::ifstream file{ path.data() };
+    return { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
+}
+
+static Fwog::GraphicsPipeline CreatePipeline()
+{
+    // Specify our two vertex attributes: position and color.
+    // Positions are 3x float, so we will use R32G32B32_FLOAT like we would in Vulkan.
+    static constexpr auto sceneInputBindingDescs = std::array{
+      Fwog::VertexInputBindingDescription{
+            // color
+            .location = 0,
+            .binding = 0,
+            .format = Fwog::Format::R32G32B32_FLOAT,
+            .offset = offsetof(Primitives::Vertex, position),
+          },
+          Fwog::VertexInputBindingDescription{
+            // normal
+            .location = 1,
+            .binding = 0,
+            .format = Fwog::Format::R32G32B32_FLOAT,
+            .offset = offsetof(Primitives::Vertex, normal),
+          },
+          Fwog::VertexInputBindingDescription{
+            // texcoord
+            .location = 2,
+            .binding = 0,
+            .format = Fwog::Format::R32G32_FLOAT,
+            .offset = offsetof(Primitives::Vertex, uv),
+          },
+    };
+
+
+    auto inputDescs = sceneInputBindingDescs;
+    auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::TRIANGLE_LIST };
+
+
+    auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, ProjectApplication::LoadFile(vert_shader_path));
+    auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_shader_path));
+
+    return Fwog::GraphicsPipeline{ {
+      .vertexShader = &vertexShader,
+      .fragmentShader = &fragmentShader,
+      .inputAssemblyState = primDescs,
+      .vertexInputState = {inputDescs},
+      .depthState = {.depthTestEnable = true, .depthWriteEnable = true, .depthCompareOp = Fwog::CompareOp::LESS},
+    } };
+}
+
+
+static Fwog::GraphicsPipeline CreatePipelineLines()
+{
+    auto descPos = Fwog::VertexInputBindingDescription{
+      .location = 0,
+      .binding = 0,
+      .format = Fwog::Format::R32G32B32_FLOAT,
+      .offset = 0,
+    };
+
+    auto descColor = Fwog::VertexInputBindingDescription{
+    .location = 1,
+    .binding = 1,
+    .format = Fwog::Format::R32G32B32_FLOAT,
+    .offset = 0,
+    };
+
+    auto inputDescs = { descPos, descColor };
+
+    auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::LINE_LIST };
+    auto depthDescs = Fwog::DepthState{ .depthTestEnable = false, .depthWriteEnable = false };
+    auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, ProjectApplication::LoadFile(vert_line_shader_path));
+    auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_line_shader_path));
+
+    return Fwog::GraphicsPipeline{ {
+      .vertexShader = &vertexShader,
+      .fragmentShader = &fragmentShader,
+      .inputAssemblyState = primDescs,
+      .vertexInputState = {inputDescs},
+      .rasterizationState = {.cullMode = Fwog::CullMode::NONE},
+      .depthState = {.depthTestEnable = false, .depthWriteEnable = false},
+    } };
+}
+
+
 void ProjectApplication::AfterCreatedUiContext()
 {
 
@@ -56,202 +148,40 @@ void ProjectApplication::BeforeDestroyUiContext()
 }
 
 
-//VAOs for it. We rendering it like a baby
-draw_call CreateTriangle()
-{
-    uint32_t vbo = 0;
-    uint32_t vao = 0;
-
-    //anti clockwise
-    glm::vec3 tri_pos[3];
-    tri_pos[0] = glm::vec3(-1.0f, -1.0f, 0.0f);
-    tri_pos[1] = glm::vec3(1.0f, -1.0f, 0.0f);
-    tri_pos[2] = glm::vec3(0.0f, 0.5f, 0.0f);
-
-    glCreateBuffers(1, &vbo);
-    glNamedBufferStorage(vbo, sizeof(tri_pos), tri_pos, GL_DYNAMIC_STORAGE_BIT);
-    glCreateVertexArrays(1, &vao);
-
-    glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(glm::vec3));
-    glEnableVertexArrayAttrib(vao, 0);
-    glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-
-    glVertexArrayAttribBinding(vao, 0, 0);
-
-    return draw_call{true, vao, 3};
-}
-
-
-
-draw_call CreateShape(std::vector<glm::vec3> const& positions, std::vector<glm::vec4> const& colors, std::vector<uint32_t> indices)
-{
-    uint32_t vbo = 0;
-    uint32_t vao = 0;
-    uint32_t ibo = 0;
-
-    glCreateBuffers(1, &vbo);
-
-
-    //Really ineffiicent should be passsing in an array/vector of Vertex struct objects instead but lazy rn
-
-    std::vector<float> dataVertex;
-    for (auto const& pos : positions)
-    {
-        dataVertex.push_back(pos.x);
-        dataVertex.push_back(pos.y);
-        dataVertex.push_back(pos.z);
-    }
-
-    for (auto const& col : colors)
-    {
-        dataVertex.push_back(col.r);
-        dataVertex.push_back(col.g);
-        dataVertex.push_back(col.b);
-        dataVertex.push_back(col.a);
-    }
-
-
-    glNamedBufferStorage(vbo, sizeof(float) * dataVertex.size(), dataVertex.data(), GL_DYNAMIC_STORAGE_BIT);
-
-
-    glCreateBuffers(1, &ibo);
-    glNamedBufferStorage(ibo, sizeof(uint32_t) * indices.size(), indices.data(), GL_DYNAMIC_STORAGE_BIT);
-
-    glCreateVertexArrays(1, &vao);
-
-    glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(float) * 3.0f);
-    glEnableVertexArrayAttrib(vao, 0);
-    glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-
-    glVertexArrayVertexBuffer(vao, 1, vbo, sizeof(float) * positions.size() * 3, sizeof(float) * 4.0f);
-    glEnableVertexArrayAttrib(vao, 1);
-    glVertexArrayAttribFormat(vao, 1, 4, GL_FLOAT, GL_FALSE, 0);
-
-    glVertexArrayElementBuffer(vao, ibo);
-    glVertexArrayAttribBinding(vao, 0, 0);
-
-    return draw_call{ false, vao, static_cast<GLsizei>(indices.size())};
-}
-
-draw_call CreateSquare()
-{
-    //anti clockwise, based off ndc
-    glm::vec3 square_pos[4];
-    
-    //bottom left
-    square_pos[0] = glm::vec3(-1.0f, -1.0f, 0.0f);
-
-    //bottom right
-    square_pos[1] = glm::vec3(1.0f, -1.0f, 0.0f);
-
-    //top right
-    square_pos[2] = glm::vec3(1.0f, 1.0f, 0.0f);
-
-    //top left
-    square_pos[3] = glm::vec3(-1.0f, 1.0f, 0.0f);
-
-
-    uint32_t indices[] = { 0, 1, 2, 2, 3, 0 };
-
-    uint32_t vbo = 0;
-    uint32_t vao = 0;
-    uint32_t ibo = 0;
-
-    glCreateBuffers(1, &vbo);
-    glNamedBufferStorage(vbo, sizeof(square_pos), square_pos, GL_DYNAMIC_STORAGE_BIT);
-
-
-    glCreateBuffers(1, &ibo);
-    glNamedBufferStorage(ibo, sizeof(uint32_t) * 6, indices, GL_DYNAMIC_STORAGE_BIT);
-
-
-    glCreateVertexArrays(1, &vao);
-
-    glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(glm::vec3));
-    glEnableVertexArrayAttrib(vao, 0);
-    glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-
-
-    glVertexArrayElementBuffer(vao, ibo);
-
-    glVertexArrayAttribBinding(vao, 0, 0);
-
-
-
-
-    return draw_call{ false, vao, 6 };
-
-
-}
-
-
-
-void DrawHelloPrim(uint32_t shader_id, draw_call const& draw)
-{
-
-    constexpr glm::vec3 eyePos = glm::vec3(10.0f, 10.0f, 10.0f);
-    constexpr glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
-
-    constexpr float fov = 90.0f;
-
-    constexpr float nearPlane = 0.01f;
-    constexpr float farPlane = 100.0f;
-
-    constexpr float aspect_ratio = 1.6f;
-
-    static glm::mat4 viewMatrix = glm::lookAt(eyePos, origin, glm::vec3(0.0f, 1.0f, 0.0f));
-    static glm::mat4 projMatrix = glm::perspective(fov, aspect_ratio, nearPlane, farPlane);
-
-
-    glUseProgram(shader_id);
-
-    glUniformMatrix4fv(0, 1, false, glm::value_ptr(viewMatrix));
-    glUniformMatrix4fv(1, 1, false, glm::value_ptr(projMatrix));
-
-
-    glBindVertexArray(draw.vao);
-
-    if (draw.drawArrays)
-        glDrawArrays(GL_TRIANGLES, 0, draw.numIndices);
-    else
-        glDrawElements(GL_TRIANGLES, draw.numIndices, GL_UNSIGNED_INT, 0);
-
-    //glDrawArrays(GL_TRIANGLES, 0, 3);
-}
-
-
-
-
-
-
 
 bool ProjectApplication::Load()
 {
-    if (!Application::Load())
-    {
-        spdlog::error("App: Unable to load");
-        return false;
-    }
+    pipeline = CreatePipeline();
+    pipeline_lines = CreatePipelineLines();
 
-    if (!MakeShader("./data/shaders/main.vs.glsl", "./data/shaders/main.fs.glsl"))
-    {
-        return false;
-    }
-
-    std::vector<glm::vec3> pos;
-    std::vector<uint32_t> indices;
+    glm::vec3 worldUpFinal = worldOrigin + (worldUp)*axisScale;
+    glm::vec3 worldForwardFinal = worldOrigin + (worldForward)*axisScale;
+    glm::vec3 worldRightFinal = worldOrigin + (worldRight)*axisScale;
 
 
-    MeshLoader loader;
-    Mesh mesh = loader.loadDeccers("./data/models/SM_Deccer_Cubes.gltf");
+    std::array<glm::vec3, num_points_world_axis> axisPos{ worldOrigin, worldUpFinal, worldOrigin, worldForwardFinal, worldOrigin, worldRightFinal };
+    std::array<glm::vec3, num_points_world_axis> axisColors{ worldUpColor,
+                                        worldUpColor,
+                                        worldForwardColor,
+                                        worldForwardColor,
+                                        worldRightcolor,
+                                        worldRightcolor };
 
-    MeshLoadingTest::loadGLTF_Basic("./data/models/test_cube.gltf", pos, indices);
+    vertex_buffer_pos_line = Fwog::TypedBuffer<glm::vec3>(axisPos);
+    vertex_buffer_color_line = Fwog::TypedBuffer<glm::vec3>(axisColors);
 
 
-    helloPrim = CreateShape(mesh.positions, mesh.colors, mesh.indices);
+    static glm::vec3 camPos = glm::vec3(3.0f, 3.0f, 3.0f);
+    static glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
+    static glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    static glm::mat4 view = glm::lookAt(camPos, origin, up);
+    static glm::mat4 proj = glm::perspective(PI / 2.0f, 1.6f, nearPlane, farPlane);
 
-    //helloPrim = CreateSquare();
+    static glm::mat4 viewProj = proj * view;
 
+    globalUniformsBuffer = Fwog::TypedBuffer<GlobalUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+    globalUniformsBuffer.value().SubData(viewProj, 0);
+    
     return true;
 }
 
@@ -267,17 +197,30 @@ void ProjectApplication::Update()
 
 void ProjectApplication::RenderScene()
 {
+    Fwog::BeginSwapchainRendering(Fwog::SwapchainRenderInfo{
+    .viewport =
+      Fwog::Viewport{
+        .drawRect{.offset = {0, 0}, .extent = {windowWidth, windowHeight}},
+        .minDepth = 0.0f, .maxDepth = 1.0f
+      },
+    .colorLoadOp = Fwog::AttachmentLoadOp::CLEAR,
+    .clearColorValue = {skyColor.r, skyColor.g, skyColor.b, 1.0f},
+     .depthLoadOp = Fwog::AttachmentLoadOp::CLEAR,
+      .clearDepthValue = 1.0f
+        });
 
-    //Fwog::Cmd::Draw(3, 1, 0, 0);
+    Fwog::Cmd::BindGraphicsPipeline(pipeline_lines.value());
+    Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+    Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_pos_line.value(), 0, 3 * sizeof(float));
+    Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_color_line.value(), 0, 3 * sizeof(float));
+    Fwog::Cmd::Draw(num_points_world_axis, 1, 0, 0);
 
-
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    //DrawHelloPrim(_shaderProgram, helloPrim);
+    Fwog::EndRendering();
 }
 
 void ProjectApplication::RenderUI()
 {
+    //This is needed or else there's a crash
     glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 
     ImGui::Begin("Window");
@@ -285,56 +228,4 @@ void ProjectApplication::RenderUI()
         ImGui::TextUnformatted("Hello F!");
         ImGui::End();
     }
-
-
-    //ImGui::ShowDemoWindow();
-}
-
-bool ProjectApplication::MakeShader(std::string_view vertexShaderFilePath, std::string_view fragmentShaderFilePath)
-{
-    int success = false;
-    char log[1024] = {};
-    const auto vertexShaderSource = Slurp(vertexShaderFilePath);
-    const char* vertexShaderSourcePtr = vertexShaderSource.c_str();
-    const auto vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSourcePtr, nullptr);
-    glCompileShader(vertexShader);
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 1024, nullptr, log);
-        spdlog::error(log);
-        return false;
-    }
-
-    const auto fragmentShaderSource = Slurp(fragmentShaderFilePath);
-    const char* fragmentShaderSourcePtr = fragmentShaderSource.c_str();
-    const auto fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSourcePtr, nullptr);
-    glCompileShader(fragmentShader);
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 1024, nullptr, log);
-        spdlog::error(log);
-        return false;
-    }
-
-    _shaderProgram = glCreateProgram();
-    glAttachShader(_shaderProgram, vertexShader);
-    glAttachShader(_shaderProgram, fragmentShader);
-    glLinkProgram(_shaderProgram);
-    glGetProgramiv(_shaderProgram, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        glGetProgramInfoLog(_shaderProgram, 1024, nullptr, log);
-        spdlog::error(log);
-
-        return false;
-    }
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    return true;
 }

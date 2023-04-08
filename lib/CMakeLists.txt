@@ -80,6 +80,14 @@ target_compile_definitions(glm INTERFACE GLM_FORCE_SILENT_WARNINGS)
 
 #----------------------------------------------------------------------
 
+option(TINYGLTF_BUILD_LOADER_EXAMPLE "" OFF)
+FetchContent_Declare(
+    tinygltf
+    GIT_REPOSITORY https://github.com/syoyo/tinygltf.git
+    GIT_TAG        544969b7324cd6bba29f6203c7d78c7ea92dbab0
+)
+
+
 FetchContent_Declare(
     cgltf
     GIT_REPOSITORY  https://github.com/jkuhlmann/cgltf.git

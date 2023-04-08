@@ -9,6 +9,10 @@ public:
     void Run();
 
 protected:
+
+    static constexpr int windowWidth = 1600;
+    static constexpr int windowHeight = 900;
+
     void Close();
     bool IsKeyPressed(int32_t key);
     virtual void AfterCreatedUiContext();

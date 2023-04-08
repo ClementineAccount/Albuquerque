@@ -8,19 +8,14 @@ target_include_directories(fwog PUBLIC include)
 
 set(sourceFiles
     Main.cpp
-    MeshLoading.cpp
     ProjectApplication.cpp
 )
-set(headerFiles
-    include/Project/ProjectApplication.hpp
-    include/MeshLoading.h
 
-)
 
 add_executable(Project ${sourceFiles} ${headerFiles})
 add_dependencies(Project copy_data)
 
 
 target_include_directories(Project PRIVATE include)
-target_include_directories(Project.Library PUBLIC include)
+target_include_directories(Project.Library PUBLIC ${tinygltf_SOURCE_DIR} include)
 target_link_libraries(Project PRIVATE glad glfw imgui glm cgltf stb_image spdlog fwog Project.Library)
