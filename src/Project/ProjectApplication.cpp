@@ -137,6 +137,50 @@ static Fwog::GraphicsPipeline CreatePipelineLines()
 }
 
 
+static Fwog::GraphicsPipeline CreatePipelineTextured()
+{
+    // Specify our two vertex attributes: position and color.
+    // Positions are 3x float, so we will use R32G32B32_FLOAT like we would in Vulkan.
+    static constexpr auto sceneInputBindingDescs = std::array{
+      Fwog::VertexInputBindingDescription{
+            // color
+            .location = 0,
+            .binding = 0,
+            .format = Fwog::Format::R32G32B32_FLOAT,
+            .offset = offsetof(Primitives::Vertex, position),
+          },
+          Fwog::VertexInputBindingDescription{
+            // normal
+            .location = 1,
+            .binding = 0,
+            .format = Fwog::Format::R32G32B32_FLOAT,
+            .offset = offsetof(Primitives::Vertex, normal),
+          },
+          Fwog::VertexInputBindingDescription{
+            // texcoord
+            .location = 2,
+            .binding = 0,
+            .format = Fwog::Format::R32G32_FLOAT,
+            .offset = offsetof(Primitives::Vertex, uv),
+          },
+    };
+
+    auto inputDescs = sceneInputBindingDescs;
+    auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::TRIANGLE_LIST };
+
+    auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, ProjectApplication::LoadFile(vert_shader_path));
+    auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_texture_shader_path));
+
+    return Fwog::GraphicsPipeline{ {
+      .vertexShader = &vertexShader,
+      .fragmentShader = &fragmentShader,
+      .inputAssemblyState = primDescs,
+      .vertexInputState = {inputDescs},
+      .depthState = {.depthTestEnable = true, .depthWriteEnable = true, .depthCompareOp = Fwog::CompareOp::LESS},
+    } };
+}
+
+
 void ProjectApplication::AfterCreatedUiContext()
 {
 
@@ -151,37 +195,73 @@ void ProjectApplication::BeforeDestroyUiContext()
 
 bool ProjectApplication::Load()
 {
-    pipeline = CreatePipeline();
+    //Creating pipelines
+
+    pipeline_flat = CreatePipeline();
     pipeline_lines = CreatePipelineLines();
+    pipeline_textured = CreatePipelineTextured();
 
-    glm::vec3 worldUpFinal = worldOrigin + (worldUp)*axisScale;
-    glm::vec3 worldForwardFinal = worldOrigin + (worldForward)*axisScale;
-    glm::vec3 worldRightFinal = worldOrigin + (worldRight)*axisScale;
-
-
-    std::array<glm::vec3, num_points_world_axis> axisPos{ worldOrigin, worldUpFinal, worldOrigin, worldForwardFinal, worldOrigin, worldRightFinal };
-    std::array<glm::vec3, num_points_world_axis> axisColors{ worldUpColor,
-                                        worldUpColor,
-                                        worldForwardColor,
-                                        worldForwardColor,
-                                        worldRightcolor,
-                                        worldRightcolor };
-
-    vertex_buffer_pos_line = Fwog::TypedBuffer<glm::vec3>(axisPos);
-    vertex_buffer_color_line = Fwog::TypedBuffer<glm::vec3>(axisColors);
+    //Creating world axis stuff
+    {
+        glm::vec3 worldUpFinal = worldOrigin + (worldUp)*axisScale;
+        glm::vec3 worldForwardFinal = worldOrigin + (worldForward)*axisScale;
+        glm::vec3 worldRightFinal = worldOrigin + (worldRight)*axisScale;
 
 
-    static glm::vec3 camPos = glm::vec3(3.0f, 3.0f, 3.0f);
-    static glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
-    static glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-    static glm::mat4 view = glm::lookAt(camPos, origin, up);
-    static glm::mat4 proj = glm::perspective(PI / 2.0f, 1.6f, nearPlane, farPlane);
+        std::array<glm::vec3, num_points_world_axis> axisPos{ worldOrigin, worldUpFinal, worldOrigin, worldForwardFinal, worldOrigin, worldRightFinal };
+        std::array<glm::vec3, num_points_world_axis> axisColors{ worldUpColor,
+                                            worldUpColor,
+                                            worldForwardColor,
+                                            worldForwardColor,
+                                            worldRightcolor,
+                                            worldRightcolor };
 
-    static glm::mat4 viewProj = proj * view;
+        vertex_buffer_pos_line = Fwog::TypedBuffer<glm::vec3>(axisPos);
+        vertex_buffer_color_line = Fwog::TypedBuffer<glm::vec3>(axisColors);
+    }
 
-    globalUniformsBuffer = Fwog::TypedBuffer<GlobalUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-    globalUniformsBuffer.value().SubData(viewProj, 0);
-    
+    //Camera Settings
+    {
+        static glm::vec3 camPos = glm::vec3(3.0f, 3.0f, 3.0f);
+        static glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
+        static glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+        static glm::mat4 view = glm::lookAt(camPos, origin, up);
+        static glm::mat4 proj = glm::perspective(PI / 2.0f, 1.6f, nearPlane, farPlane);
+        static glm::mat4 viewProj = proj * view;
+        globalUniformsBuffer = Fwog::TypedBuffer<GlobalUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+        globalUniformsBuffer.value().SubData(viewProj, 0);
+    }
+
+
+    //Creating ground plane
+    {
+        //to do: better texture loading systems. this can break so easily and its jank as hell
+        int32_t textureWidth, textureHeight, textureChannels;
+        constexpr int32_t expected_num_channels = 4;
+        unsigned char* textureData = stbi_load("data/textures/GroundForest003_Flat.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
+        assert(textureData);
+        groundAlbedo = Fwog::CreateTexture2D({ static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight) }, Fwog::Format::R8G8B8A8_SRGB);
+        Fwog::TextureUpdateInfo updateInfo{ .dimension = Fwog::UploadDimension::TWO,
+                                           .level = 0,
+                                           .offset = {},
+                                           .size = {static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight), 1},
+                                           .format = Fwog::UploadFormat::RGBA,
+                                           .type = Fwog::UploadType::UBYTE,
+                                           .pixels = textureData };
+        groundAlbedo.value().SubImage(updateInfo);
+        stbi_image_free(textureData);
+
+        glm::mat4 modelPlane = glm::mat4(1.0f);
+        modelPlane = glm::scale(modelPlane, planeScale);
+        ObjectUniforms planeUniform;
+        planeUniform.model = modelPlane;
+        objectBufferPlane = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+        objectBufferPlane.value().SubData(planeUniform, 0);
+
+        vertex_buffer_plane.emplace(Primitives::plane_vertices);
+        index_buffer_plane.emplace(Primitives::plane_indices);
+    }
+
     return true;
 }
 
@@ -209,11 +289,33 @@ void ProjectApplication::RenderScene()
       .clearDepthValue = 1.0f
         });
 
-    Fwog::Cmd::BindGraphicsPipeline(pipeline_lines.value());
-    Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-    Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_pos_line.value(), 0, 3 * sizeof(float));
-    Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_color_line.value(), 0, 3 * sizeof(float));
-    Fwog::Cmd::Draw(num_points_world_axis, 1, 0, 0);
+
+    //Drawing a plane
+    {
+        Fwog::SamplerState ss;
+        ss.minFilter = Fwog::Filter::LINEAR;
+        ss.magFilter = Fwog::Filter::LINEAR;
+        ss.addressModeU = Fwog::AddressMode::REPEAT;
+        ss.addressModeV = Fwog::AddressMode::REPEAT;
+        auto nearestSampler = Fwog::Sampler(ss);
+
+        Fwog::Cmd::BindGraphicsPipeline(pipeline_textured.value());
+        Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+        Fwog::Cmd::BindUniformBuffer(1, objectBufferPlane.value());
+        Fwog::Cmd::BindSampledImage(0, groundAlbedo.value(), nearestSampler);
+        Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0, sizeof(Primitives::Vertex));
+        Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(), Fwog::IndexType::UNSIGNED_SHORT);
+        Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
+    }
+
+    //Drawing axis lines
+    {
+        Fwog::Cmd::BindGraphicsPipeline(pipeline_lines.value());
+        Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+        Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_pos_line.value(), 0, 3 * sizeof(float));
+        Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_color_line.value(), 0, 3 * sizeof(float));
+        Fwog::Cmd::Draw(num_points_world_axis, 1, 0, 0);
+    }
 
     Fwog::EndRendering();
 }
@@ -225,7 +327,7 @@ void ProjectApplication::RenderUI(double dt)
 
     ImGui::Begin("Window");
     {
-        ImGui::TextUnformatted("Hello F!");
+
         ImGui::Text("Framerate: %.0f Hertz", 1 / dt);
         ImGui::End();
     }

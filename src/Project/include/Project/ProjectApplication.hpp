@@ -133,7 +133,10 @@ private:
     uint32_t _shaderProgram;
     
     std::optional<Fwog::GraphicsPipeline> pipeline_lines;
-    std::optional<Fwog::GraphicsPipeline> pipeline;
+    std::optional<Fwog::GraphicsPipeline> pipeline_textured;
+
+    //default for untextured triangles
+    std::optional<Fwog::GraphicsPipeline> pipeline_flat;
 
     static constexpr float axisScale = 1000.0f;
     static constexpr float PI = 3.1415926f;
@@ -153,17 +156,30 @@ private:
     std::optional<Fwog::Buffer> vertex_buffer_pos_line;
     std::optional<Fwog::Buffer> vertex_buffer_color_line;
 
+
     static constexpr float nearPlane = 0.01f;
     static constexpr float farPlane = 1000.0f;
 
     static constexpr glm::vec3 skyColorDefault{ 0.1f, 0.3f, 0.5f };
-    glm::vec3 skyColor{ 1.0f, 0.3f, 0.5f };
+    glm::vec3 skyColor{ skyColorDefault };
 
     struct GlobalUniforms
     {
         glm::mat4 viewProj;
     };
-
-
     std::optional<Fwog::TypedBuffer<GlobalUniforms>> globalUniformsBuffer;
+
+    struct ObjectUniforms
+    {
+        glm::mat4 model;
+        glm::vec4 color;
+    };
+
+    //Could these live in the same data?
+    static constexpr glm::vec3 planeScale = glm::vec3(1000.0f, 1.0f, 1000.0f);
+    std::optional<Fwog::Buffer> vertex_buffer_plane;
+    std::optional<Fwog::Buffer> index_buffer_plane;
+    std::optional<Fwog::Texture> groundAlbedo;
+    std::optional<Fwog::Buffer> objectBufferPlane;
+
 };
