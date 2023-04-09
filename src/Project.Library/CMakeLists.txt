@@ -20,7 +20,6 @@ target_include_directories(imgui PUBLIC include)
 target_include_directories(spdlog PUBLIC include)
 target_include_directories(Project.Library PRIVATE include)
 
-
-target_link_libraries(Project.Library PRIVATE  glfw glad glm TracyClient spdlog imgui fwog)
+target_link_libraries(Project.Library PRIVATE glfw glad glm TracyClient spdlog imgui fwog)
 
 

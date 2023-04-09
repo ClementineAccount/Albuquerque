@@ -1,6 +1,16 @@
 include(FetchContent)
 
 #----------------------------------------------------------------------
+# Include Jolt
+FetchContent_Declare(
+        JoltPhysics
+        GIT_REPOSITORY "https://github.com/ClementineAccount/JoltPhysics"
+        GIT_TAG "a9255306ac797de61b137510c4340fd36f02c268"
+		SOURCE_SUBDIR "Build"
+)
+
+FetchContent_MakeAvailable(JoltPhysics)
+message("Fetching JoltPhysics")
 
 FetchContent_Declare(
     spdlog
@@ -86,6 +96,7 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/syoyo/tinygltf.git
     GIT_TAG        544969b7324cd6bba29f6203c7d78c7ea92dbab0
 )
+message("Fetching tinygltf")
 FetchContent_MakeAvailable(tinygltf)
 
 FetchContent_Declare(
@@ -111,8 +122,10 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/JuanDiegoMontoya/Fwog.git
     GIT_TAG        b7843e3a2f6eb7bc8c6849fb7092b07db8c3f005
 )
-
+message("Fetching fwog")
 FetchContent_MakeAvailable(fwog)
+
+
 
 #----------------------------------------------------------------------
 

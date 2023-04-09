@@ -26,6 +26,10 @@
 #include <set>
 #include <array>
 
+#include <Jolt/Jolt.h>
+#include <Jolt/Core/Factory.h>
+#include <Jolt/RegisterTypes.h>
+
 static std::string Slurp(std::string_view path)
 {
     std::ifstream file(path.data(), std::ios::ate);
@@ -189,6 +193,16 @@ void ProjectApplication::BeforeDestroyUiContext()
 
 bool ProjectApplication::Load()
 {
+    //Testing JPH stuff
+
+    // Register allocation hook
+    JPH::RegisterDefaultAllocator();
+
+    // Create a factory
+    JPH::Factory::sInstance = new JPH::Factory();
+
+    JPH::RegisterTypes();
+
     //Creating pipelines
 
     pipeline_flat = CreatePipeline();
