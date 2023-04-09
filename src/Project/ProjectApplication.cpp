@@ -1,10 +1,6 @@
-//#define CGLTF_IMPLEMENTATION
-//#include <cgltf.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-#include <Project/ProjectApplication.hpp>
-
+#include "stb_image.h"
+#include "ProjectApplication.hpp"
+#include "SceneLoader.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -12,7 +8,6 @@
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/mat4x4.hpp>
-
 #include <spdlog/spdlog.h>
 
 #include <Fwog/BasicTypes.h>
@@ -20,7 +15,6 @@
 #include <Fwog/Pipeline.h>
 #include <Fwog/Rendering.h>
 #include <Fwog/Shader.h>
-
 
 #include <unordered_map>
 #include <filesystem>
@@ -262,6 +256,24 @@ bool ProjectApplication::Load()
         index_buffer_plane.emplace(Primitives::plane_indices);
     }
 
+    //Creating the car
+    {
+        Utility::LoadModelFromFile(scene_car, "data/models/Car_BodyOnly.glb", glm::mat4{ 1.0f }, true);
+        ObjectUniforms carUniform;
+        carUniform.model = glm::mat4(1.0f);
+        carUniform.color = carColor;
+        objectBufferCar = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+        objectBufferCar.value().SubData(carUniform, 0);
+
+        Utility::LoadModelFromFile(scene_wheels, "data/models/Car_WheelsOnly.glb", glm::mat4{ 1.0f }, true);
+        ObjectUniforms wheelUniform;
+        wheelUniform.model = glm::mat4(1.0f);
+        wheelUniform.color = wheelColor;
+
+        objectBufferWheels = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+        objectBufferWheels.value().SubData(wheelUniform, 0);
+    }
+
     return true;
 }
 
@@ -306,6 +318,21 @@ void ProjectApplication::RenderScene()
         Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0, sizeof(Primitives::Vertex));
         Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(), Fwog::IndexType::UNSIGNED_SHORT);
         Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
+    }
+
+    //Drawing a car + wheels
+    {
+        Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
+        Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+        Fwog::Cmd::BindUniformBuffer(1, objectBufferCar.value());
+        Fwog::Cmd::BindVertexBuffer(0, scene_car.meshes[0].vertexBuffer, 0, sizeof(Utility::Vertex));
+        Fwog::Cmd::BindIndexBuffer(scene_car.meshes[0].indexBuffer, Fwog::IndexType::UNSIGNED_INT);
+        Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_car.meshes[0].indexBuffer.Size()) / sizeof(uint32_t), 1, 0, 0, 0);
+
+        Fwog::Cmd::BindUniformBuffer(1, objectBufferWheels.value());
+        Fwog::Cmd::BindVertexBuffer(0, scene_wheels.meshes[0].vertexBuffer, 0, sizeof(Utility::Vertex));
+        Fwog::Cmd::BindIndexBuffer(scene_wheels.meshes[0].indexBuffer, Fwog::IndexType::UNSIGNED_INT);
+        Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_wheels.meshes[0].indexBuffer.Size()) / sizeof(uint32_t), 1, 0, 0, 0);
     }
 
     //Drawing axis lines

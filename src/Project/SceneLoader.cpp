@@ -3,6 +3,11 @@
 #include <bit>
 #include <numeric>
 #include <execution>
+#include "SceneLoader.h"
+#include <iostream>
+#include <bit>
+#include <numeric>
+#include <execution>
 #include <stack>
 #include <tuple>
 #include <optional>
@@ -13,9 +18,7 @@
 #include <glm/gtx/transform.hpp>
 
 #include FWOG_OPENGL_HEADER
-
 //#include <glm/gtx/string_cast.hpp>
-
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -28,7 +31,6 @@
 //#define TINYGLTF_NO_EXTERNAL_IMAGE
 #define TINYGLTF_USE_CPP14
 #include <tiny_gltf.h>
-
 namespace Utility
 {
   namespace // helpers

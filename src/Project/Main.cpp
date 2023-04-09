@@ -1,4 +1,4 @@
-#include <Project/ProjectApplication.hpp>
+#include <ProjectApplication.hpp>
 
 int main(int argc, char* argv[])
 {
