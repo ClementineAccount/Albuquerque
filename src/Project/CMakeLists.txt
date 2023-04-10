@@ -10,6 +10,10 @@ target_include_directories(imgui PUBLIC include)
 target_include_directories(spdlog PUBLIC include)
 target_include_directories(fwog PUBLIC include)
 
+add_library(soloud STATIC IMPORTED)
+set_target_properties(soloud PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/soloud_static.lib)
+set_target_properties(soloud PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/include)
+
 set(sourceFiles
     Main.cpp
     SceneLoader.cpp
@@ -22,11 +26,11 @@ set(headerFiles
     )
 
 add_executable(Project ${sourceFiles} ${headerFiles})
-
-
 add_dependencies(Project copy_data)
+
 
 target_include_directories(Project PRIVATE ${JoltPhysics_SOURCE_DIR}/.. include)
 target_include_directories(Project.Library PUBLIC ${JoltPhysics_SOURCE_DIR}/.. include)
-target_link_libraries(Project PRIVATE glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Project.Library)
+
+target_link_libraries(Project PRIVATE soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Project.Library)
 target_link_libraries(Project PRIVATE Jolt)

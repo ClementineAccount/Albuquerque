@@ -30,6 +30,9 @@
 #include <Jolt/Core/Factory.h>
 #include <Jolt/RegisterTypes.h>
 
+#include <soloud/soloud.h>
+#include <soloud/soloud_wav.h>
+
 static std::string Slurp(std::string_view path)
 {
     std::ifstream file(path.data(), std::ios::ate);
@@ -193,6 +196,14 @@ void ProjectApplication::BeforeDestroyUiContext()
 
 bool ProjectApplication::Load()
 {
+
+    // Initialize SoLoud (automatic back-end selection)
+    SoLoud::result init = soloud.init();
+
+    SoLoud::result res = sample.load("data/sounds/start.wav"); // Load a wave file
+
+
+
     //Testing JPH stuff
 
     // Register allocation hook
@@ -297,6 +308,11 @@ void ProjectApplication::Update(double dt)
     {
         Close();
     }
+
+    if (IsKeyPressed(GLFW_KEY_SPACE))
+    {
+        soloud.play(sample);        // Play it
+    }
 }
 
 
@@ -368,8 +384,12 @@ void ProjectApplication::RenderUI(double dt)
 
     ImGui::Begin("Window");
     {
-
         ImGui::Text("Framerate: %.0f Hertz", 1 / dt);
         ImGui::End();
     }
+}
+
+ProjectApplication::~ProjectApplication()
+{
+    soloud.deinit();
 }

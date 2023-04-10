@@ -20,6 +20,10 @@
 
 #include "SceneLoader.h"
 
+
+#include <soloud/soloud.h>
+#include <soloud/soloud_wav.h>
+
 namespace Primitives
 {
     struct Vertex
@@ -115,6 +119,7 @@ class ProjectApplication final : public Application
 {
 public:
     static std::string LoadFile(std::string_view path);
+    ~ProjectApplication();
 
 protected:
     void AfterCreatedUiContext() override;
@@ -203,4 +208,10 @@ private:
 
     std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferCar;
     std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferWheels;
+
+
+    // Declare some variables
+    SoLoud::Soloud soloud; // Engine core
+    SoLoud::Wav sample;    // One sample
+
 };
