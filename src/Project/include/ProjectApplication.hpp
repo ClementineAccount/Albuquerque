@@ -204,6 +204,10 @@ private:
     glm::vec3 carForward{ worldForward };
     glm::vec3 carPos{ 0.0f, 0.0f, 0.0f };
 
+    static constexpr glm::vec3 cameraOffset = glm::vec3(0.0f, 10.0f, -12.0f);
+    static constexpr glm::vec3 cameraOffsetTarget = glm::vec3(0.0f, 10.0f, 0.0f);
+
+
     //For loading the car from gltf file. Car and wheels as separate models (gotta implement some kind of skinned hirerarchy stuff otherwise)
     Utility::Scene scene_car;
     Utility::Scene scene_wheels;

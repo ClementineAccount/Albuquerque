@@ -6,6 +6,8 @@
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/mat4x4.hpp>
 #include <spdlog/spdlog.h>
@@ -318,6 +320,9 @@ bool ProjectApplication::Load()
     return true;
 }
 
+
+
+
 void ProjectApplication::Update(double dt)
 {
     if (IsKeyPressed(GLFW_KEY_ESCAPE))
@@ -328,6 +333,69 @@ void ProjectApplication::Update(double dt)
     if (IsKeyPressed(GLFW_KEY_SPACE))
     {
         soloud.play(sample);        // Play it
+    }
+
+    //Car Inputs
+    {
+        float dt_float = static_cast<float>(dt);
+        float zoom_speed_level = 1.0f;
+
+        if (IsKeyPressed(GLFW_KEY_UP))
+        {
+            zoom_speed_level = 1.05f;
+            if (IsKeyPressed(GLFW_KEY_LEFT))
+            {
+                car_angle_degrees += car_angle_turning_degrees * dt_float;
+                carForward = glm::vec3(glm::sin(glm::radians(car_angle_degrees)), 0.0f, glm::cos(glm::radians(car_angle_degrees)));
+            }
+
+            if (IsKeyPressed(GLFW_KEY_RIGHT))
+            {
+                car_angle_degrees += -car_angle_turning_degrees * dt_float;
+                carForward = glm::vec3(glm::sin(glm::radians(car_angle_degrees)), 0.0f, glm::cos(glm::radians(car_angle_degrees)));
+            }
+            carPos += carForward * car_speed_scale * dt_float;
+        }
+        if (IsKeyPressed(GLFW_KEY_DOWN))
+        {
+            if (IsKeyPressed(GLFW_KEY_RIGHT) == GLFW_PRESS)
+            {
+                car_angle_degrees += car_angle_turning_degrees * dt_float;
+                carForward = glm::vec3(glm::sin(glm::radians(car_angle_degrees)), 0.0f, glm::cos(glm::radians(car_angle_degrees)));
+            }
+
+            if (IsKeyPressed(GLFW_KEY_LEFT) == GLFW_PRESS)
+            {
+                car_angle_degrees += -car_angle_turning_degrees * dt_float;
+                carForward = glm::vec3(glm::sin(glm::radians(car_angle_degrees)), 0.0f, glm::cos(glm::radians(car_angle_degrees)));
+            }
+
+            carPos -= carForward * car_speed_scale_reverse * dt_float;
+        }
+
+
+        //carCollider.pos = carPos;
+
+        glm::mat4 model(1.0f);
+        model = glm::translate(model, carPos);
+        model = glm::rotate(model, glm::radians(car_angle_degrees), worldUp);
+
+        ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
+        ObjectUniforms b(model, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
+
+        objectBufferWheels.value().SubData(b, 0);
+        objectBufferCar.value().SubData(a, 0);
+
+        //Camera logic stuff
+
+        glm::vec3 camPos = carPos - carForward * 15.0f + cameraOffsetTarget;
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+        glm::mat4 view = glm::lookAt(camPos, carPos + cameraOffsetTarget, up);
+
+        //we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
+        glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
+        glm::mat4 viewProj = proj * view;
+        globalUniformsBuffer.value().SubData(viewProj, 0);
     }
 }
 
