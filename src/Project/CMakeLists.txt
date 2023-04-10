@@ -21,6 +21,14 @@ set_target_properties(freetype PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOUR
 set_target_properties(freetype PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/freetype/include)
 
 
+
+message("(Project) add_library lua")
+add_library(lua54 STATIC IMPORTED)
+set_target_properties(lua54 PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/lua/lua54.lib)
+set_target_properties(lua54 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/lua/include)
+
+
+
 set(sourceFiles
     Main.cpp
     SceneLoader.cpp
@@ -39,5 +47,5 @@ add_dependencies(Project copy_data)
 target_include_directories(Project PRIVATE ${JoltPhysics_SOURCE_DIR}/.. include)
 target_include_directories(Project.Library PUBLIC ${JoltPhysics_SOURCE_DIR}/.. include)
 
-target_link_libraries(Project PRIVATE freetype soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Project.Library)
+target_link_libraries(Project PRIVATE lua54 freetype soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Project.Library)
 target_link_libraries(Project PRIVATE Jolt)

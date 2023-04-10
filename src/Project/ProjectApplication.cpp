@@ -25,6 +25,7 @@
 #include <queue>
 #include <set>
 #include <array>
+#include <iostream>
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Core/Factory.h>
@@ -35,6 +36,13 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+
+
+extern "C" {
+#include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
+}
 
 
 static std::string Slurp(std::string_view path)
@@ -197,9 +205,9 @@ void ProjectApplication::BeforeDestroyUiContext()
 }
 
 
-
 bool ProjectApplication::Load()
 {
+
 
     // Initialize SoLoud (automatic back-end selection)
     SoLoud::result init = soloud.init();
