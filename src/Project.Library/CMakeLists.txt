@@ -21,8 +21,8 @@ target_include_directories(imgui PUBLIC include)
 target_include_directories(spdlog PUBLIC include)
 
 add_library(soloud STATIC IMPORTED)
-set_target_properties(soloud PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/soloud_static.lib)
-set_target_properties(soloud PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/include)
+set_target_properties(soloud PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/soloud/soloud_static.lib)
+set_target_properties(soloud PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/soloud/include)
 
 target_include_directories(Project.Library PRIVATE include)
 
