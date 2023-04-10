@@ -33,6 +33,10 @@
 #include <soloud/soloud.h>
 #include <soloud/soloud_wav.h>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+
 static std::string Slurp(std::string_view path)
 {
     std::ifstream file(path.data(), std::ios::ate);
@@ -202,8 +206,12 @@ bool ProjectApplication::Load()
 
     SoLoud::result res = sample.load("data/sounds/start.wav"); // Load a wave file
 
-
-
+    FT_Library  library;
+    FT_Error error = FT_Init_FreeType(&library);
+    if (error)
+    {
+        
+    }
     //Testing JPH stuff
 
     // Register allocation hook
