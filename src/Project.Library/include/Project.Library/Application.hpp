@@ -9,6 +9,11 @@ public:
     void Run();
 
 protected:
+
+    static constexpr int windowWidth = 1600;
+    static constexpr int windowHeight = 900;
+   
+
     void Close();
     bool IsKeyPressed(int32_t key);
     virtual void AfterCreatedUiContext();
@@ -17,10 +22,11 @@ protected:
     virtual bool Load();
     virtual void Unload();
     virtual void RenderScene();
-    virtual void RenderUI();
-    virtual void Update();
+    virtual void RenderUI(double dt);
+    virtual void Update(double dt);
+
 
 private:
     GLFWwindow* _windowHandle = nullptr;
-    void Render();
+    void Render(double dt);
 };

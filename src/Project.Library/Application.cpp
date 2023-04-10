@@ -13,6 +13,10 @@
 #include <iostream>
 #include <string>
 
+#include <Fwog/Context.h>
+#include <Fwog/DebugMarker.h>
+
+
 void Application::Run()
 {
     FrameMarkStart("App Run");
@@ -30,11 +34,17 @@ void Application::Run()
 
     spdlog::info("App: Loaded");
 
+    double prevFrame = glfwGetTime();
     while (!glfwWindowShouldClose(_windowHandle))
     {
+        double curFrame = glfwGetTime();
+        double dt = curFrame - prevFrame;
+        prevFrame = curFrame;
+
+
         glfwPollEvents();
-        Update();
-        Render();
+        Update(dt);
+        Render(dt);
     }
 
     spdlog::info("App: Unloading");
@@ -74,8 +84,7 @@ bool Application::Initialize()
     const auto primaryMonitor = glfwGetPrimaryMonitor();
     const auto primaryMonitorVideoMode = glfwGetVideoMode(primaryMonitor);
 
-    constexpr int windowWidth = 1920;
-    constexpr int windowHeight = 1080;
+
 
     _windowHandle = glfwCreateWindow(windowWidth, windowHeight, "Project Template", nullptr, nullptr);
     if (_windowHandle == nullptr)
@@ -91,6 +100,8 @@ bool Application::Initialize()
 
     glfwMakeContextCurrent(_windowHandle);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+
+    Fwog::Initialize();
 
     ImGui::CreateContext();
     AfterCreatedUiContext();
@@ -135,8 +146,9 @@ void Application::Unload()
     glfwTerminate();
 }
 
-void Application::Render()
+void Application::Render(double dt)
 {
+    glEnable(GL_FRAMEBUFFER_SRGB);
     ZoneScopedC(tracy::Color::Red2);
 
     RenderScene();
@@ -144,7 +156,7 @@ void Application::Render()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     {
-        RenderUI();
+        RenderUI(dt);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         ImGui::EndFrame();
@@ -157,11 +169,11 @@ void Application::RenderScene()
 {
 }
 
-void Application::RenderUI()
+void Application::RenderUI(double dt)
 {
 }
 
-void Application::Update()
+void Application::Update(double dt)
 {
 }
 

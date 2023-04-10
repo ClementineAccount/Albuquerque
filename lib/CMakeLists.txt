@@ -1,6 +1,16 @@
 include(FetchContent)
 
 #----------------------------------------------------------------------
+# Include Jolt
+FetchContent_Declare(
+        JoltPhysics
+        GIT_REPOSITORY "https://github.com/ClementineAccount/JoltPhysics"
+        GIT_TAG "a9255306ac797de61b137510c4340fd36f02c268"
+		SOURCE_SUBDIR "Build"
+)
+
+FetchContent_MakeAvailable(JoltPhysics)
+message("Fetching JoltPhysics")
 
 FetchContent_Declare(
     spdlog
@@ -80,6 +90,15 @@ target_compile_definitions(glm INTERFACE GLM_FORCE_SILENT_WARNINGS)
 
 #----------------------------------------------------------------------
 
+option(TINYGLTF_BUILD_LOADER_EXAMPLE "" OFF)
+FetchContent_Declare(
+    tinygltf
+    GIT_REPOSITORY https://github.com/syoyo/tinygltf.git
+    GIT_TAG        544969b7324cd6bba29f6203c7d78c7ea92dbab0
+)
+message("Fetching tinygltf")
+FetchContent_MakeAvailable(tinygltf)
+
 FetchContent_Declare(
     cgltf
     GIT_REPOSITORY  https://github.com/jkuhlmann/cgltf.git
@@ -100,11 +119,13 @@ endif()
 set(FWOG_BUILD_EXAMPLES false)
 FetchContent_Declare(
     fwog
-    GIT_REPOSITORY https://github.com/ClementineAccount/Fwog.git
-    GIT_TAG        ecd4c31ec9b0f97c2e2b2b898d99b8d18dde498c
+    GIT_REPOSITORY https://github.com/JuanDiegoMontoya/Fwog.git
+    GIT_TAG        b7843e3a2f6eb7bc8c6849fb7092b07db8c3f005
 )
-
+message("Fetching fwog")
 FetchContent_MakeAvailable(fwog)
+
+
 
 #----------------------------------------------------------------------
 
