@@ -1,1 +1,5 @@
-My beginner NIH Engine based off Deccer's template. I just do whatever I want here and will fill this later when I actually figure out what I am trying to accomplish.
+To Do: Fill this up with more details later
+
+Currently used for a driving game I am working on:
+Uploading 2023-04-08 13-57-47.mp4…
+
