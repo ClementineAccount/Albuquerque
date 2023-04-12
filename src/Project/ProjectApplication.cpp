@@ -29,22 +29,31 @@
 #include <array>
 #include <iostream>
 
-#include <Jolt/Jolt.h>
-#include <Jolt/Core/Factory.h>
-#include <Jolt/RegisterTypes.h>
+#include <cstdarg>
+#include <thread>
+
 
 #include <soloud/soloud.h>
 #include <soloud/soloud_wav.h>
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
+// Jolt includes
+
+#include <Jolt/Jolt.h>
 
 
-extern "C" {
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
-}
+#include <Jolt/RegisterTypes.h>
+#include <Jolt/Core/Factory.h>
+#include <Jolt/Core/TempAllocator.h>
+#include <Jolt/Core/JobSystem.h>
+#include <Jolt/Core/JobSystemThreadPool.h>
+#include <Jolt/Physics/PhysicsSettings.h>
+#include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Body/BodyActivationListener.h>
+
+#include <Jolt/Core/IssueReporting.h>
 
 
 static std::string Slurp(std::string_view path)
@@ -207,8 +216,86 @@ void ProjectApplication::BeforeDestroyUiContext()
 }
 
 
+static void MyTraceImpl(const char* inFMT, ...) {
+
+  constexpr uint32_t buffer_length = 1024;
+
+  va_list list;
+  va_start(list, inFMT);
+  char buffer[buffer_length];
+  vsnprintf(buffer, sizeof(buffer), inFMT, list);
+  va_end(list);
+
+  //spd will pick up this cout
+  std::cout << buffer << std::endl;
+}
+
+
+
+#ifdef JPH_ENABLE_ASSERTS
+
+// Callback for asserts, connect this to your own assert handler if you have one
+static bool MyAssertFailedImpl(const char *inExpression, const char *inMessage, const char *inFile, uint inLine)
+{ 
+	std::cout << inFile << ":" << inLine << ": (" << inExpression << ") " << (inMessage != nullptr? inMessage : "") << std::endl;
+
+	// Breakpoint
+	return true;
+};
+
+#endif // JPH_ENABLE_ASSERTS
+
+
+void MyBodyActivationListener::OnBodyActivated(const JPH::BodyID& inBodyID, uint64_t inBodyUserData)
+{
+	std::cout << "A body got activated" << std::endl;
+}
+
+void MyBodyActivationListener::OnBodyDeactivated(const JPH::BodyID& inBodyID, uint64_t inBodyUserData)
+{
+	std::cout << "A body went to sleep" << std::endl;
+}
+
+//Same as the HelloWorld.cpp example for JPH (https://github.com/jrouwe/JoltPhysics/blob/master/HelloWorld/HelloWorld.cpp)
+//Comments are similar
+void ProjectApplication::LoadJPH()
+{
+	// Register allocation hook
+	JPH::RegisterDefaultAllocator();
+	
+	JPH::Trace = MyTraceImpl;
+
+	JPH_IF_ENABLE_ASSERTS(JPH::AssertFailed = MyAssertFailedImpl;)
+
+	// Create a factory
+	JPH::Factory::sInstance = new JPH::Factory();
+
+	// Register all Jolt physics types
+	JPH::RegisterTypes();
+
+	// temp allocator for temporary allocations during the physics update. We're
+	// pre-allocating 10 MB to avoid having to do allocations during the physics update. 
+
+	constexpr uint32_t pre_temp_allocate_memory_size = 10 * 1024 * 1024;
+	JPH::TempAllocatorImpl temp_allocator(pre_temp_allocate_memory_size);
+
+	JPH::JobSystemThreadPool job_system(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, std::thread::hardware_concurrency() - 1);
+
+	//To Do: Move this to header file perhaps?
+	constexpr uint32_t kMaxBodies{65536};
+	constexpr uint32_t kNumBodyMutexes{0};
+	constexpr uint32_t kMaxBodyPairs{65536};
+	constexpr uint32_t kMaxContactConstraints{10240};
+
+
+}
+
 bool ProjectApplication::Load()
 {
+
+	LoadJPH();
+
+
 
 	// Initialize SoLoud (automatic back-end selection)
 	SoLoud::result init = soloud.init();
