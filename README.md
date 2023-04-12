@@ -1,16 +1,18 @@
-To Do: Fill this up with more details later
-
-Currently used for a driving game I am working on:
+Currently being developed with a driving game I am working on:
 ![image](https://user-images.githubusercontent.com/26779639/230844833-36683e8c-7033-4522-aa2b-71e276649bae.png)
 
+This project is a self-learning exercise in understanding and implementing the complexities of how to render seamless open world environments with presistent states (level editing features) in an optimized way. It is also an exercise in learning more complex vehicle physics simulation considerations. 
 
-"What are your current aims for the driving game?"
+In other words, the main learning outcomes of the project are:
+- Open World memory management 
+- P;ayer driven level editing tools (Similar to Trackmania)
+- Vehicle Physics Simulation for Gameplay (Arcadey vs Realistic Balance)
+- Terrarin Generation and Dynamic Skyboxes
 
+Therefore, these other requirements of the project are not given as high priority and uses third-party libraries as the scaffolding in current stage of development:
+- Collision Detection, Shapes and Physics Responses (Uses [JoltPhysics](https://github.com/jrouwe/JoltPhysics) however we do not use the Vehicle Controller)
+- Windowing, Context and Graphics API Abstraction (We use GLFW, GLAD and [Fwog](https://github.com/JuanDiegoMontoya/Fwog))
+- Audio (Uses [SoLoud](https://solhsa.com/soloud/))
+- Efficient .gltf file parsing and loading (Uses [tinygltf](https://github.com/syoyo/tinygltf)
 
-"
-The high level gameplay pitch is something like: "Trackmania x Death Stranding' where you have an open world to explore in a vehicle and can build tracks anywhere in that world.
-
-For this project part of it is that the OpenGL wrapper is developed by an online friend in a community I am active in so this was a project idea in order to test its use in a 'real game project'.  So a game without an engine. Making a game can also help me maybe make my own engine outside of a school project
-
-Another part is I wanted to develop two different skills: Making open world asset streaming and creating dynamic level editors from a user perspective. 
-I chose the context of an open world driving game because I like that genre of gaming and it has relatively simple game design. "
+Another third party library included is Lua as a potential scope for level editing may include more complex scriptable track elements or programmable AI racers but am undecided if its fully necessary yet.
