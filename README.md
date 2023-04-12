@@ -5,7 +5,7 @@ This project is a self-learning exercise in understanding and implementing the c
 
 In other words, the main learning outcomes of the project are:
 - Open World memory management 
-- P;ayer driven level editing tools (Similar to Trackmania)
+- Player driven level editing tools (Similar to Trackmania)
 - Vehicle Physics Simulation for Gameplay (Arcadey vs Realistic Balance)
 - Terrarin Generation and Dynamic Skyboxes
 
