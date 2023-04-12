@@ -13,6 +13,7 @@ Therefore, these other requirements of the project are not given as high priorit
 - Collision Detection, Shapes and Physics Responses (Uses [JoltPhysics](https://github.com/jrouwe/JoltPhysics) however we do not use the Vehicle Controller)
 - Windowing, Context and Graphics API Abstraction (We use GLFW, GLAD and [Fwog](https://github.com/JuanDiegoMontoya/Fwog))
 - Audio (Uses [SoLoud](https://solhsa.com/soloud/))
-- Efficient .gltf file parsing and loading (Uses [tinygltf](https://github.com/syoyo/tinygltf)
+- Efficient .gltf file parsing and loading (Uses [tinygltf](https://github.com/syoyo/tinygltf))
+- Dear Imgui for editor side UI. Might not implement a separate playerside UI. 
 
 Another third party library included is Lua as a potential scope for level editing may include more complex scriptable track elements or programmable AI racers but am undecided if its fully necessary yet.
