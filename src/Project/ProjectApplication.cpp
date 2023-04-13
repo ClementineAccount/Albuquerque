@@ -40,6 +40,9 @@
 
 #include <Jolt/Jolt.h>
 
+//(JPH_ASSERT needs this)
+using JPH::uint;
+using JPH::AssertLastParam;
 
 #include <Jolt/RegisterTypes.h>
 #include <Jolt/Core/Factory.h>
@@ -54,6 +57,9 @@
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 
 #include <Jolt/Core/IssueReporting.h>
+
+// If you want your code to compile using single or double precision write 0.0_r to get a Real value that compiles to double or float depending if JPH_DOUBLE_PRECISION is set or not.
+using namespace JPH::literals;
 
 
 static std::string Slurp(std::string_view path)
@@ -256,13 +262,13 @@ void MyBodyActivationListener::OnBodyDeactivated(const JPH::BodyID& inBodyID, ui
 	std::cout << "A body went to sleep" << std::endl;
 }
 
+
 //Same as the HelloWorld.cpp example for JPH (https://github.com/jrouwe/JoltPhysics/blob/master/HelloWorld/HelloWorld.cpp)
 //Comments are similar
 void ProjectApplication::LoadJPH()
 {
 	// Register allocation hook
 	JPH::RegisterDefaultAllocator();
-	
 	JPH::Trace = MyTraceImpl;
 
 	JPH_IF_ENABLE_ASSERTS(JPH::AssertFailed = MyAssertFailedImpl;)
@@ -275,11 +281,12 @@ void ProjectApplication::LoadJPH()
 
 	// temp allocator for temporary allocations during the physics update. We're
 	// pre-allocating 10 MB to avoid having to do allocations during the physics update. 
+	
+    constexpr uint32_t pre_temp_allocate_memory_size = 10 * 1024 * 1024;
 
-	constexpr uint32_t pre_temp_allocate_memory_size = 10 * 1024 * 1024;
-	JPH::TempAllocatorImpl temp_allocator(pre_temp_allocate_memory_size);
+	temp_allocator = std::make_unique<JPH::TempAllocatorImpl>(pre_temp_allocate_memory_size);
+    job_system = std::make_unique<JPH::JobSystemThreadPool>(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, std::thread::hardware_concurrency() - 1);
 
-	JPH::JobSystemThreadPool job_system(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, std::thread::hardware_concurrency() - 1);
 
 	//To Do: Move this to header file perhaps?
 	constexpr uint32_t kMaxBodies{65536};
@@ -287,7 +294,44 @@ void ProjectApplication::LoadJPH()
 	constexpr uint32_t kMaxBodyPairs{65536};
 	constexpr uint32_t kMaxContactConstraints{10240};
 
+	jph_physics_system = std::make_unique<JPH::PhysicsSystem>();
 
+	// Now we can create the actual physics system.
+        jph_physics_system.get()->Init(
+            kMaxBodies, kNumBodyMutexes, kMaxBodyPairs,
+            kMaxContactConstraints, 
+			broad_phase_layer_interface, object_vs_broadphase_layer_filter, object_vs_object_layer_filter);
+
+    jph_physics_system.get()->SetBodyActivationListener(&body_activation_listener);
+	jph_physics_system.get()->SetContactListener(&contact_listener);
+
+	body_interface = &jph_physics_system.get()->GetBodyInterface();
+
+    JPH::BoxShapeSettings floor_shape_settings(JPH::Vec3(100.0f, 1.0f, 100.0f));
+
+    // Create the shape
+    JPH::ShapeSettings::ShapeResult floor_shape_result = floor_shape_settings.Create();
+    JPH::ShapeRefC floor_shape = floor_shape_result.Get();  
+
+    // Create the settings for the body itself. Note that here you can also
+    // set other properties like the restitution / friction.
+    JPH::BodyCreationSettings floor_settings(
+        floor_shape, JPH::RVec3(0.0_r, -1.0_r, 0.0_r), JPH::Quat::sIdentity(), JPH::EMotionType::Static, PhysicsLayers::NON_MOVING);
+
+    // Create the actual rigid body
+    floor_body = body_interface->CreateBody(floor_settings);  // Note that if we run out of bodies this can
+
+	// Add it to the world
+    body_interface->AddBody(floor_body->GetID(), JPH::EActivation::DontActivate);
+
+	car_box_body = body_interface->CreateBody(JPH::BodyCreationSettings(new JPH::BoxShape(JPH::Vec3(20, 1, 1)), JPH::RVec3(0, 10, 0), JPH::Quat::sIdentity(),
+        JPH::EMotionType::Dynamic, PhysicsLayers::MOVING));
+    body_interface->AddBody(car_box_body->GetID(), JPH::EActivation::Activate);
+
+	test_box_body = body_interface->CreateBody(JPH::BodyCreationSettings(new JPH::BoxShape(JPH::Vec3(20, 1, 1)), JPH::RVec3(0, 10, 0),
+        JPH::Quat::sIdentity(), JPH::EMotionType::Dynamic,
+        PhysicsLayers::MOVING));
+    body_interface->AddBody(test_box_body->GetID(), JPH::EActivation::Activate);
 }
 
 bool ProjectApplication::Load()
@@ -398,6 +442,15 @@ bool ProjectApplication::Load()
 //}
 
 
+void ProjectApplication::UpdateJPH() 
+{
+	  const int cCollisionSteps = 1;
+	  const int cIntegrationSubSteps = 1;
+
+	  // Step the world
+      jph_physics_system->Update(kPhysicsDeltaTime, cCollisionSteps, cIntegrationSubSteps, temp_allocator.get(), job_system.get());
+}
+
 
 void ProjectApplication::Update(double dt)
 {
@@ -473,6 +526,8 @@ void ProjectApplication::Update(double dt)
 		glm::mat4 viewProj = proj * view;
 		globalUniformsBuffer.value().SubData(viewProj, 0);
 	}
+
+	UpdateJPH();
 }
 
 
@@ -549,8 +604,28 @@ void ProjectApplication::RenderUI(double dt)
 	}
 }
 
+void ProjectApplication::UnloadJPH() 
+{
+
+  body_interface->RemoveBody(car_box_body->GetID());
+  body_interface->DestroyBody(car_box_body->GetID());
+
+  // Remove and destroy the floor
+  body_interface->RemoveBody(floor_body->GetID());
+  body_interface->DestroyBody(floor_body->GetID());
+
+  JPH::UnregisterTypes();
+
+  // Destroy the factory
+  delete JPH::Factory::sInstance;
+  JPH::Factory::sInstance = nullptr;
+
+
+}
+
 ProjectApplication::~ProjectApplication()
 {
+    UnloadJPH();
 	soloud.stopAll();
 	soloud.deinit();
 }
