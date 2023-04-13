@@ -111,13 +111,13 @@ namespace Collision
         return (glm::dot(temp, temp)) < ((lhs.radius + rhs.radius) * (lhs.radius + rhs.radius));
     }
 
-    struct boxCollider 
+    struct AABB 
     {
       glm::vec3 halfExtents{1.0f, 1.0f, 1.0f};
       glm::vec3 center{0.0f, 0.0f, 0.0f};
     };
 
-    static bool boxCollisionCheck(boxCollider const& lhs, boxCollider const& rhs) 
+    static bool AABBCollisionCheck(AABB const& lhs, AABB const& rhs) 
     {
       if (abs(lhs.center.x - rhs.center.x) >
           (lhs.halfExtents.x + rhs.halfExtents.y))
@@ -153,7 +153,8 @@ protected:
 private:
 
 //Adds the line to the specified buffer that is then draw I need to find a better name for this tbh
- void AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB,  glm::vec3 color);
+ void AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color);
+ void DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor);
 
 private:
     
@@ -252,5 +253,5 @@ private:
     std::optional<Fwog::Buffer> vertex_buffer_collision_lines;
     std::optional<Fwog::Buffer> vertex_buffer_collision_colors;
 
-    Collision::boxCollider car_box_collider;
+    Collision::AABB car_box_collider;
 };

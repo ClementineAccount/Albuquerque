@@ -196,6 +196,48 @@ void ProjectApplication::AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm:
   curr_num_collision_points += 2;
 }
 
+
+void ProjectApplication::DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor)
+{
+	//It is ok to recalculate face points from the extents despite performance cost because this draw function is optional
+
+	//back : negative z-axis
+	//forward : positive z-axis 
+	glm::vec3 backface_down_left = glm::vec3(aabb.center.x - aabb.halfExtents.x, aabb.center.y - aabb.halfExtents.y, aabb.center.z - aabb.halfExtents.z);
+	glm::vec3 backface_down_right = glm::vec3(aabb.center.x + aabb.halfExtents.x, aabb.center.y - aabb.halfExtents.y, aabb.center.z - aabb.halfExtents.z);
+	glm::vec3 backface_up_left = glm::vec3(aabb.center.x - aabb.halfExtents.x, aabb.center.y + aabb.halfExtents.y, aabb.center.z - aabb.halfExtents.z);
+	glm::vec3 backface_up_right = glm::vec3(aabb.center.x + aabb.halfExtents.x, aabb.center.y + aabb.halfExtents.y, aabb.center.z - aabb.halfExtents.z);
+
+	glm::vec3 frontface_down_left = glm::vec3(aabb.center.x - aabb.halfExtents.x, aabb.center.y - aabb.halfExtents.y, aabb.center.z + aabb.halfExtents.z);
+	glm::vec3 frontface_down_right = glm::vec3(aabb.center.x + aabb.halfExtents.x, aabb.center.y - aabb.halfExtents.y, aabb.center.z + aabb.halfExtents.z);
+	glm::vec3 frontface_up_left = glm::vec3(aabb.center.x - aabb.halfExtents.x, aabb.center.y + aabb.halfExtents.y, aabb.center.z + aabb.halfExtents.z);
+	glm::vec3 frontface_up_right = glm::vec3(aabb.center.x + aabb.halfExtents.x, aabb.center.y + aabb.halfExtents.y, aabb.center.z + aabb.halfExtents.z);
+
+
+	//Back face
+	AddCollisionDrawLine(backface_down_left, backface_down_right, boxColor);
+	AddCollisionDrawLine(backface_down_left, backface_up_left, boxColor);
+	AddCollisionDrawLine(backface_up_left, backface_up_right, boxColor);
+	AddCollisionDrawLine(backface_up_right, backface_down_right, boxColor);
+
+	//Front Face
+	AddCollisionDrawLine(frontface_down_left, frontface_down_right, boxColor);
+	AddCollisionDrawLine(frontface_down_left, frontface_up_left, boxColor);
+	AddCollisionDrawLine(frontface_up_left, frontface_up_right, boxColor);
+	AddCollisionDrawLine(frontface_up_right, frontface_down_right, boxColor);
+
+	//Left Face
+	AddCollisionDrawLine(backface_down_left, frontface_down_left, boxColor);
+	AddCollisionDrawLine(backface_up_left, frontface_up_left, boxColor);
+
+
+	//Right Face
+	AddCollisionDrawLine(backface_down_right, frontface_down_right, boxColor);
+	AddCollisionDrawLine(backface_up_right, frontface_up_right, boxColor);
+
+
+}
+
 void ProjectApplication::AfterCreatedUiContext()
 {
 
@@ -253,6 +295,11 @@ bool ProjectApplication::Load()
 	//Test drawing some collision lines
 	AddCollisionDrawLine(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(300.0f, 300.0f, 300.0f), glm::vec3(1.0f, 0.0f, 127.0f / 255.0f));
 	AddCollisionDrawLine(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(-300.0f, 300.0f, -300.0f), glm::vec3(153.0f / 255.0f, 204.0f / 255.0f, 1.0f));
+
+	//Test drawing a green box
+	Collision::AABB testBox{glm::vec3(10.0f, 10.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f)};
+	DrawLineAABB(testBox, glm::vec3(0.0f, 1.0f, 0.0f));
+
 
 	//Camera Settings
 	{
