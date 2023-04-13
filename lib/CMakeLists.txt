@@ -1,17 +1,5 @@
 include(FetchContent)
 
-#----------------------------------------------------------------------
-# Include Jolt
-FetchContent_Declare(
-        JoltPhysics
-        GIT_REPOSITORY "https://github.com/ClementineAccount/JoltPhysics"
-        GIT_TAG "a9255306ac797de61b137510c4340fd36f02c268"
-		SOURCE_SUBDIR "Build"
-)
-
-FetchContent_MakeAvailable(JoltPhysics)
-message("Fetching JoltPhysics")
-
 FetchContent_Declare(
     spdlog
     GIT_REPOSITORY https://github.com/gabime/spdlog.git

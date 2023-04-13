@@ -16,21 +16,11 @@
 #include <Fwog/Shader.h>
 #include <Fwog/Texture.h>
 
-
-
-#include <Jolt/Jolt.h>
-#include <Jolt/Physics/PhysicsSystem.h>
-
 #include <optional>
 
 #include "SceneLoader.h"
-
-
 #include <soloud/soloud.h>
 #include <soloud/soloud_wav.h>
-
-#include <Jolt/Jolt.h>
-#include <Jolt/Core/Body/BodyActivationListener.h>
 
 namespace Primitives
 {
@@ -124,15 +114,6 @@ namespace Collision
 
 
 
-// JPH activation listener (https://github.com/jrouwe/JoltPhysics/blob/master/HelloWorld/HelloWorld.cpp)
-class MyBodyActivationListener : public JPH::BodyActivationListener
-{
-public:
-	virtual void OnBodyActivated(const JPH::BodyID &inBodyID, uint64_t inBodyUserData) override;
-
-	virtual void OnBodyDeactivated(const JPH::BodyID &inBodyID, uint64_t inBodyUserData) override;
-};
-
 class ProjectApplication final : public Application
 {
 public:
@@ -150,9 +131,6 @@ protected:
 
 
 private:
-
-    //Call these in Load function
-    void LoadJPH();
 
 
 private:
@@ -232,7 +210,8 @@ private:
     static constexpr glm::vec3 cameraOffsetTarget = glm::vec3(0.0f, 10.0f, 0.0f);
 
 
-    static constexpr float soloud_volume{1.0f};
+    static constexpr float soloud_volume{0.3f};
+
 
     //For loading the car from gltf file. Car and wheels as separate models (gotta implement some kind of skinned hirerarchy stuff otherwise)
     Utility::Scene scene_car;
@@ -246,6 +225,4 @@ private:
     SoLoud::Soloud soloud; // Engine core
     SoLoud::Wav sample;    // One sample
 
-
-    std::optional<JPH::PhysicsSystem> jph_physics_system;
 };
