@@ -210,7 +210,7 @@ private:
     static constexpr glm::vec3 cameraOffsetTarget = glm::vec3(0.0f, 10.0f, 0.0f);
 
 
-    static constexpr float soloud_volume{0.3f};
+    static constexpr float soloud_volume{0.1f};
 
 
     //For loading the car from gltf file. Car and wheels as separate models (gotta implement some kind of skinned hirerarchy stuff otherwise)
