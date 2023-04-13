@@ -184,6 +184,18 @@ static Fwog::GraphicsPipeline CreatePipelineTextured()
 }
 
 
+
+void ProjectApplication::AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color) {
+
+	
+	std::array<glm::vec3, 2> linePos{ptA, ptB};
+	std::array<glm::vec3, 2> colorPos{color, color};
+  vertex_buffer_collision_lines.value().SubData(linePos, sizeof(glm::vec3) * curr_num_collision_points);
+  vertex_buffer_collision_colors.value().SubData(colorPos, sizeof(glm::vec3) * curr_num_collision_points);
+
+  curr_num_collision_points += 2;
+}
+
 void ProjectApplication::AfterCreatedUiContext()
 {
 
@@ -226,6 +238,21 @@ bool ProjectApplication::Load()
 		vertex_buffer_pos_line = Fwog::TypedBuffer<glm::vec3>(axisPos);
 		vertex_buffer_color_line = Fwog::TypedBuffer<glm::vec3>(axisColors);
 	}
+
+	//Create collision line buffer
+	{
+		//Doesn't matter what the default initalization is since we only draw the valid points
+		std::array<glm::vec3, max_num_collision_points> linePts{};
+
+        vertex_buffer_collision_lines = Fwog::TypedBuffer<glm::vec3>(max_num_collision_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+        vertex_buffer_collision_colors = Fwog::TypedBuffer<glm::vec3>(max_num_collision_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		vertex_buffer_collision_lines.value().SubData(linePts, 0);
+		vertex_buffer_collision_colors.value().SubData(linePts, 0 );
+	}
+
+	//Test drawing some collision lines
+	AddCollisionDrawLine(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(300.0f, 300.0f, 300.0f), glm::vec3(1.0f, 0.0f, 127.0f / 255.0f));
+	AddCollisionDrawLine(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(-300.0f, 300.0f, -300.0f), glm::vec3(153.0f / 255.0f, 204.0f / 255.0f, 1.0f));
 
 	//Camera Settings
 	{
@@ -286,6 +313,8 @@ bool ProjectApplication::Load()
 		objectBufferWheels = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 		objectBufferWheels.value().SubData(wheelUniform, 0);
 	}
+
+
 
 	return true;
 }
@@ -432,7 +461,17 @@ void ProjectApplication::RenderScene()
 		Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_pos_line.value(), 0, 3 * sizeof(float));
 		Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_color_line.value(), 0, 3 * sizeof(float));
 		Fwog::Cmd::Draw(num_points_world_axis, 1, 0, 0);
+
+		// Drawing collision lines
+        if (curr_num_collision_points != 0 && curr_num_collision_points < max_num_collision_points) 
+		{
+			Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_collision_lines.value(), 0, 3 * sizeof(float));
+            Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_collision_colors.value(), 0, 3 * sizeof(float));
+			Fwog::Cmd::Draw(curr_num_collision_points, 1, 0, 0);
+        }
 	}
+
+
 
 	Fwog::EndRendering();
 }

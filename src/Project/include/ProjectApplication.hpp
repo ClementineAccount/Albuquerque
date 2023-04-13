@@ -110,6 +110,29 @@ namespace Collision
         glm::vec3 temp = lhs.pos - rhs.pos;
         return (glm::dot(temp, temp)) < ((lhs.radius + rhs.radius) * (lhs.radius + rhs.radius));
     }
+
+    struct boxCollider 
+    {
+      glm::vec3 halfExtents{1.0f, 1.0f, 1.0f};
+      glm::vec3 center{0.0f, 0.0f, 0.0f};
+    };
+
+    static bool boxCollisionCheck(boxCollider const& lhs, boxCollider const& rhs) 
+    {
+      if (abs(lhs.center.x - rhs.center.x) >
+          (lhs.halfExtents.x + rhs.halfExtents.y))
+        return false;
+
+      if (abs(lhs.center.y - rhs.center.y) >
+          (lhs.halfExtents.y + rhs.halfExtents.y))
+        return false;
+
+      if (abs(lhs.center.z - rhs.center.z) >
+          (lhs.halfExtents.z + rhs.halfExtents.z))
+        return false;
+    }
+
+    //To Do: Write unit tests for the collision detection
 }
 
 
@@ -127,11 +150,10 @@ protected:
     void RenderScene() override;
     void RenderUI(double dt) override;
     void Update(double dt) override;
-
-
-
 private:
 
+//Adds the line to the specified buffer that is then draw I need to find a better name for this tbh
+ void AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB,  glm::vec3 color);
 
 private:
     
@@ -180,7 +202,6 @@ private:
     };
 
 
-
     //Ground Plane Stuff
     //Could these live in the same data?
     static constexpr glm::vec3 planeScale = glm::vec3(1000.0f, 1.0f, 1000.0f);
@@ -208,8 +229,6 @@ private:
 
     static constexpr glm::vec3 cameraOffset = glm::vec3(0.0f, 10.0f, -12.0f);
     static constexpr glm::vec3 cameraOffsetTarget = glm::vec3(0.0f, 10.0f, 0.0f);
-
-
     static constexpr float soloud_volume{0.1f};
 
 
@@ -220,9 +239,18 @@ private:
     std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferCar;
     std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferWheels;
 
+    SoLoud::Soloud soloud; 
+    SoLoud::Wav sample;
 
-    // Declare some variables
-    SoLoud::Soloud soloud; // Engine core
-    SoLoud::Wav sample;    // One sample
 
+    //Collision related stuff. Need to refactor
+   
+    //Collision Drawing
+    static constexpr uint32_t max_num_collision_points = 1024;
+    uint32_t curr_num_collision_points = 0;
+
+    std::optional<Fwog::Buffer> vertex_buffer_collision_lines;
+    std::optional<Fwog::Buffer> vertex_buffer_collision_colors;
+
+    Collision::boxCollider car_box_collider;
 };
