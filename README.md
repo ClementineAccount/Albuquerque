@@ -10,7 +10,6 @@ In other words, the main learning outcomes of the project are:
 - Terrarin Generation and Dynamic Skyboxes
 
 Therefore, these other requirements of the project are not given as high priority and uses third-party libraries as the scaffolding in current stage of development:
-- Collision Detection, Shapes and Physics Responses (Uses [JoltPhysics](https://github.com/jrouwe/JoltPhysics) however we do not use the Vehicle Controller)
 - Windowing, Context and Graphics API Abstraction (We use GLFW, GLAD and [Fwog](https://github.com/JuanDiegoMontoya/Fwog))
 - Audio (Uses [SoLoud](https://solhsa.com/soloud/))
 - Efficient .gltf file parsing and loading (Uses [tinygltf](https://github.com/syoyo/tinygltf))
