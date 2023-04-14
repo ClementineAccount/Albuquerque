@@ -133,6 +133,11 @@ namespace Collision
     }
 
     //To Do: Write unit tests for the collision detection
+
+    static void SyncAABB(Collision::AABB& aabb, glm::vec3 pos)
+    {
+        aabb.center = pos;
+    }
 }
 
 
@@ -155,6 +160,11 @@ private:
 //Adds the line to the specified buffer that is then draw I need to find a better name for this tbh
  void AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color);
  void DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor);
+
+ //Can call this to reset the collision count in order to call 'DrawLine' every frame without creating new buffers
+ void ClearLines();
+
+
 
 private:
     
@@ -227,6 +237,11 @@ private:
 
     glm::vec3 carForward{ worldForward };
     glm::vec3 carPos{ 0.0f, 0.0f, 0.0f };
+    glm::vec3 carScale{1.0f, 1.0f, 1.0f};
+
+    //Multiply with the carScale
+    glm::vec3 carCollisionScale{1.5f, 1.2f, 1.5f};
+    Collision::AABB car_box_collider;
 
     static constexpr glm::vec3 cameraOffset = glm::vec3(0.0f, 10.0f, -12.0f);
     static constexpr glm::vec3 cameraOffsetTarget = glm::vec3(0.0f, 10.0f, 0.0f);
@@ -253,5 +268,4 @@ private:
     std::optional<Fwog::Buffer> vertex_buffer_collision_lines;
     std::optional<Fwog::Buffer> vertex_buffer_collision_colors;
 
-    Collision::AABB car_box_collider;
 };

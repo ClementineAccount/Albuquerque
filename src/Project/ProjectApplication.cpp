@@ -197,6 +197,13 @@ void ProjectApplication::AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm:
 }
 
 
+
+void ProjectApplication::ClearLines()
+{
+	curr_num_collision_points = 0;
+}
+
+
 void ProjectApplication::DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor)
 {
 	//It is ok to recalculate face points from the extents despite performance cost because this draw function is optional
@@ -348,6 +355,13 @@ bool ProjectApplication::Load()
 		Utility::LoadModelFromFile(scene_car, "data/models/Car_BodyOnly.glb", glm::mat4{ 1.0f }, true);
 		ObjectUniforms carUniform;
 		carUniform.model = glm::mat4(1.0f);
+		
+		carUniform.model = glm::translate(carUniform.model, carPos);
+		carUniform.model = glm::scale(carUniform.model, carScale);
+
+		car_box_collider.center = carPos;
+		car_box_collider.halfExtents = carScale * carCollisionScale;
+
 		carUniform.color = carColor;
 		objectBufferCar = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 		objectBufferCar.value().SubData(carUniform, 0);
@@ -359,6 +373,7 @@ bool ProjectApplication::Load()
 
 		objectBufferWheels = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 		objectBufferWheels.value().SubData(wheelUniform, 0);
+
 	}
 
 
@@ -425,8 +440,9 @@ void ProjectApplication::Update(double dt)
 			carPos -= carForward * car_speed_scale_reverse * dt_float;
 		}
 
+		Collision::SyncAABB(car_box_collider, carPos);
+		DrawLineAABB(car_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
 
-		//carCollider.pos = carPos;
 
 		glm::mat4 model(1.0f);
 		model = glm::translate(model, carPos);
@@ -515,6 +531,9 @@ void ProjectApplication::RenderScene()
 			Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_collision_lines.value(), 0, 3 * sizeof(float));
             Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_collision_colors.value(), 0, 3 * sizeof(float));
 			Fwog::Cmd::Draw(curr_num_collision_points, 1, 0, 0);
+
+			//Allows DrawLine to be called every frame without creating buffers. Should make new buffer  if want presistent lines ofc 
+			ClearLines();
         }
 	}
 
