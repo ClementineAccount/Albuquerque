@@ -99,16 +99,21 @@ namespace Primitives
 namespace Collision
 {
     //we are gonna go real mininium viable product first
-    struct sphereCollider
+    struct Sphere
     {
-        glm::vec3 pos;
+        glm::vec3 center;
         float radius;
     };
 
-    static bool sphereCollisionCheck(sphereCollider const& lhs, sphereCollider const& rhs)
+    static bool sphereCollisionCheck(Sphere const& lhs, Sphere const& rhs)
     {
-        glm::vec3 temp = lhs.pos - rhs.pos;
+        glm::vec3 temp = lhs.center - rhs.center;
         return (glm::dot(temp, temp)) < ((lhs.radius + rhs.radius) * (lhs.radius + rhs.radius));
+    }
+
+    static void SyncSphere(Sphere& sphere, glm::vec3 pos)
+    {
+        sphere.center = pos;
     }
 
     struct AABB 
@@ -157,9 +162,13 @@ protected:
     void Update(double dt) override;
 private:
 
+
+//To Do: This stuff should probably pass in the line vertex buffer it wants to subData()
+
 //Adds the line to the specified buffer that is then draw I need to find a better name for this tbh
  void AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color);
  void DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor);
+ void DrawLineSphere(Collision::Sphere const& sphere, glm::vec3 sphereColor);
 
  //Can call this to reset the collision count in order to call 'DrawLine' every frame without creating new buffers
  void ClearLines();
@@ -243,6 +252,9 @@ private:
     glm::vec3 carCollisionScale{1.5f, 1.2f, 1.5f};
     Collision::AABB car_box_collider;
 
+    float car_sphere_radius = 1.0f;
+    Collision::Sphere car_sphere_collider;
+
     static constexpr glm::vec3 cameraOffset = glm::vec3(0.0f, 10.0f, -12.0f);
     static constexpr glm::vec3 cameraOffsetTarget = glm::vec3(0.0f, 10.0f, 0.0f);
     static constexpr float soloud_volume{0.1f};
@@ -262,7 +274,7 @@ private:
     //Collision related stuff. Need to refactor
    
     //Collision Drawing
-    static constexpr uint32_t max_num_collision_points = 1024;
+    static constexpr uint32_t max_num_collision_points = 65536;
     uint32_t curr_num_collision_points = 0;
 
     std::optional<Fwog::Buffer> vertex_buffer_collision_lines;

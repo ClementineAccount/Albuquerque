@@ -34,6 +34,8 @@
 #include <soloud/soloud.h>
 #include <soloud/soloud_wav.h>
 
+#include <tracy/Tracy.hpp>
+#include <tracy/TracyOpenGL.hpp>
 
 static std::string Slurp(std::string_view path)
 {
@@ -245,6 +247,61 @@ void ProjectApplication::DrawLineAABB(Collision::AABB const& aabb, glm::vec3 box
 
 }
 
+
+void ProjectApplication::DrawLineSphere(Collision::Sphere const& sphere, glm::vec3 sphereColor)
+{
+	constexpr uint32_t num_stacks = 16;
+	constexpr uint32_t num_slices = 16;
+
+	static glm::vec3 temp_horizontal{ 0.f };
+	static glm::vec3 temp_vert{ 0.f };
+	static glm::vec3 normal{ 0.f };
+
+
+	glm::vec3 position_horizontal = sphere.center;
+	glm::vec3 position_vert = sphere.center;
+	glm::vec3 local_origin = sphere.center;
+
+	float radius = sphere.radius;
+
+
+	for (uint32_t curr_stack{0}; curr_stack <= num_stacks; ++curr_stack)
+	{
+		float theta = static_cast<float>(curr_stack * PI / num_stacks);
+		float sin_theta = sin(theta);
+		float cos_theta = cos(theta);
+
+		for (uint32_t curr_slice{0}; curr_slice <= num_slices; ++curr_slice)
+		{
+			float phi = static_cast<float>(curr_slice * 2 * PI / num_slices);
+			float sin_phi = sin(phi);
+			float cos_phi = cos(phi);
+
+			normal.x = cos_phi * sin_theta;
+			normal.y = cos_theta;
+			normal.z = sin_phi * sin_theta;
+
+			temp_horizontal = position_horizontal;
+			temp_vert = position_vert;
+
+			position_horizontal.x = radius * normal.x;
+			position_horizontal.y = radius * normal.y;
+			position_horizontal.z = radius * normal.z;
+
+			position_horizontal = local_origin + position_horizontal;
+
+			position_vert.y = radius * normal.x;
+			position_vert.x = radius * normal.y;
+			position_vert.z = radius * normal.z;
+
+			position_vert = local_origin + position_vert;
+
+			AddCollisionDrawLine(position_horizontal, temp_horizontal, sphereColor);
+			AddCollisionDrawLine(position_vert, temp_vert, sphereColor);
+		}
+	}
+}
+
 void ProjectApplication::AfterCreatedUiContext()
 {
 
@@ -299,13 +356,6 @@ bool ProjectApplication::Load()
 		vertex_buffer_collision_colors.value().SubData(linePts, 0 );
 	}
 
-	//Test drawing some collision lines
-	AddCollisionDrawLine(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(300.0f, 300.0f, 300.0f), glm::vec3(1.0f, 0.0f, 127.0f / 255.0f));
-	AddCollisionDrawLine(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(-300.0f, 300.0f, -300.0f), glm::vec3(153.0f / 255.0f, 204.0f / 255.0f, 1.0f));
-
-	//Test drawing a green box
-	Collision::AABB testBox{glm::vec3(10.0f, 10.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f)};
-	DrawLineAABB(testBox, glm::vec3(0.0f, 1.0f, 0.0f));
 
 
 	//Camera Settings
@@ -361,6 +411,9 @@ bool ProjectApplication::Load()
 
 		car_box_collider.center = carPos;
 		car_box_collider.halfExtents = carScale * carCollisionScale;
+
+		car_sphere_collider.radius = car_sphere_radius;
+		car_sphere_collider.center = carPos;
 
 		carUniform.color = carColor;
 		objectBufferCar = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
@@ -443,6 +496,8 @@ void ProjectApplication::Update(double dt)
 		Collision::SyncAABB(car_box_collider, carPos);
 		DrawLineAABB(car_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
 
+		Collision::SyncSphere(car_sphere_collider, carPos);
+		DrawLineSphere(car_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
 
 		glm::mat4 model(1.0f);
 		model = glm::translate(model, carPos);
@@ -471,6 +526,9 @@ void ProjectApplication::Update(double dt)
 
 void ProjectApplication::RenderScene()
 {
+	ZoneScopedC(tracy::Color::Red);
+
+
 	Fwog::BeginSwapchainRendering(Fwog::SwapchainRenderInfo{
 	.viewport =
 	  Fwog::Viewport{

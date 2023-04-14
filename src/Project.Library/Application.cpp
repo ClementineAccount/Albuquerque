@@ -149,7 +149,7 @@ void Application::Unload()
 void Application::Render(double dt)
 {
     glEnable(GL_FRAMEBUFFER_SRGB);
-    ZoneScopedC(tracy::Color::Red2);
+
 
     RenderScene();
     ImGui_ImplOpenGL3_NewFrame();
