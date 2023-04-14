@@ -445,6 +445,8 @@ bool ProjectApplication::Load()
 
 void ProjectApplication::Update(double dt)
 {
+
+
 	if (IsKeyPressed(GLFW_KEY_ESCAPE))
 	{
 		Close();
@@ -452,11 +454,13 @@ void ProjectApplication::Update(double dt)
 
 	if (IsKeyPressed(GLFW_KEY_SPACE))
 	{
-		soloud.play(sample);        // Play it
+		soloud.play(sample); 
 	}
 
-	//Car Inputs
+	
 	{
+		//Car Inputs
+
 		float dt_float = static_cast<float>(dt);
 		float zoom_speed_level = 1.0f;
 
@@ -493,32 +497,44 @@ void ProjectApplication::Update(double dt)
 			carPos -= carForward * car_speed_scale_reverse * dt_float;
 		}
 
-		Collision::SyncAABB(car_box_collider, carPos);
-		DrawLineAABB(car_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
+		{
+			//Collider sync and draws
+			Collision::SyncAABB(car_box_collider, carPos);
+			Collision::SyncSphere(car_sphere_collider, carPos);
 
-		Collision::SyncSphere(car_sphere_collider, carPos);
-		DrawLineSphere(car_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
+			//Profile only the drawing
+			ZoneScopedC(tracy::Color::Green);
+			DrawLineAABB(car_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
+			DrawLineSphere(car_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
+		}
+		
+		
+		{
+			//Car uniform buffer changes
+			ZoneScopedC(tracy::Color::Orange);
+			glm::mat4 model(1.0f);
+			model = glm::translate(model, carPos);
+			model = glm::rotate(model, glm::radians(car_angle_degrees), worldUp);
 
-		glm::mat4 model(1.0f);
-		model = glm::translate(model, carPos);
-		model = glm::rotate(model, glm::radians(car_angle_degrees), worldUp);
+			ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
+			ObjectUniforms b(model, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
 
-		ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
-		ObjectUniforms b(model, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
+			objectBufferWheels.value().SubData(b, 0);
+			objectBufferCar.value().SubData(a, 0);
+		}
 
-		objectBufferWheels.value().SubData(b, 0);
-		objectBufferCar.value().SubData(a, 0);
+		{
+			//Camera logic stuff
+			ZoneScopedC(tracy::Color::Blue);
+			glm::vec3 camPos = carPos - carForward * 15.0f + cameraOffsetTarget;
+			glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+			glm::mat4 view = glm::lookAt(camPos, carPos + cameraOffsetTarget, up);
 
-		//Camera logic stuff
-
-		glm::vec3 camPos = carPos - carForward * 15.0f + cameraOffsetTarget;
-		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-		glm::mat4 view = glm::lookAt(camPos, carPos + cameraOffsetTarget, up);
-
-		//we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
-		glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
-		glm::mat4 viewProj = proj * view;
-		globalUniformsBuffer.value().SubData(viewProj, 0);
+			//we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
+			glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
+			glm::mat4 viewProj = proj * view;
+			globalUniformsBuffer.value().SubData(viewProj, 0);
+		}
 	}
 }
 
@@ -527,7 +543,6 @@ void ProjectApplication::Update(double dt)
 void ProjectApplication::RenderScene()
 {
 	ZoneScopedC(tracy::Color::Red);
-
 
 	Fwog::BeginSwapchainRendering(Fwog::SwapchainRenderInfo{
 	.viewport =
