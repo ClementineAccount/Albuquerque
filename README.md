@@ -1,3 +1,5 @@
+Gonna rescope the game from driving to flying as flying has easier collision response code when not using a physics library. Will revisit driving in the future instead.
+
 Currently being developed with a driving game I am working on:
 ![image](https://user-images.githubusercontent.com/26779639/230844833-36683e8c-7033-4522-aa2b-71e276649bae.png)
 
