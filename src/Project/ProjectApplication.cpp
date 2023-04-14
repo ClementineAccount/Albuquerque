@@ -250,8 +250,8 @@ void ProjectApplication::DrawLineAABB(Collision::AABB const& aabb, glm::vec3 box
 
 void ProjectApplication::DrawLineSphere(Collision::Sphere const& sphere, glm::vec3 sphereColor)
 {
-	constexpr uint32_t num_stacks = 16;
-	constexpr uint32_t num_slices = 16;
+	constexpr uint32_t num_stacks = 8;
+	constexpr uint32_t num_slices = 8;
 
 	static glm::vec3 temp_horizontal{ 0.f };
 	static glm::vec3 temp_vert{ 0.f };
