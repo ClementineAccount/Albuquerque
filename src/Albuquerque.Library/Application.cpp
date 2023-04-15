@@ -1,4 +1,4 @@
-#include <Project.Library/Application.hpp>
+#include <Albuquerque.Library/Application.hpp>
 
 #include <spdlog/spdlog.h>
 #include <glad/glad.h>
