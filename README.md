@@ -23,5 +23,7 @@ Another third party library included is Lua as a potential scope for level editi
 Third Party Placeholder Asset Credits: 
 
 Grass Texture: https://www.poliigon.com/texture/ground-forest-003/1949
+
 Plane SFX: https://www.soundjay.com/propeller-plane-sound-effect.html
+
 Background Music: https://soundcloud.com/personahofficial/personah-real-love-free-download
