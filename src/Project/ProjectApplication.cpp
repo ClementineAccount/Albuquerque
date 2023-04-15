@@ -187,22 +187,22 @@ static Fwog::GraphicsPipeline CreatePipelineTextured()
 
 
 
-void ProjectApplication::AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color) {
+void ProjectApplication::AddDebugDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color) {
 
 	
 	std::array<glm::vec3, 2> linePos{ptA, ptB};
 	std::array<glm::vec3, 2> colorPos{color, color};
-  vertex_buffer_collision_lines.value().SubData(linePos, sizeof(glm::vec3) * curr_num_collision_points);
-  vertex_buffer_collision_colors.value().SubData(colorPos, sizeof(glm::vec3) * curr_num_collision_points);
+  vertex_buffer_draw_lines.value().SubData(linePos, sizeof(glm::vec3) * curr_num_draw_points);
+  vertex_buffer_draw_colors.value().SubData(colorPos, sizeof(glm::vec3) * curr_num_draw_points);
 
-  curr_num_collision_points += 2;
+  curr_num_draw_points += 2;
 }
 
 
 
 void ProjectApplication::ClearLines()
 {
-	curr_num_collision_points = 0;
+	curr_num_draw_points = 0;
 }
 
 
@@ -224,25 +224,25 @@ void ProjectApplication::DrawLineAABB(Collision::AABB const& aabb, glm::vec3 box
 
 
 	//Back face
-	AddCollisionDrawLine(backface_down_left, backface_down_right, boxColor);
-	AddCollisionDrawLine(backface_down_left, backface_up_left, boxColor);
-	AddCollisionDrawLine(backface_up_left, backface_up_right, boxColor);
-	AddCollisionDrawLine(backface_up_right, backface_down_right, boxColor);
+	AddDebugDrawLine(backface_down_left, backface_down_right, boxColor);
+	AddDebugDrawLine(backface_down_left, backface_up_left, boxColor);
+	AddDebugDrawLine(backface_up_left, backface_up_right, boxColor);
+	AddDebugDrawLine(backface_up_right, backface_down_right, boxColor);
 
 	//Front Face
-	AddCollisionDrawLine(frontface_down_left, frontface_down_right, boxColor);
-	AddCollisionDrawLine(frontface_down_left, frontface_up_left, boxColor);
-	AddCollisionDrawLine(frontface_up_left, frontface_up_right, boxColor);
-	AddCollisionDrawLine(frontface_up_right, frontface_down_right, boxColor);
+	AddDebugDrawLine(frontface_down_left, frontface_down_right, boxColor);
+	AddDebugDrawLine(frontface_down_left, frontface_up_left, boxColor);
+	AddDebugDrawLine(frontface_up_left, frontface_up_right, boxColor);
+	AddDebugDrawLine(frontface_up_right, frontface_down_right, boxColor);
 
 	//Left Face
-	AddCollisionDrawLine(backface_down_left, frontface_down_left, boxColor);
-	AddCollisionDrawLine(backface_up_left, frontface_up_left, boxColor);
+	AddDebugDrawLine(backface_down_left, frontface_down_left, boxColor);
+	AddDebugDrawLine(backface_up_left, frontface_up_left, boxColor);
 
 
 	//Right Face
-	AddCollisionDrawLine(backface_down_right, frontface_down_right, boxColor);
-	AddCollisionDrawLine(backface_up_right, frontface_up_right, boxColor);
+	AddDebugDrawLine(backface_down_right, frontface_down_right, boxColor);
+	AddDebugDrawLine(backface_up_right, frontface_up_right, boxColor);
 
 
 }
@@ -296,8 +296,8 @@ void ProjectApplication::DrawLineSphere(Collision::Sphere const& sphere, glm::ve
 
 			position_vert = local_origin + position_vert;
 
-			AddCollisionDrawLine(position_horizontal, temp_horizontal, sphereColor);
-			AddCollisionDrawLine(position_vert, temp_vert, sphereColor);
+			AddDebugDrawLine(position_horizontal, temp_horizontal, sphereColor);
+			AddDebugDrawLine(position_vert, temp_vert, sphereColor);
 		}
 	}
 }
@@ -337,12 +337,12 @@ void ProjectApplication::LoadBuffers()
 	//Create collision line buffer
 	{
 		//Doesn't matter what the default initalization is since we only draw the valid points
-		std::array<glm::vec3, max_num_collision_points> linePts{};
+		std::array<glm::vec3, max_num_draw_points> linePts{};
 
-		vertex_buffer_collision_lines = Fwog::TypedBuffer<glm::vec3>(max_num_collision_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-		vertex_buffer_collision_colors = Fwog::TypedBuffer<glm::vec3>(max_num_collision_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-		vertex_buffer_collision_lines.value().SubData(linePts, 0);
-		vertex_buffer_collision_colors.value().SubData(linePts, 0 );
+		vertex_buffer_draw_lines = Fwog::TypedBuffer<glm::vec3>(max_num_draw_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		vertex_buffer_draw_colors = Fwog::TypedBuffer<glm::vec3>(max_num_draw_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		vertex_buffer_draw_lines.value().SubData(linePts, 0);
+		vertex_buffer_draw_colors.value().SubData(linePts, 0 );
 	}
 
 
@@ -457,65 +457,104 @@ void ProjectApplication::Update(double dt)
 	
 	{
 		//aircraft Inputs
-
 		float dt_float = static_cast<float>(dt);
 		float zoom_speed_level = 1.0f;
 
+		//Turning Left: Need to adjust both Roll and Velocity
+		if (IsKeyPressed(GLFW_KEY_RIGHT))
+		{
+			aircraft_body.aircraft_angles_degrees.z += aircraft_angle_turning_degrees * dt_float;
+
+			//Set the direction vector based off the new angles
+			glm::mat4 rotateMat(1.0f);
+			rotateMat = glm::rotate(glm::mat4(1.0f), glm::radians(-aircraft_angle_turning_degrees  * dt_float), worldUp);
+
+			//Apply the yaw rotation first for both velocity and rotation 
+			aircraft_body.aircraft_current_velocity = glm::vec3(rotateMat * glm::vec4(aircraft_body.aircraft_current_velocity, 1.0f));
+		}
+
+		if (IsKeyPressed(GLFW_KEY_LEFT))
+		{
+			aircraft_body.aircraft_angles_degrees.z -= aircraft_angle_turning_degrees * dt_float;
+
+			//Set the direction vector based off the new angles
+			glm::mat4 rotateMat(1.0f);
+			rotateMat = glm::rotate(glm::mat4(1.0f), glm::radians(aircraft_angle_turning_degrees  * dt_float), worldUp);
+
+			//Apply the yaw rotation first for both velocity and rotation 
+			aircraft_body.aircraft_current_velocity = glm::vec3(rotateMat * glm::vec4(aircraft_body.aircraft_current_velocity, 1.0f));
+		}
+
 		if (IsKeyPressed(GLFW_KEY_UP))
 		{
-			zoom_speed_level = 1.05f;
-			if (IsKeyPressed(GLFW_KEY_LEFT))
-			{
-				aircraft_angle_degrees += aircraft_angle_turning_degrees * dt_float;
-				aircraftForward = glm::vec3(glm::sin(glm::radians(aircraft_angle_degrees)), 0.0f, glm::cos(glm::radians(aircraft_angle_degrees)));
-			}
+			aircraft_body.aircraft_angles_degrees.x += aircraft_angle_turning_degrees * dt_float;
 
-			if (IsKeyPressed(GLFW_KEY_RIGHT))
-			{
-				aircraft_angle_degrees += -aircraft_angle_turning_degrees * dt_float;
-				aircraftForward = glm::vec3(glm::sin(glm::radians(aircraft_angle_degrees)), 0.0f, glm::cos(glm::radians(aircraft_angle_degrees)));
-			}
-			aircraftPos += aircraftForward * aircraft_speed_scale * dt_float;
+			//Set the direction vector based off the new angles
+			glm::mat4 rotateMat(1.0f);
+			rotateMat = glm::rotate(glm::mat4(1.0f), glm::radians(aircraft_angle_turning_degrees  * dt_float), worldRight);
+
+			//Apply the yaw rotation first for both velocity and rotation 
+			aircraft_body.aircraft_current_velocity = glm::vec3(rotateMat * glm::vec4(aircraft_body.aircraft_current_velocity, 1.0f));
 		}
+
 		if (IsKeyPressed(GLFW_KEY_DOWN))
 		{
-			if (IsKeyPressed(GLFW_KEY_RIGHT) == GLFW_PRESS)
-			{
-				aircraft_angle_degrees += aircraft_angle_turning_degrees * dt_float;
-				aircraftForward = glm::vec3(glm::sin(glm::radians(aircraft_angle_degrees)), 0.0f, glm::cos(glm::radians(aircraft_angle_degrees)));
-			}
+			aircraft_body.aircraft_angles_degrees.x -= aircraft_angle_turning_degrees * dt_float;
 
-			if (IsKeyPressed(GLFW_KEY_LEFT) == GLFW_PRESS)
-			{
-				aircraft_angle_degrees += -aircraft_angle_turning_degrees * dt_float;
-				aircraftForward = glm::vec3(glm::sin(glm::radians(aircraft_angle_degrees)), 0.0f, glm::cos(glm::radians(aircraft_angle_degrees)));
-			}
+			//Set the direction vector based off the new angles
+			glm::mat4 rotateMat(1.0f);
+			rotateMat = glm::rotate(glm::mat4(1.0f), glm::radians(-aircraft_angle_turning_degrees  * dt_float), worldRight);
 
-			aircraftPos -= aircraftForward * aircraft_speed_scale_reverse * dt_float;
+			//Apply the yaw rotation first for both velocity and rotation 
+			aircraft_body.aircraft_current_velocity = glm::vec3(rotateMat * glm::vec4(aircraft_body.aircraft_current_velocity, 1.0f));
 		}
 
+
+
+		//Update position based off the velocity
+		aircraftPos += aircraft_body.aircraft_current_velocity * dt_float;
+
+
+		//Debug Lines
 		{
-			//Collider sync and draws
-			Collision::SyncAABB(aircraft_box_collider, aircraftPos);
-			Collision::SyncSphere(aircraft_sphere_collider, aircraftPos);
-
-			//Profile only the drawing
 			ZoneScopedC(tracy::Color::Green);
-			DrawLineAABB(aircraft_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
-			DrawLineSphere(aircraft_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
+
+			//for dispaly
+			constexpr float line_length = 30.0f;
+			
+			//glm::vec3 dir_vec_pt = aircraftPos + aircraft_body.direction_vector * line_length;
+			//AddDebugDrawLine(aircraftPos, dir_vec_pt, glm::vec3(1.0f, 0.0f, 0.0f));
+
+			glm::vec3 velpt = aircraftPos + glm::normalize(aircraft_body.aircraft_current_velocity) * line_length;
+			AddDebugDrawLine(aircraftPos, velpt, glm::vec3(1.0f, 0.0f, 0.0f));
+
+
+			//Collider sync and draws
+			//Collision::SyncAABB(aircraft_box_collider, aircraftPos);
+			//Collision::SyncSphere(aircraft_sphere_collider, aircraftPos);
+
+			////Profile only the drawing
+			//
+			//DrawLineAABB(aircraft_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
+			//DrawLineSphere(aircraft_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
 		}
-		
 		
 		{
 			//aircraft uniform buffer changes
 			ZoneScopedC(tracy::Color::Orange);
 			glm::mat4 model(1.0f);
 			model = glm::translate(model, aircraftPos);
-			model = glm::rotate(model, glm::radians(aircraft_angle_degrees), worldUp);
+
+			//To Do: Make this world coordinate system agnostic
+			//Example: angleUp = magnitude of worldUp * aircraft_angle_degrees
+
+			//This adjusts the yaw of the aircraft
+			model = glm::rotate(model, glm::radians(aircraft_body.aircraft_angles_degrees.y), worldUp);
+			model = glm::rotate(model, glm::radians(aircraft_body.aircraft_angles_degrees.z), worldForward);
+			model = glm::rotate(model, glm::radians(aircraft_body.aircraft_angles_degrees.x), worldRight);
+			//model *= rotateMat;
 
 			ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
-			ObjectUniforms b(model, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
-
 			objectBufferaircraft.value().SubData(a, 0);
 		}
 
@@ -591,11 +630,11 @@ void ProjectApplication::RenderScene()
 		Fwog::Cmd::Draw(num_points_world_axis, 1, 0, 0);
 
 		// Drawing collision lines
-        if (curr_num_collision_points != 0 && curr_num_collision_points < max_num_collision_points) 
+        if (curr_num_draw_points != 0 && curr_num_draw_points < max_num_draw_points) 
 		{
-			Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_collision_lines.value(), 0, 3 * sizeof(float));
-            Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_collision_colors.value(), 0, 3 * sizeof(float));
-			Fwog::Cmd::Draw(curr_num_collision_points, 1, 0, 0);
+			Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_draw_lines.value(), 0, 3 * sizeof(float));
+            Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_draw_colors.value(), 0, 3 * sizeof(float));
+			Fwog::Cmd::Draw(curr_num_draw_points, 1, 0, 0);
 
 			//Allows DrawLine to be called every frame without creating buffers. Should make new buffer  if want presistent lines ofc 
 			ClearLines();

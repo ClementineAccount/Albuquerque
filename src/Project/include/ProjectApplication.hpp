@@ -146,6 +146,11 @@ namespace Collision
 }
 
 
+namespace Physics
+{
+
+}
+
 
 class ProjectApplication final : public Application
 {
@@ -167,7 +172,7 @@ private:
 //To Do: This stuff should probably pass in the line vertex buffer it wants to subData()
 
 //Adds the line to the specified buffer that is then draw I need to find a better name for this tbh
- void AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color);
+ void AddDebugDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color);
  void DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor);
  void DrawLineSphere(Collision::Sphere const& sphere, glm::vec3 sphereColor);
 
@@ -231,13 +236,34 @@ private:
     std::optional<Fwog::Texture> groundAlbedo;
     std::optional<Fwog::Buffer> objectBufferPlane;
 
-    //aircraft Stuff
+
+    //aircraft stuff
+    struct PhysicsBody
+    {
+        glm::vec3 aircraft_current_velocity{0.0f, 0.0f, 0.0f};
+
+        //This should always be unit vector : determines where the actual model faces
+        //constexpr static glm::vec3 aircraft_starting_direction{0.0f, 0.0f, 1.0f};
+
+        //Store as angles first.
+        //Consider this as: {Pitch, Yaw, Roll}
+        //Used for the model matrix transformation
+        glm::vec3 aircraft_angles_degrees{0.0f, 0.0f, 0.0f};
+
+        glm::vec3 direction_vector{0.0f, 0.0f, 1.0f};
+    };
+
+    constexpr static glm::vec3 aircraft_starting_velocity{0.0f, 0.0f, 10.0f};
+    constexpr static glm::vec3 aircraft_starting_angles_degrees{0.0f, 0.0f, 0.0f};
+    constexpr static glm::vec3 aircraft_starting_direction_vector{0.0f, 0.0f, 1.0f};
+
+    PhysicsBody aircraft_body{aircraft_starting_velocity, aircraft_starting_angles_degrees, aircraft_starting_direction_vector};
+
     float aircraft_speed_scale{ 40.0f };
     float aircraft_speed_scale_reverse{ 10.0f };
 
-    // aircraft's rotation when turning relative to the z-axis forward 
-    float aircraft_angle_turning_degrees{ 80.0f };
-    float aircraft_angle_degrees{ 0.0f };
+    // aircraft's rotation when turning relative to the z-axis forward (per second of course)
+    float aircraft_angle_turning_degrees{ 30.0f };
 
     static constexpr glm::vec4 aircraftColor{ 0.0f, 0.8f, 0.0f, 1.0f };
     static constexpr glm::vec4 wheelColor{ 0.5f, 0.5f, 0.5f, 1.0f };
@@ -256,7 +282,7 @@ private:
     float aircraft_sphere_radius = 1.0f;
     Collision::Sphere aircraft_sphere_collider;
 
-    static constexpr glm::vec3 cameraOffset = glm::vec3(0.0f, 10.0f, 35.0f);
+    static constexpr glm::vec3 cameraOffset = glm::vec3(0.0f, 10.0f, 20.0f);
 
     static constexpr glm::vec3 cameraOffsetTarget = glm::vec3(0.0f, 10.0f, 0.0f);
     static constexpr float soloud_volume{0.1f};
@@ -276,10 +302,10 @@ private:
     //Collision related stuff. Need to refactor
    
     //Collision Drawing
-    static constexpr uint32_t max_num_collision_points = 65536;
-    uint32_t curr_num_collision_points = 0;
+    static constexpr uint32_t max_num_draw_points = 65536;
+    uint32_t curr_num_draw_points = 0;
 
-    std::optional<Fwog::Buffer> vertex_buffer_collision_lines;
-    std::optional<Fwog::Buffer> vertex_buffer_collision_colors;
+    std::optional<Fwog::Buffer> vertex_buffer_draw_lines;
+    std::optional<Fwog::Buffer> vertex_buffer_draw_colors;
 
 };
