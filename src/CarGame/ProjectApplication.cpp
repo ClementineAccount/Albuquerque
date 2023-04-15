@@ -49,12 +49,12 @@ static std::string Slurp(std::string_view path)
 namespace fs = std::filesystem;
 
 
-static constexpr char vert_shader_path[] = "data/shaders/FwogRacing/hello_car.vert.glsl";
-static constexpr char frag_shader_path[] = "data/shaders/FwogRacing/hello_car.frag.glsl";
-static constexpr char frag_texture_shader_path[] = "data/shaders/FwogRacing/hello_car_textured.frag.glsl";
+static constexpr char vert_shader_path[] = "data_cargame/shaders/FwogRacing/hello_car.vert.glsl";
+static constexpr char frag_shader_path[] = "data_cargame/shaders/FwogRacing/hello_car.frag.glsl";
+static constexpr char frag_texture_shader_path[] = "data_cargame/shaders/FwogRacing/hello_car_textured.frag.glsl";
 
-static constexpr char vert_line_shader_path[] = "data/shaders/FwogRacing/lines.vert.glsl";
-static constexpr char frag_line_shader_path[] = "data/shaders/FwogRacing/lines.frag.glsl";
+static constexpr char vert_line_shader_path[] = "data_cargame/shaders/FwogRacing/lines.vert.glsl";
+static constexpr char frag_line_shader_path[] = "data_cargame/shaders/FwogRacing/lines.frag.glsl";
 
 std::string ProjectApplication::LoadFile(std::string_view path)
 {
@@ -365,7 +365,7 @@ void ProjectApplication::LoadBuffers()
 		//to do: better texture loading systems. this can break so easily and its jank as hell
 		int32_t textureWidth, textureHeight, textureChannels;
 		constexpr int32_t expected_num_channels = 4;
-		unsigned char* textureData = stbi_load("data/textures/GroundForest003_Flat.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
+		unsigned char* textureData = stbi_load("data_cargame/textures/GroundForest003_Flat.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
 		assert(textureData);
 		groundAlbedo = Fwog::CreateTexture2D({ static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight) }, Fwog::Format::R8G8B8A8_SRGB);
 		Fwog::TextureUpdateInfo updateInfo{ .dimension = Fwog::UploadDimension::TWO,
@@ -391,7 +391,7 @@ void ProjectApplication::LoadBuffers()
 
 	//Creating the car
 	{
-		Utility::LoadModelFromFile(scene_car, "data/models/Car_BodyOnly.glb", glm::mat4{ 1.0f }, true);
+		Utility::LoadModelFromFile(scene_car, "data_cargame/models/Car_BodyOnly.glb", glm::mat4{ 1.0f }, true);
 		ObjectUniforms carUniform;
 		carUniform.model = glm::mat4(1.0f);
 
@@ -408,7 +408,7 @@ void ProjectApplication::LoadBuffers()
 		objectBufferCar = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 		objectBufferCar.value().SubData(carUniform, 0);
 
-		Utility::LoadModelFromFile(scene_wheels, "data/models/Car_WheelsOnly.glb", glm::mat4{ 1.0f }, true);
+		Utility::LoadModelFromFile(scene_wheels, "data_cargame/models/Car_WheelsOnly.glb", glm::mat4{ 1.0f }, true);
 		ObjectUniforms wheelUniform;
 		wheelUniform.model = glm::mat4(1.0f);
 		wheelUniform.color = wheelColor;
@@ -421,11 +421,11 @@ void ProjectApplication::LoadBuffers()
 bool ProjectApplication::Load()
 {
 
-	SetWindowTitle("Plane Game");
+	SetWindowTitle("Car Game");
 
 	// Initialize SoLoud (automatic back-end selection)
 	SoLoud::result init = soloud.init();
-	SoLoud::result res = sample.load("data/sounds/start.wav"); // Load a wave file
+	SoLoud::result res = sample.load("data_cargame/sounds/start.wav"); // Load a wave file
 	soloud.setGlobalVolume(soloud_volume);
 
 	//Creating pipelines
@@ -564,20 +564,20 @@ void ProjectApplication::RenderScene()
 
 	//Drawing a plane
 	{
-		//Fwog::SamplerState ss;
-		//ss.minFilter = Fwog::Filter::LINEAR;
-		//ss.magFilter = Fwog::Filter::LINEAR;
-		//ss.addressModeU = Fwog::AddressMode::REPEAT;
-		//ss.addressModeV = Fwog::AddressMode::REPEAT;
-		//auto nearestSampler = Fwog::Sampler(ss);
+		Fwog::SamplerState ss;
+		ss.minFilter = Fwog::Filter::LINEAR;
+		ss.magFilter = Fwog::Filter::LINEAR;
+		ss.addressModeU = Fwog::AddressMode::REPEAT;
+		ss.addressModeV = Fwog::AddressMode::REPEAT;
+		auto nearestSampler = Fwog::Sampler(ss);
 
-		//Fwog::Cmd::BindGraphicsPipeline(pipeline_textured.value());
-		//Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-		//Fwog::Cmd::BindUniformBuffer(1, objectBufferPlane.value());
-		//Fwog::Cmd::BindSampledImage(0, groundAlbedo.value(), nearestSampler);
-		//Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0, sizeof(Primitives::Vertex));
-		//Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(), Fwog::IndexType::UNSIGNED_SHORT);
-		//Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
+		Fwog::Cmd::BindGraphicsPipeline(pipeline_textured.value());
+		Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+		Fwog::Cmd::BindUniformBuffer(1, objectBufferPlane.value());
+		Fwog::Cmd::BindSampledImage(0, groundAlbedo.value(), nearestSampler);
+		Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0, sizeof(Primitives::Vertex));
+		Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(), Fwog::IndexType::UNSIGNED_SHORT);
+		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
 	}
 
 	//Drawing a car + wheels
