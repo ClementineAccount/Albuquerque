@@ -25,6 +25,8 @@ protected:
     virtual void RenderUI(double dt);
     virtual void Update(double dt);
 
+    //I think this only called once in awhile so copy is fine. No ownership anyways
+    void SetWindowTitle(const char* winTitle);
 
 private:
     GLFWwindow* _windowHandle = nullptr;

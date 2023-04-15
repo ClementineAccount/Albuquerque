@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(Project.Library)
+project(Albuquerque)
 
 add_subdirectory(lib)
 
@@ -8,10 +8,10 @@ set(sourceFiles
 )
 
 set(headerFiles
-    include/Project.Library/Application.hpp
+    include/Albuquerque/Application.hpp
 )
 
-add_library(Project.Library ${sourceFiles} ${headerFiles})
+add_library(Albuquerque ${sourceFiles} ${headerFiles})
 
 find_package(OpenGL REQUIRED)
 
@@ -21,16 +21,16 @@ target_include_directories(imgui PUBLIC include)
 target_include_directories(spdlog PUBLIC include)
 
 
-message("(Project.Library) add_library soloud")
+message("(Albuquerque.Library) add_library soloud")
 add_library(soloud STATIC IMPORTED)
 set_target_properties(soloud PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/soloud/soloud_static.lib)
 set_target_properties(soloud PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/soloud/include)
 
 
-target_include_directories(Project.Library PRIVATE include)
+target_include_directories(Albuquerque PRIVATE include)
 
 #To Do: Make it properly use CMake for the soloud.lib or something
 #target_link_libraries(Project.Library PRIVATE glfw glad glm TracyClient spdlog imgui fwog)
-target_link_libraries(Project.Library PRIVATE soloud glfw glad glm TracyClient spdlog imgui fwog)
+target_link_libraries(Albuquerque PRIVATE soloud glfw glad glm TracyClient spdlog imgui fwog)
 
 

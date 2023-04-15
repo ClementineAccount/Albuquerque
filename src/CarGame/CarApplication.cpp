@@ -1,6 +1,6 @@
 #include "stb_image.h"
-#include "ProjectApplication.hpp"
-#include "SceneLoader.h"
+#include "CarGame/CarApplication.hpp"
+#include "CarGame/SceneLoader.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -49,14 +49,14 @@ static std::string Slurp(std::string_view path)
 namespace fs = std::filesystem;
 
 
-static constexpr char vert_shader_path[] = "data/shaders/FwogRacing/hello_car.vert.glsl";
-static constexpr char frag_shader_path[] = "data/shaders/FwogRacing/hello_car.frag.glsl";
-static constexpr char frag_texture_shader_path[] = "data/shaders/FwogRacing/hello_car_textured.frag.glsl";
+static constexpr char vert_shader_path[] = "data_cargame/shaders/FwogRacing/hello_car.vert.glsl";
+static constexpr char frag_shader_path[] = "data_cargame/shaders/FwogRacing/hello_car.frag.glsl";
+static constexpr char frag_texture_shader_path[] = "data_cargame/shaders/FwogRacing/hello_car_textured.frag.glsl";
 
-static constexpr char vert_line_shader_path[] = "data/shaders/FwogRacing/lines.vert.glsl";
-static constexpr char frag_line_shader_path[] = "data/shaders/FwogRacing/lines.frag.glsl";
+static constexpr char vert_line_shader_path[] = "data_cargame/shaders/FwogRacing/lines.vert.glsl";
+static constexpr char frag_line_shader_path[] = "data_cargame/shaders/FwogRacing/lines.frag.glsl";
 
-std::string ProjectApplication::LoadFile(std::string_view path)
+std::string CarApplication::LoadFile(std::string_view path)
 {
 	std::ifstream file{ path.data() };
 	return { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
@@ -95,8 +95,8 @@ static Fwog::GraphicsPipeline CreatePipeline()
 	auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::TRIANGLE_LIST };
 
 
-	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, ProjectApplication::LoadFile(vert_shader_path));
-	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_shader_path));
+	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, CarApplication::LoadFile(vert_shader_path));
+	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, CarApplication::LoadFile(frag_shader_path));
 
 	return Fwog::GraphicsPipeline{ {
 	  .vertexShader = &vertexShader,
@@ -128,8 +128,8 @@ static Fwog::GraphicsPipeline CreatePipelineLines()
 
 	auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::LINE_LIST };
 	auto depthDescs = Fwog::DepthState{ .depthTestEnable = false, .depthWriteEnable = false };
-	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, ProjectApplication::LoadFile(vert_line_shader_path));
-	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_line_shader_path));
+	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, CarApplication::LoadFile(vert_line_shader_path));
+	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, CarApplication::LoadFile(frag_line_shader_path));
 
 	return Fwog::GraphicsPipeline{ {
 	  .vertexShader = &vertexShader,
@@ -173,8 +173,8 @@ static Fwog::GraphicsPipeline CreatePipelineTextured()
 	auto inputDescs = sceneInputBindingDescs;
 	auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::TRIANGLE_LIST };
 
-	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, ProjectApplication::LoadFile(vert_shader_path));
-	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_texture_shader_path));
+	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, CarApplication::LoadFile(vert_shader_path));
+	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, CarApplication::LoadFile(frag_texture_shader_path));
 
 	return Fwog::GraphicsPipeline{ {
 	  .vertexShader = &vertexShader,
@@ -187,26 +187,26 @@ static Fwog::GraphicsPipeline CreatePipelineTextured()
 
 
 
-void ProjectApplication::AddDebugDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color) {
+void CarApplication::AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color) {
 
 	
 	std::array<glm::vec3, 2> linePos{ptA, ptB};
 	std::array<glm::vec3, 2> colorPos{color, color};
-  vertex_buffer_draw_lines.value().SubData(linePos, sizeof(glm::vec3) * curr_num_draw_points);
-  vertex_buffer_draw_colors.value().SubData(colorPos, sizeof(glm::vec3) * curr_num_draw_points);
+  vertex_buffer_collision_lines.value().SubData(linePos, sizeof(glm::vec3) * curr_num_collision_points);
+  vertex_buffer_collision_colors.value().SubData(colorPos, sizeof(glm::vec3) * curr_num_collision_points);
 
-  curr_num_draw_points += 2;
+  curr_num_collision_points += 2;
 }
 
 
 
-void ProjectApplication::ClearLines()
+void CarApplication::ClearLines()
 {
-	curr_num_draw_points = 0;
+	curr_num_collision_points = 0;
 }
 
 
-void ProjectApplication::DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor)
+void CarApplication::DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor)
 {
 	//It is ok to recalculate face points from the extents despite performance cost because this draw function is optional
 
@@ -224,31 +224,31 @@ void ProjectApplication::DrawLineAABB(Collision::AABB const& aabb, glm::vec3 box
 
 
 	//Back face
-	AddDebugDrawLine(backface_down_left, backface_down_right, boxColor);
-	AddDebugDrawLine(backface_down_left, backface_up_left, boxColor);
-	AddDebugDrawLine(backface_up_left, backface_up_right, boxColor);
-	AddDebugDrawLine(backface_up_right, backface_down_right, boxColor);
+	AddCollisionDrawLine(backface_down_left, backface_down_right, boxColor);
+	AddCollisionDrawLine(backface_down_left, backface_up_left, boxColor);
+	AddCollisionDrawLine(backface_up_left, backface_up_right, boxColor);
+	AddCollisionDrawLine(backface_up_right, backface_down_right, boxColor);
 
 	//Front Face
-	AddDebugDrawLine(frontface_down_left, frontface_down_right, boxColor);
-	AddDebugDrawLine(frontface_down_left, frontface_up_left, boxColor);
-	AddDebugDrawLine(frontface_up_left, frontface_up_right, boxColor);
-	AddDebugDrawLine(frontface_up_right, frontface_down_right, boxColor);
+	AddCollisionDrawLine(frontface_down_left, frontface_down_right, boxColor);
+	AddCollisionDrawLine(frontface_down_left, frontface_up_left, boxColor);
+	AddCollisionDrawLine(frontface_up_left, frontface_up_right, boxColor);
+	AddCollisionDrawLine(frontface_up_right, frontface_down_right, boxColor);
 
 	//Left Face
-	AddDebugDrawLine(backface_down_left, frontface_down_left, boxColor);
-	AddDebugDrawLine(backface_up_left, frontface_up_left, boxColor);
+	AddCollisionDrawLine(backface_down_left, frontface_down_left, boxColor);
+	AddCollisionDrawLine(backface_up_left, frontface_up_left, boxColor);
 
 
 	//Right Face
-	AddDebugDrawLine(backface_down_right, frontface_down_right, boxColor);
-	AddDebugDrawLine(backface_up_right, frontface_up_right, boxColor);
+	AddCollisionDrawLine(backface_down_right, frontface_down_right, boxColor);
+	AddCollisionDrawLine(backface_up_right, frontface_up_right, boxColor);
 
 
 }
 
 
-void ProjectApplication::DrawLineSphere(Collision::Sphere const& sphere, glm::vec3 sphereColor)
+void CarApplication::DrawLineSphere(Collision::Sphere const& sphere, glm::vec3 sphereColor)
 {
 	constexpr uint32_t num_stacks = 8;
 	constexpr uint32_t num_slices = 8;
@@ -296,24 +296,24 @@ void ProjectApplication::DrawLineSphere(Collision::Sphere const& sphere, glm::ve
 
 			position_vert = local_origin + position_vert;
 
-			AddDebugDrawLine(position_horizontal, temp_horizontal, sphereColor);
-			AddDebugDrawLine(position_vert, temp_vert, sphereColor);
+			AddCollisionDrawLine(position_horizontal, temp_horizontal, sphereColor);
+			AddCollisionDrawLine(position_vert, temp_vert, sphereColor);
 		}
 	}
 }
 
-void ProjectApplication::AfterCreatedUiContext()
+void CarApplication::AfterCreatedUiContext()
 {
 
 }
 
-void ProjectApplication::BeforeDestroyUiContext()
+void CarApplication::BeforeDestroyUiContext()
 {
 
 }
 
 
-void ProjectApplication::LoadBuffers()
+void CarApplication::LoadBuffers()
 {
 	//Creating world axis stuff
 	{
@@ -337,12 +337,12 @@ void ProjectApplication::LoadBuffers()
 	//Create collision line buffer
 	{
 		//Doesn't matter what the default initalization is since we only draw the valid points
-		std::array<glm::vec3, max_num_draw_points> linePts{};
+		std::array<glm::vec3, max_num_collision_points> linePts{};
 
-		vertex_buffer_draw_lines = Fwog::TypedBuffer<glm::vec3>(max_num_draw_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-		vertex_buffer_draw_colors = Fwog::TypedBuffer<glm::vec3>(max_num_draw_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-		vertex_buffer_draw_lines.value().SubData(linePts, 0);
-		vertex_buffer_draw_colors.value().SubData(linePts, 0 );
+		vertex_buffer_collision_lines = Fwog::TypedBuffer<glm::vec3>(max_num_collision_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		vertex_buffer_collision_colors = Fwog::TypedBuffer<glm::vec3>(max_num_collision_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		vertex_buffer_collision_lines.value().SubData(linePts, 0);
+		vertex_buffer_collision_colors.value().SubData(linePts, 0 );
 	}
 
 
@@ -365,7 +365,7 @@ void ProjectApplication::LoadBuffers()
 		//to do: better texture loading systems. this can break so easily and its jank as hell
 		int32_t textureWidth, textureHeight, textureChannels;
 		constexpr int32_t expected_num_channels = 4;
-		unsigned char* textureData = stbi_load("data/textures/GroundForest003_Flat.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
+		unsigned char* textureData = stbi_load("data_cargame/textures/GroundForest003_Flat.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
 		assert(textureData);
 		groundAlbedo = Fwog::CreateTexture2D({ static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight) }, Fwog::Format::R8G8B8A8_SRGB);
 		Fwog::TextureUpdateInfo updateInfo{ .dimension = Fwog::UploadDimension::TWO,
@@ -389,35 +389,43 @@ void ProjectApplication::LoadBuffers()
 		index_buffer_plane.emplace(Primitives::plane_indices);
 	}
 
-	//Creating the aircraft
+	//Creating the car
 	{
-		Utility::LoadModelFromFile(scene_aircraft, "data/models/aircraftPlaceholder.glb", glm::mat4{ 1.0f }, true);
-		ObjectUniforms aircraftUniform;
-		aircraftUniform.model = glm::mat4(1.0f);
+		Utility::LoadModelFromFile(scene_car, "data_cargame/models/Car_BodyOnly.glb", glm::mat4{ 1.0f }, true);
+		ObjectUniforms carUniform;
+		carUniform.model = glm::mat4(1.0f);
 
-		aircraftUniform.model = glm::translate(aircraftUniform.model, aircraftPos);
-		aircraftUniform.model = glm::scale(aircraftUniform.model, aircraftScale);
+		carUniform.model = glm::translate(carUniform.model, carPos);
+		carUniform.model = glm::scale(carUniform.model, carScale);
 
-		aircraft_box_collider.center = aircraftPos;
-		aircraft_box_collider.halfExtents = aircraftScale * aircraftCollisionScale;
+		car_box_collider.center = carPos;
+		car_box_collider.halfExtents = carScale * carCollisionScale;
 
-		aircraft_sphere_collider.radius = aircraft_sphere_radius;
-		aircraft_sphere_collider.center = aircraftPos;
+		car_sphere_collider.radius = car_sphere_radius;
+		car_sphere_collider.center = carPos;
 
-		aircraftUniform.color = aircraftColor;
-		objectBufferaircraft = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-		objectBufferaircraft.value().SubData(aircraftUniform, 0);
+		carUniform.color = carColor;
+		objectBufferCar = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		objectBufferCar.value().SubData(carUniform, 0);
+
+		Utility::LoadModelFromFile(scene_wheels, "data_cargame/models/Car_WheelsOnly.glb", glm::mat4{ 1.0f }, true);
+		ObjectUniforms wheelUniform;
+		wheelUniform.model = glm::mat4(1.0f);
+		wheelUniform.color = wheelColor;
+
+		objectBufferWheels = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		objectBufferWheels.value().SubData(wheelUniform, 0);
 	}
 }
 
-bool ProjectApplication::Load()
+bool CarApplication::Load()
 {
 
-	SetWindowTitle("Plane Game");
+	SetWindowTitle("Car Game");
 
 	// Initialize SoLoud (automatic back-end selection)
 	SoLoud::result init = soloud.init();
-	SoLoud::result res = sample.load("data/sounds/start.wav"); // Load a wave file
+	SoLoud::result res = sample.load("data_cargame/sounds/start.wav"); // Load a wave file
 	soloud.setGlobalVolume(soloud_volume);
 
 	//Creating pipelines
@@ -440,7 +448,7 @@ bool ProjectApplication::Load()
 
 
 
-void ProjectApplication::Update(double dt)
+void CarApplication::Update(double dt)
 {
 
 
@@ -449,113 +457,83 @@ void ProjectApplication::Update(double dt)
 		Close();
 	}
 
-	if (IsKeyPressed(GLFW_KEY_Q))
+	if (IsKeyPressed(GLFW_KEY_SPACE))
 	{
 		soloud.play(sample); 
 	}
 
-
-
 	
 	{
-		//aircraft Inputs
+		//Car Inputs
+
 		float dt_float = static_cast<float>(dt);
 		float zoom_speed_level = 1.0f;
 
-		aircraft_current_speed_scale = 1.0f;
-
-		if (IsKeyPressed(GLFW_KEY_SPACE))
-		{
-			aircraft_current_speed_scale = aircraft_speedup_scale;
-			zoom_speed_level = 1.05f;
-		}
-
-
-		//Turning Left: Need to adjust both Roll and Velocity
-		if (IsKeyPressed(GLFW_KEY_RIGHT))
-		{
-			aircraft_body.aircraft_angles_degrees.z += aircraft_angle_turning_degrees * dt_float;
-		}
-
-		if (IsKeyPressed(GLFW_KEY_LEFT))
-		{
-			aircraft_body.aircraft_angles_degrees.z -= aircraft_angle_turning_degrees * dt_float;
-		}
-
 		if (IsKeyPressed(GLFW_KEY_UP))
 		{
-			aircraft_body.aircraft_angles_degrees.x += aircraft_angle_turning_degrees * dt_float;
-		}
+			zoom_speed_level = 1.05f;
+			if (IsKeyPressed(GLFW_KEY_LEFT))
+			{
+				car_angle_degrees += car_angle_turning_degrees * dt_float;
+				carForward = glm::vec3(glm::sin(glm::radians(car_angle_degrees)), 0.0f, glm::cos(glm::radians(car_angle_degrees)));
+			}
 
+			if (IsKeyPressed(GLFW_KEY_RIGHT))
+			{
+				car_angle_degrees += -car_angle_turning_degrees * dt_float;
+				carForward = glm::vec3(glm::sin(glm::radians(car_angle_degrees)), 0.0f, glm::cos(glm::radians(car_angle_degrees)));
+			}
+			carPos += carForward * car_speed_scale * dt_float;
+		}
 		if (IsKeyPressed(GLFW_KEY_DOWN))
 		{
-			aircraft_body.aircraft_angles_degrees.x -= aircraft_angle_turning_degrees * dt_float;
+			if (IsKeyPressed(GLFW_KEY_RIGHT) == GLFW_PRESS)
+			{
+				car_angle_degrees += car_angle_turning_degrees * dt_float;
+				carForward = glm::vec3(glm::sin(glm::radians(car_angle_degrees)), 0.0f, glm::cos(glm::radians(car_angle_degrees)));
+			}
+
+			if (IsKeyPressed(GLFW_KEY_LEFT) == GLFW_PRESS)
+			{
+				car_angle_degrees += -car_angle_turning_degrees * dt_float;
+				carForward = glm::vec3(glm::sin(glm::radians(car_angle_degrees)), 0.0f, glm::cos(glm::radians(car_angle_degrees)));
+			}
+
+			carPos -= carForward * car_speed_scale_reverse * dt_float;
 		}
 
-
-
-		//Update position based off the velocity
-		aircraftPos += aircraft_body.direction_vector * aircraft_body.current_speed * aircraft_current_speed_scale * dt_float;
-
-
-		//Debug Lines
 		{
-			ZoneScopedC(tracy::Color::Green);
-
-			//for dispaly
-			constexpr float line_length = 20.0f;
-			
-			glm::vec3 dir_vec_pt = aircraftPos + aircraft_body.direction_vector * line_length;
-			AddDebugDrawLine(aircraftPos, dir_vec_pt, glm::vec3(1.0f, 0.0f, 0.0f));
-
-			//glm::vec3 velpt = aircraftPos + glm::normalize(aircraft_body.aircraft_current_velocity) * line_length;
-			//AddDebugDrawLine(aircraftPos, velpt, glm::vec3(1.0f, 0.0f, 0.0f));
-
-
 			//Collider sync and draws
-			//Collision::SyncAABB(aircraft_box_collider, aircraftPos);
-			//Collision::SyncSphere(aircraft_sphere_collider, aircraftPos);
+			Collision::SyncAABB(car_box_collider, carPos);
+			Collision::SyncSphere(car_sphere_collider, carPos);
 
-			////Profile only the drawing
-			//
-			//DrawLineAABB(aircraft_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
-			//DrawLineSphere(aircraft_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
+			//Profile only the drawing
+			ZoneScopedC(tracy::Color::Green);
+			DrawLineAABB(car_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
+			DrawLineSphere(car_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
 		}
 		
+		
 		{
-			//aircraft uniform buffer changes
+			//Car uniform buffer changes
 			ZoneScopedC(tracy::Color::Orange);
 			glm::mat4 model(1.0f);
-			model = glm::translate(model, aircraftPos);
-
-			//To Do: Make this world coordinate system agnostic
-			//Example: angleUp = magnitude of worldUp * aircraft_angle_degrees
-
-
-			//Reset to the world forward as we apply the rotation in correct sequence
-			aircraft_body.direction_vector = glm::vec3(0.0f, 0.0f, 1.0f);
-
-			//This adjusts the yaw of the aircraft
-			glm::mat4 rotModel(1.0f);
-
-			rotModel = glm::rotate(rotModel, glm::radians(aircraft_body.aircraft_angles_degrees.y), worldUp);
-			rotModel = glm::rotate(rotModel, glm::radians(aircraft_body.aircraft_angles_degrees.z), worldForward);
-			rotModel = glm::rotate(rotModel, glm::radians(aircraft_body.aircraft_angles_degrees.x), worldRight);
-			aircraft_body.direction_vector = glm::vec3(rotModel * glm::vec4(aircraft_body.direction_vector, 1.0f));
-
-			model *= rotModel;
+			model = glm::translate(model, carPos);
+			model = glm::rotate(model, glm::radians(car_angle_degrees), worldUp);
 
 			ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
-			objectBufferaircraft.value().SubData(a, 0);
+			ObjectUniforms b(model, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
+
+			objectBufferWheels.value().SubData(b, 0);
+			objectBufferCar.value().SubData(a, 0);
 		}
 
 		{
 			//Camera logic stuff
 			ZoneScopedC(tracy::Color::Blue);
-
-			glm::vec3 camPos = aircraftPos - aircraftForward * cameraOffset.z + cameraOffsetTarget;
+			glm::vec3 camPos = carPos - carForward * 15.0f + cameraOffsetTarget;
 			glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-			glm::mat4 view = glm::lookAt(camPos, aircraftPos + cameraOffsetTarget, up);
+			glm::mat4 view = glm::lookAt(camPos, carPos + cameraOffsetTarget, up);
 
 			//we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
 			glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
@@ -567,7 +545,7 @@ void ProjectApplication::Update(double dt)
 
 
 
-void ProjectApplication::RenderScene()
+void CarApplication::RenderScene()
 {
 	ZoneScopedC(tracy::Color::Red);
 
@@ -602,14 +580,19 @@ void ProjectApplication::RenderScene()
 		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
 	}
 
-	//Drawing a aircraft + wheels
+	//Drawing a car + wheels
 	{
 		Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
 		Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-		Fwog::Cmd::BindUniformBuffer(1, objectBufferaircraft.value());
-		Fwog::Cmd::BindVertexBuffer(0, scene_aircraft.meshes[0].vertexBuffer, 0, sizeof(Utility::Vertex));
-		Fwog::Cmd::BindIndexBuffer(scene_aircraft.meshes[0].indexBuffer, Fwog::IndexType::UNSIGNED_INT);
-		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_aircraft.meshes[0].indexBuffer.Size()) / sizeof(uint32_t), 1, 0, 0, 0);
+		Fwog::Cmd::BindUniformBuffer(1, objectBufferCar.value());
+		Fwog::Cmd::BindVertexBuffer(0, scene_car.meshes[0].vertexBuffer, 0, sizeof(Utility::Vertex));
+		Fwog::Cmd::BindIndexBuffer(scene_car.meshes[0].indexBuffer, Fwog::IndexType::UNSIGNED_INT);
+		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_car.meshes[0].indexBuffer.Size()) / sizeof(uint32_t), 1, 0, 0, 0);
+
+		Fwog::Cmd::BindUniformBuffer(1, objectBufferWheels.value());
+		Fwog::Cmd::BindVertexBuffer(0, scene_wheels.meshes[0].vertexBuffer, 0, sizeof(Utility::Vertex));
+		Fwog::Cmd::BindIndexBuffer(scene_wheels.meshes[0].indexBuffer, Fwog::IndexType::UNSIGNED_INT);
+		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_wheels.meshes[0].indexBuffer.Size()) / sizeof(uint32_t), 1, 0, 0, 0);
 	}
 
 	//Drawing axis lines
@@ -621,11 +604,11 @@ void ProjectApplication::RenderScene()
 		Fwog::Cmd::Draw(num_points_world_axis, 1, 0, 0);
 
 		// Drawing collision lines
-        if (curr_num_draw_points != 0 && curr_num_draw_points < max_num_draw_points) 
+        if (curr_num_collision_points != 0 && curr_num_collision_points < max_num_collision_points) 
 		{
-			Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_draw_lines.value(), 0, 3 * sizeof(float));
-            Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_draw_colors.value(), 0, 3 * sizeof(float));
-			Fwog::Cmd::Draw(curr_num_draw_points, 1, 0, 0);
+			Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_collision_lines.value(), 0, 3 * sizeof(float));
+            Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_collision_colors.value(), 0, 3 * sizeof(float));
+			Fwog::Cmd::Draw(curr_num_collision_points, 1, 0, 0);
 
 			//Allows DrawLine to be called every frame without creating buffers. Should make new buffer  if want presistent lines ofc 
 			ClearLines();
@@ -637,7 +620,7 @@ void ProjectApplication::RenderScene()
 	Fwog::EndRendering();
 }
 
-void ProjectApplication::RenderUI(double dt)
+void CarApplication::RenderUI(double dt)
 {
 	//This is needed or else there's a crash
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
@@ -649,7 +632,7 @@ void ProjectApplication::RenderUI(double dt)
 	}
 }
 
-ProjectApplication::~ProjectApplication()
+CarApplication::~CarApplication()
 {
 	soloud.stopAll();
 	soloud.deinit();

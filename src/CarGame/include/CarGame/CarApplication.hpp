@@ -18,7 +18,7 @@
 
 #include <optional>
 
-#include "SceneLoader.h"
+#include "CarGame/SceneLoader.h"
 #include <soloud/soloud.h>
 #include <soloud/soloud_wav.h>
 
@@ -146,17 +146,12 @@ namespace Collision
 }
 
 
-namespace Physics
-{
 
-}
-
-
-class ProjectApplication final : public Application
+class CarApplication final : public Application
 {
 public:
     static std::string LoadFile(std::string_view path);
-    ~ProjectApplication();
+    ~CarApplication();
 
 protected:
     void AfterCreatedUiContext() override;
@@ -172,7 +167,7 @@ private:
 //To Do: This stuff should probably pass in the line vertex buffer it wants to subData()
 
 //Adds the line to the specified buffer that is then draw I need to find a better name for this tbh
- void AddDebugDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color);
+ void AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color);
  void DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor);
  void DrawLineSphere(Collision::Sphere const& sphere, glm::vec3 sphereColor);
 
@@ -236,67 +231,41 @@ private:
     std::optional<Fwog::Texture> groundAlbedo;
     std::optional<Fwog::Buffer> objectBufferPlane;
 
+    //Car Stuff
+    float car_speed_scale{ 40.0f };
+    float car_speed_scale_reverse{ 10.0f };
 
-    //aircraft stuff
-    struct PhysicsBody
-    {
-        float current_speed = 0.0f;
-        
-        //This should always be unit vector : determines where the actual model faces
-        //constexpr static glm::vec3 aircraft_starting_direction{0.0f, 0.0f, 1.0f};
+    // car's rotation when turning relative to the z-axis forward 
+    float car_angle_turning_degrees{ 80.0f };
+    float car_angle_degrees{ 0.0f };
 
-        //Store as angles first.
-        //Consider this as: {Pitch, Yaw, Roll}
-        //Used for the model matrix transformation
-        glm::vec3 aircraft_angles_degrees{0.0f, 0.0f, 0.0f};
-
-        glm::vec3 direction_vector{0.0f, 0.0f, 1.0f};
-    };
-
-    constexpr static float aircraft_starting_speed{20.0f};
-    constexpr static glm::vec3 aircraft_starting_angles_degrees{0.0f, 0.0f, 0.0f};
-    constexpr static glm::vec3 aircraft_starting_direction_vector{0.0f, 0.0f, 1.0f};
-
-    PhysicsBody aircraft_body{aircraft_starting_speed, aircraft_starting_angles_degrees, aircraft_starting_direction_vector};
-
-    float aircraft_speed_scale{ 40.0f };
-    float aircraft_speed_scale_reverse{ 10.0f };
-
-
-    constexpr static float aircraft_speedup_scale{2.0f};
-    float aircraft_current_speed_scale{1.0f};
-
-    // aircraft's rotation when turning relative to the z-axis forward (per second of course)
-    float aircraft_angle_turning_degrees{ 30.0f };
-
-    static constexpr glm::vec4 aircraftColor{ 0.0f, 0.8f, 0.0f, 1.0f };
+    static constexpr glm::vec4 carColor{ 0.0f, 0.8f, 0.0f, 1.0f };
     static constexpr glm::vec4 wheelColor{ 0.5f, 0.5f, 0.5f, 1.0f };
 
     //not used yet
     //glm::vec3 wheelForward{ worldForward };
 
-    glm::vec3 aircraftForward{ worldForward };
-    glm::vec3 aircraftPos{ 0.0f, 65.0f, 0.0f };
-    glm::vec3 aircraftScale{1.0f, 1.0f, 1.0f};
+    glm::vec3 carForward{ worldForward };
+    glm::vec3 carPos{ 0.0f, 0.0f, 0.0f };
+    glm::vec3 carScale{1.0f, 1.0f, 1.0f};
 
-    //Multiply with the aircraftScale
-    glm::vec3 aircraftCollisionScale{1.5f, 1.2f, 1.5f};
-    Collision::AABB aircraft_box_collider;
+    //Multiply with the carScale
+    glm::vec3 carCollisionScale{1.5f, 1.2f, 1.5f};
+    Collision::AABB car_box_collider;
 
-    float aircraft_sphere_radius = 1.0f;
-    Collision::Sphere aircraft_sphere_collider;
+    float car_sphere_radius = 1.0f;
+    Collision::Sphere car_sphere_collider;
 
-    static constexpr glm::vec3 cameraOffset = glm::vec3(0.0f, 10.0f, 20.0f);
-
+    static constexpr glm::vec3 cameraOffset = glm::vec3(0.0f, 10.0f, -12.0f);
     static constexpr glm::vec3 cameraOffsetTarget = glm::vec3(0.0f, 10.0f, 0.0f);
     static constexpr float soloud_volume{0.1f};
 
 
-    //For loading the aircraft from gltf file. aircraft and wheels as separate models (gotta implement some kind of skinned hirerarchy stuff otherwise)
-    Utility::Scene scene_aircraft;
+    //For loading the car from gltf file. Car and wheels as separate models (gotta implement some kind of skinned hirerarchy stuff otherwise)
+    Utility::Scene scene_car;
     Utility::Scene scene_wheels;
 
-    std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferaircraft;
+    std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferCar;
     std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferWheels;
 
     SoLoud::Soloud soloud; 
@@ -306,10 +275,10 @@ private:
     //Collision related stuff. Need to refactor
    
     //Collision Drawing
-    static constexpr uint32_t max_num_draw_points = 65536;
-    uint32_t curr_num_draw_points = 0;
+    static constexpr uint32_t max_num_collision_points = 65536;
+    uint32_t curr_num_collision_points = 0;
 
-    std::optional<Fwog::Buffer> vertex_buffer_draw_lines;
-    std::optional<Fwog::Buffer> vertex_buffer_draw_colors;
+    std::optional<Fwog::Buffer> vertex_buffer_collision_lines;
+    std::optional<Fwog::Buffer> vertex_buffer_collision_colors;
 
 };

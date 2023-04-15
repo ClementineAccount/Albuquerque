@@ -1,4 +1,4 @@
-#include <Project.Library/Application.hpp>
+#include <Albuquerque/Application.hpp>
 
 #include <spdlog/spdlog.h>
 #include <glad/glad.h>
@@ -86,7 +86,7 @@ bool Application::Initialize()
 
 
 
-    _windowHandle = glfwCreateWindow(windowWidth, windowHeight, "Project Template", nullptr, nullptr);
+    _windowHandle = glfwCreateWindow(windowWidth, windowHeight, "Albuquerque Project Template", nullptr, nullptr);
     if (_windowHandle == nullptr)
     {
         spdlog::error("Glfw: Unable to create window");
@@ -149,7 +149,7 @@ void Application::Unload()
 void Application::Render(double dt)
 {
     glEnable(GL_FRAMEBUFFER_SRGB);
-    ZoneScopedC(tracy::Color::Red2);
+
 
     RenderScene();
     ImGui_ImplOpenGL3_NewFrame();
@@ -176,6 +176,12 @@ void Application::RenderUI(double dt)
 void Application::Update(double dt)
 {
 }
+
+void Application::SetWindowTitle(const char*  winTitle)
+{
+    glfwSetWindowTitle(_windowHandle, winTitle);
+}
+
 
 void Application::AfterCreatedUiContext()
 {
