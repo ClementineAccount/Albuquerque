@@ -1,7 +1,7 @@
 Gonna rescope the game from driving to flying as flying has easier collision response code when not using a physics library. Will revisit driving in the future instead.
 
-Currently being developed with a driving game I am working on:
-![image](https://user-images.githubusercontent.com/26779639/230844833-36683e8c-7033-4522-aa2b-71e276649bae.png)
+Currently being developed with a driving game I am working on (placeholder screenshot):
+![image](https://user-images.githubusercontent.com/26779639/232227588-52cd5a3d-2f6b-4640-9692-2ed51f427a6c.png)
 
 This project is a self-learning exercise in understanding and implementing the complexities of how to render seamless open world environments with presistent states (level editing features) in an optimized way. It is also an exercise in learning more complex vehicle physics simulation considerations. 
 
