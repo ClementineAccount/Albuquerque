@@ -490,26 +490,35 @@ void ProjectApplication::Update(double dt)
 			zoom_speed_level = 1.02f;
 		}
 
-
 		//Turning Left: Need to adjust both Roll and Velocity
 		if (IsKeyPressed(GLFW_KEY_RIGHT))
 		{
-			aircraft_body.aircraft_angles_degrees.z += aircraft_angle_turning_degrees * dt_float;
+			aircraft_body.aircraft_angles_degrees.y -= aircraft_angle_turning_degrees * dt_float;
 
-			//experiment with horizontal and vertical forces 
+			if (aircraft_body.aircraft_angles_degrees.z < aircraft_max_roll_degrees)
+			{
+				aircraft_body.aircraft_angles_degrees.z += aircraft_angle_turning_degrees * dt_float;
 
-			/*glm::vec3 aircraft_right = glm::cross(glm::normalize(aircraft_body.direction_vector), worldUp);
-			AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_right * 5.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-			aircraftPos += aircraft_right * 40.0f * dt_float;*/
+				//experiment with horizontal and vertical forces 
+
+				//glm::vec3 aircraft_right = glm::cross(glm::normalize(aircraft_body.direction_vector), worldUp);
+				//AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_right * 5.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+				//aircraftPos += aircraft_right * 40.0f * dt_float;
+			}
 		}
 
 		if (IsKeyPressed(GLFW_KEY_LEFT))
 		{
-			aircraft_body.aircraft_angles_degrees.z -= aircraft_angle_turning_degrees * dt_float;
+			aircraft_body.aircraft_angles_degrees.y += aircraft_angle_turning_degrees * dt_float;
+			if (aircraft_body.aircraft_angles_degrees.z > -aircraft_max_roll_degrees)
+			{
+				aircraft_body.aircraft_angles_degrees.z -= aircraft_angle_turning_degrees * dt_float;
 
-			//glm::vec3 aircraft_right = glm::cross(glm::normalize(aircraft_body.direction_vector), worldUp);
-			//AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_right * 5.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-			//aircraftPos -= aircraft_right * 40.0f * dt_float;
+				//glm::vec3 aircraft_right = glm::cross(glm::normalize(aircraft_body.direction_vector), worldUp);
+				//AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_right * 5.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+				//aircraftPos -= aircraft_right * 40.0f * dt_float;
+			}
+
 		}
 
 		if (IsKeyPressed(GLFW_KEY_UP))
@@ -525,6 +534,8 @@ void ProjectApplication::Update(double dt)
 
 
 		//Update position based off the velocity
+
+		//Experimenting with another approach
 		aircraftPos += aircraft_body.direction_vector * aircraft_body.current_speed * aircraft_current_speed_scale * dt_float;
 
 
@@ -569,10 +580,13 @@ void ProjectApplication::Update(double dt)
 			glm::mat4 rotModel(1.0f);
 
 			rotModel = glm::rotate(rotModel, glm::radians(aircraft_body.aircraft_angles_degrees.y), worldUp);
-			rotModel = glm::rotate(rotModel, glm::radians(aircraft_body.aircraft_angles_degrees.z), worldForward);
 			rotModel = glm::rotate(rotModel, glm::radians(aircraft_body.aircraft_angles_degrees.x), worldRight);
+
+
+			//Don't apply the roll vector to actual kinematics model
 			aircraft_body.direction_vector = glm::vec3(rotModel * glm::vec4(aircraft_body.direction_vector, 1.0f));
 
+			rotModel = glm::rotate(rotModel, glm::radians(aircraft_body.aircraft_angles_degrees.z), worldForward);
 			model *= rotModel;
 
 			ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));

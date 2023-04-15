@@ -272,6 +272,8 @@ private:
     static constexpr glm::vec4 aircraftColor{ 0.0f, 0.8f, 0.0f, 1.0f };
     static constexpr glm::vec4 wheelColor{ 0.5f, 0.5f, 0.5f, 1.0f };
 
+    static constexpr float aircraft_max_roll_degrees{60.0f};
+
     //not used yet
     //glm::vec3 wheelForward{ worldForward };
 
