@@ -449,10 +449,12 @@ void ProjectApplication::Update(double dt)
 		Close();
 	}
 
-	if (IsKeyPressed(GLFW_KEY_SPACE))
+	if (IsKeyPressed(GLFW_KEY_Q))
 	{
 		soloud.play(sample); 
 	}
+
+
 
 	
 	{
@@ -460,59 +462,40 @@ void ProjectApplication::Update(double dt)
 		float dt_float = static_cast<float>(dt);
 		float zoom_speed_level = 1.0f;
 
+		aircraft_current_speed_scale = 1.0f;
+
+		if (IsKeyPressed(GLFW_KEY_SPACE))
+		{
+			aircraft_current_speed_scale = aircraft_speedup_scale;
+			zoom_speed_level = 1.05f;
+		}
+
+
 		//Turning Left: Need to adjust both Roll and Velocity
 		if (IsKeyPressed(GLFW_KEY_RIGHT))
 		{
 			aircraft_body.aircraft_angles_degrees.z += aircraft_angle_turning_degrees * dt_float;
-
-			//Set the direction vector based off the new angles
-			glm::mat4 rotateMat(1.0f);
-			rotateMat = glm::rotate(glm::mat4(1.0f), glm::radians(-aircraft_angle_turning_degrees  * dt_float), worldUp);
-
-			//Apply the yaw rotation first for both velocity and rotation 
-			aircraft_body.aircraft_current_velocity = glm::vec3(rotateMat * glm::vec4(aircraft_body.aircraft_current_velocity, 1.0f));
 		}
 
 		if (IsKeyPressed(GLFW_KEY_LEFT))
 		{
 			aircraft_body.aircraft_angles_degrees.z -= aircraft_angle_turning_degrees * dt_float;
-
-			//Set the direction vector based off the new angles
-			glm::mat4 rotateMat(1.0f);
-			rotateMat = glm::rotate(glm::mat4(1.0f), glm::radians(aircraft_angle_turning_degrees  * dt_float), worldUp);
-
-			//Apply the yaw rotation first for both velocity and rotation 
-			aircraft_body.aircraft_current_velocity = glm::vec3(rotateMat * glm::vec4(aircraft_body.aircraft_current_velocity, 1.0f));
 		}
 
 		if (IsKeyPressed(GLFW_KEY_UP))
 		{
 			aircraft_body.aircraft_angles_degrees.x += aircraft_angle_turning_degrees * dt_float;
-
-			//Set the direction vector based off the new angles
-			glm::mat4 rotateMat(1.0f);
-			rotateMat = glm::rotate(glm::mat4(1.0f), glm::radians(aircraft_angle_turning_degrees  * dt_float), worldRight);
-
-			//Apply the yaw rotation first for both velocity and rotation 
-			aircraft_body.aircraft_current_velocity = glm::vec3(rotateMat * glm::vec4(aircraft_body.aircraft_current_velocity, 1.0f));
 		}
 
 		if (IsKeyPressed(GLFW_KEY_DOWN))
 		{
 			aircraft_body.aircraft_angles_degrees.x -= aircraft_angle_turning_degrees * dt_float;
-
-			//Set the direction vector based off the new angles
-			glm::mat4 rotateMat(1.0f);
-			rotateMat = glm::rotate(glm::mat4(1.0f), glm::radians(-aircraft_angle_turning_degrees  * dt_float), worldRight);
-
-			//Apply the yaw rotation first for both velocity and rotation 
-			aircraft_body.aircraft_current_velocity = glm::vec3(rotateMat * glm::vec4(aircraft_body.aircraft_current_velocity, 1.0f));
 		}
 
 
 
 		//Update position based off the velocity
-		aircraftPos += aircraft_body.aircraft_current_velocity * dt_float;
+		aircraftPos += aircraft_body.direction_vector * aircraft_body.current_speed * aircraft_current_speed_scale * dt_float;
 
 
 		//Debug Lines
@@ -520,13 +503,13 @@ void ProjectApplication::Update(double dt)
 			ZoneScopedC(tracy::Color::Green);
 
 			//for dispaly
-			constexpr float line_length = 30.0f;
+			constexpr float line_length = 20.0f;
 			
-			//glm::vec3 dir_vec_pt = aircraftPos + aircraft_body.direction_vector * line_length;
-			//AddDebugDrawLine(aircraftPos, dir_vec_pt, glm::vec3(1.0f, 0.0f, 0.0f));
+			glm::vec3 dir_vec_pt = aircraftPos + aircraft_body.direction_vector * line_length;
+			AddDebugDrawLine(aircraftPos, dir_vec_pt, glm::vec3(1.0f, 0.0f, 0.0f));
 
-			glm::vec3 velpt = aircraftPos + glm::normalize(aircraft_body.aircraft_current_velocity) * line_length;
-			AddDebugDrawLine(aircraftPos, velpt, glm::vec3(1.0f, 0.0f, 0.0f));
+			//glm::vec3 velpt = aircraftPos + glm::normalize(aircraft_body.aircraft_current_velocity) * line_length;
+			//AddDebugDrawLine(aircraftPos, velpt, glm::vec3(1.0f, 0.0f, 0.0f));
 
 
 			//Collider sync and draws
@@ -548,11 +531,19 @@ void ProjectApplication::Update(double dt)
 			//To Do: Make this world coordinate system agnostic
 			//Example: angleUp = magnitude of worldUp * aircraft_angle_degrees
 
+
+			//Reset to the world forward as we apply the rotation in correct sequence
+			aircraft_body.direction_vector = glm::vec3(0.0f, 0.0f, 1.0f);
+
 			//This adjusts the yaw of the aircraft
-			model = glm::rotate(model, glm::radians(aircraft_body.aircraft_angles_degrees.y), worldUp);
-			model = glm::rotate(model, glm::radians(aircraft_body.aircraft_angles_degrees.z), worldForward);
-			model = glm::rotate(model, glm::radians(aircraft_body.aircraft_angles_degrees.x), worldRight);
-			//model *= rotateMat;
+			glm::mat4 rotModel(1.0f);
+
+			rotModel = glm::rotate(rotModel, glm::radians(aircraft_body.aircraft_angles_degrees.y), worldUp);
+			rotModel = glm::rotate(rotModel, glm::radians(aircraft_body.aircraft_angles_degrees.z), worldForward);
+			rotModel = glm::rotate(rotModel, glm::radians(aircraft_body.aircraft_angles_degrees.x), worldRight);
+			aircraft_body.direction_vector = glm::vec3(rotModel * glm::vec4(aircraft_body.direction_vector, 1.0f));
+
+			model *= rotModel;
 
 			ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
 			objectBufferaircraft.value().SubData(a, 0);

@@ -240,8 +240,8 @@ private:
     //aircraft stuff
     struct PhysicsBody
     {
-        glm::vec3 aircraft_current_velocity{0.0f, 0.0f, 0.0f};
-
+        float current_speed = 0.0f;
+        
         //This should always be unit vector : determines where the actual model faces
         //constexpr static glm::vec3 aircraft_starting_direction{0.0f, 0.0f, 1.0f};
 
@@ -253,14 +253,18 @@ private:
         glm::vec3 direction_vector{0.0f, 0.0f, 1.0f};
     };
 
-    constexpr static glm::vec3 aircraft_starting_velocity{0.0f, 0.0f, 10.0f};
+    constexpr static float aircraft_starting_speed{20.0f};
     constexpr static glm::vec3 aircraft_starting_angles_degrees{0.0f, 0.0f, 0.0f};
     constexpr static glm::vec3 aircraft_starting_direction_vector{0.0f, 0.0f, 1.0f};
 
-    PhysicsBody aircraft_body{aircraft_starting_velocity, aircraft_starting_angles_degrees, aircraft_starting_direction_vector};
+    PhysicsBody aircraft_body{aircraft_starting_speed, aircraft_starting_angles_degrees, aircraft_starting_direction_vector};
 
     float aircraft_speed_scale{ 40.0f };
     float aircraft_speed_scale_reverse{ 10.0f };
+
+
+    constexpr static float aircraft_speedup_scale{2.0f};
+    float aircraft_current_speed_scale{1.0f};
 
     // aircraft's rotation when turning relative to the z-axis forward (per second of course)
     float aircraft_angle_turning_degrees{ 30.0f };
