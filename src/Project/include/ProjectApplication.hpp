@@ -267,7 +267,7 @@ private:
     float aircraft_current_speed_scale{1.0f};
 
     // aircraft's rotation when turning relative to the z-axis forward (per second of course)
-    float aircraft_angle_turning_degrees{ 30.0f };
+    float aircraft_angle_turning_degrees{ 60.0f };
 
     static constexpr glm::vec4 aircraftColor{ 0.0f, 0.8f, 0.0f, 1.0f };
     static constexpr glm::vec4 wheelColor{ 0.5f, 0.5f, 0.5f, 1.0f };

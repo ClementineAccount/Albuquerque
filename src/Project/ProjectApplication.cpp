@@ -583,9 +583,12 @@ void ProjectApplication::Update(double dt)
 			//Camera logic stuff
 			ZoneScopedC(tracy::Color::Blue);
 
-			glm::vec3 camPos = aircraftPos - aircraftForward * cameraOffset.z + cameraOffsetTarget;
+			glm::vec3 planeRight = glm::normalize(glm::cross(aircraft_body.direction_vector, worldUp));
+			glm::vec3 planeUp = -glm::normalize(glm::cross(aircraft_body.direction_vector, planeRight));
+
+			glm::vec3 camPos = aircraftPos - aircraft_body.direction_vector * cameraOffset.z + planeUp * 10.0f;
 			glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-			glm::mat4 view = glm::lookAt(camPos, aircraftPos + cameraOffsetTarget, up);
+			glm::mat4 view = glm::lookAt(camPos, aircraftPos + planeUp * 10.0f, up);
 
 			//we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
 			glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
