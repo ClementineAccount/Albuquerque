@@ -467,7 +467,7 @@ void ProjectApplication::Update(double dt)
 		if (IsKeyPressed(GLFW_KEY_SPACE))
 		{
 			aircraft_current_speed_scale = aircraft_speedup_scale;
-			zoom_speed_level = 1.05f;
+			zoom_speed_level = 1.02f;
 		}
 
 
