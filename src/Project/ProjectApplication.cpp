@@ -250,6 +250,9 @@ void ProjectApplication::DrawLineAABB(Collision::AABB const& aabb, glm::vec3 box
 
 void ProjectApplication::DrawLineSphere(Collision::Sphere const& sphere, glm::vec3 sphereColor)
 {
+
+	//http://www.songho.ca/opengl/gl_sphere.html
+
 	constexpr uint32_t num_stacks = 8;
 	constexpr uint32_t num_slices = 8;
 
@@ -492,11 +495,21 @@ void ProjectApplication::Update(double dt)
 		if (IsKeyPressed(GLFW_KEY_RIGHT))
 		{
 			aircraft_body.aircraft_angles_degrees.z += aircraft_angle_turning_degrees * dt_float;
+
+			//experiment with horizontal and vertical forces 
+
+			/*glm::vec3 aircraft_right = glm::cross(glm::normalize(aircraft_body.direction_vector), worldUp);
+			AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_right * 5.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+			aircraftPos += aircraft_right * 40.0f * dt_float;*/
 		}
 
 		if (IsKeyPressed(GLFW_KEY_LEFT))
 		{
 			aircraft_body.aircraft_angles_degrees.z -= aircraft_angle_turning_degrees * dt_float;
+
+			//glm::vec3 aircraft_right = glm::cross(glm::normalize(aircraft_body.direction_vector), worldUp);
+			//AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_right * 5.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+			//aircraftPos -= aircraft_right * 40.0f * dt_float;
 		}
 
 		if (IsKeyPressed(GLFW_KEY_UP))
@@ -523,7 +536,7 @@ void ProjectApplication::Update(double dt)
 			constexpr float line_length = 20.0f;
 			
 			glm::vec3 dir_vec_pt = aircraftPos + aircraft_body.direction_vector * line_length;
-			AddDebugDrawLine(aircraftPos, dir_vec_pt, glm::vec3(1.0f, 0.0f, 0.0f));
+			AddDebugDrawLine(aircraftPos, dir_vec_pt, glm::vec3(0.0f, 0.0f, 1.0f));
 
 			//glm::vec3 velpt = aircraftPos + glm::normalize(aircraft_body.aircraft_current_velocity) * line_length;
 			//AddDebugDrawLine(aircraftPos, velpt, glm::vec3(1.0f, 0.0f, 0.0f));
