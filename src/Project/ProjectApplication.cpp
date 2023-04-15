@@ -423,6 +423,9 @@ bool ProjectApplication::Load()
 	sample.setVolume(0.1);
 	res = plane_flying_sfx.load("data/sounds/planeFlying.wav");
 
+	background_music.load("data/sounds/backgroundMusic.wav");
+	background_music.setVolume(0.30);
+
 	soloud.setGlobalVolume(soloud_volume);
 
 	//Creating pipelines
@@ -437,8 +440,10 @@ bool ProjectApplication::Load()
 	//Play sfx
 
 	plane_flying_sfx.setLooping(true);
-	plane_flying_sfx.setVolume(0.25);
+	plane_flying_sfx.setVolume(0.40);
 	soloud.play(plane_flying_sfx);
+
+	soloud.play(background_music);
 
 
 	return true;

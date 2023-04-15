@@ -304,6 +304,7 @@ private:
 
 
     SoLoud::Wav plane_flying_sfx;
+    SoLoud::Wav background_music;
 
     //Collision related stuff. Need to refactor
    
