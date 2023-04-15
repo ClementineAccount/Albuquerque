@@ -231,41 +231,42 @@ private:
     std::optional<Fwog::Texture> groundAlbedo;
     std::optional<Fwog::Buffer> objectBufferPlane;
 
-    //Car Stuff
-    float car_speed_scale{ 40.0f };
-    float car_speed_scale_reverse{ 10.0f };
+    //aircraft Stuff
+    float aircraft_speed_scale{ 40.0f };
+    float aircraft_speed_scale_reverse{ 10.0f };
 
-    // car's rotation when turning relative to the z-axis forward 
-    float car_angle_turning_degrees{ 80.0f };
-    float car_angle_degrees{ 0.0f };
+    // aircraft's rotation when turning relative to the z-axis forward 
+    float aircraft_angle_turning_degrees{ 80.0f };
+    float aircraft_angle_degrees{ 0.0f };
 
-    static constexpr glm::vec4 carColor{ 0.0f, 0.8f, 0.0f, 1.0f };
+    static constexpr glm::vec4 aircraftColor{ 0.0f, 0.8f, 0.0f, 1.0f };
     static constexpr glm::vec4 wheelColor{ 0.5f, 0.5f, 0.5f, 1.0f };
 
     //not used yet
     //glm::vec3 wheelForward{ worldForward };
 
-    glm::vec3 carForward{ worldForward };
-    glm::vec3 carPos{ 0.0f, 0.0f, 0.0f };
-    glm::vec3 carScale{1.0f, 1.0f, 1.0f};
+    glm::vec3 aircraftForward{ worldForward };
+    glm::vec3 aircraftPos{ 0.0f, 65.0f, 0.0f };
+    glm::vec3 aircraftScale{1.0f, 1.0f, 1.0f};
 
-    //Multiply with the carScale
-    glm::vec3 carCollisionScale{1.5f, 1.2f, 1.5f};
-    Collision::AABB car_box_collider;
+    //Multiply with the aircraftScale
+    glm::vec3 aircraftCollisionScale{1.5f, 1.2f, 1.5f};
+    Collision::AABB aircraft_box_collider;
 
-    float car_sphere_radius = 1.0f;
-    Collision::Sphere car_sphere_collider;
+    float aircraft_sphere_radius = 1.0f;
+    Collision::Sphere aircraft_sphere_collider;
 
-    static constexpr glm::vec3 cameraOffset = glm::vec3(0.0f, 10.0f, -12.0f);
+    static constexpr glm::vec3 cameraOffset = glm::vec3(0.0f, 10.0f, 35.0f);
+
     static constexpr glm::vec3 cameraOffsetTarget = glm::vec3(0.0f, 10.0f, 0.0f);
     static constexpr float soloud_volume{0.1f};
 
 
-    //For loading the car from gltf file. Car and wheels as separate models (gotta implement some kind of skinned hirerarchy stuff otherwise)
-    Utility::Scene scene_car;
+    //For loading the aircraft from gltf file. aircraft and wheels as separate models (gotta implement some kind of skinned hirerarchy stuff otherwise)
+    Utility::Scene scene_aircraft;
     Utility::Scene scene_wheels;
 
-    std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferCar;
+    std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferaircraft;
     std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferWheels;
 
     SoLoud::Soloud soloud; 

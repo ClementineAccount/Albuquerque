@@ -389,32 +389,24 @@ void ProjectApplication::LoadBuffers()
 		index_buffer_plane.emplace(Primitives::plane_indices);
 	}
 
-	//Creating the car
+	//Creating the aircraft
 	{
-		Utility::LoadModelFromFile(scene_car, "data/models/Car_BodyOnly.glb", glm::mat4{ 1.0f }, true);
-		ObjectUniforms carUniform;
-		carUniform.model = glm::mat4(1.0f);
+		Utility::LoadModelFromFile(scene_aircraft, "data/models/aircraftPlaceholder.glb", glm::mat4{ 1.0f }, true);
+		ObjectUniforms aircraftUniform;
+		aircraftUniform.model = glm::mat4(1.0f);
 
-		carUniform.model = glm::translate(carUniform.model, carPos);
-		carUniform.model = glm::scale(carUniform.model, carScale);
+		aircraftUniform.model = glm::translate(aircraftUniform.model, aircraftPos);
+		aircraftUniform.model = glm::scale(aircraftUniform.model, aircraftScale);
 
-		car_box_collider.center = carPos;
-		car_box_collider.halfExtents = carScale * carCollisionScale;
+		aircraft_box_collider.center = aircraftPos;
+		aircraft_box_collider.halfExtents = aircraftScale * aircraftCollisionScale;
 
-		car_sphere_collider.radius = car_sphere_radius;
-		car_sphere_collider.center = carPos;
+		aircraft_sphere_collider.radius = aircraft_sphere_radius;
+		aircraft_sphere_collider.center = aircraftPos;
 
-		carUniform.color = carColor;
-		objectBufferCar = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-		objectBufferCar.value().SubData(carUniform, 0);
-
-		Utility::LoadModelFromFile(scene_wheels, "data/models/Car_WheelsOnly.glb", glm::mat4{ 1.0f }, true);
-		ObjectUniforms wheelUniform;
-		wheelUniform.model = glm::mat4(1.0f);
-		wheelUniform.color = wheelColor;
-
-		objectBufferWheels = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-		objectBufferWheels.value().SubData(wheelUniform, 0);
+		aircraftUniform.color = aircraftColor;
+		objectBufferaircraft = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		objectBufferaircraft.value().SubData(aircraftUniform, 0);
 	}
 }
 
@@ -464,7 +456,7 @@ void ProjectApplication::Update(double dt)
 
 	
 	{
-		//Car Inputs
+		//aircraft Inputs
 
 		float dt_float = static_cast<float>(dt);
 		float zoom_speed_level = 1.0f;
@@ -474,66 +466,66 @@ void ProjectApplication::Update(double dt)
 			zoom_speed_level = 1.05f;
 			if (IsKeyPressed(GLFW_KEY_LEFT))
 			{
-				car_angle_degrees += car_angle_turning_degrees * dt_float;
-				carForward = glm::vec3(glm::sin(glm::radians(car_angle_degrees)), 0.0f, glm::cos(glm::radians(car_angle_degrees)));
+				aircraft_angle_degrees += aircraft_angle_turning_degrees * dt_float;
+				aircraftForward = glm::vec3(glm::sin(glm::radians(aircraft_angle_degrees)), 0.0f, glm::cos(glm::radians(aircraft_angle_degrees)));
 			}
 
 			if (IsKeyPressed(GLFW_KEY_RIGHT))
 			{
-				car_angle_degrees += -car_angle_turning_degrees * dt_float;
-				carForward = glm::vec3(glm::sin(glm::radians(car_angle_degrees)), 0.0f, glm::cos(glm::radians(car_angle_degrees)));
+				aircraft_angle_degrees += -aircraft_angle_turning_degrees * dt_float;
+				aircraftForward = glm::vec3(glm::sin(glm::radians(aircraft_angle_degrees)), 0.0f, glm::cos(glm::radians(aircraft_angle_degrees)));
 			}
-			carPos += carForward * car_speed_scale * dt_float;
+			aircraftPos += aircraftForward * aircraft_speed_scale * dt_float;
 		}
 		if (IsKeyPressed(GLFW_KEY_DOWN))
 		{
 			if (IsKeyPressed(GLFW_KEY_RIGHT) == GLFW_PRESS)
 			{
-				car_angle_degrees += car_angle_turning_degrees * dt_float;
-				carForward = glm::vec3(glm::sin(glm::radians(car_angle_degrees)), 0.0f, glm::cos(glm::radians(car_angle_degrees)));
+				aircraft_angle_degrees += aircraft_angle_turning_degrees * dt_float;
+				aircraftForward = glm::vec3(glm::sin(glm::radians(aircraft_angle_degrees)), 0.0f, glm::cos(glm::radians(aircraft_angle_degrees)));
 			}
 
 			if (IsKeyPressed(GLFW_KEY_LEFT) == GLFW_PRESS)
 			{
-				car_angle_degrees += -car_angle_turning_degrees * dt_float;
-				carForward = glm::vec3(glm::sin(glm::radians(car_angle_degrees)), 0.0f, glm::cos(glm::radians(car_angle_degrees)));
+				aircraft_angle_degrees += -aircraft_angle_turning_degrees * dt_float;
+				aircraftForward = glm::vec3(glm::sin(glm::radians(aircraft_angle_degrees)), 0.0f, glm::cos(glm::radians(aircraft_angle_degrees)));
 			}
 
-			carPos -= carForward * car_speed_scale_reverse * dt_float;
+			aircraftPos -= aircraftForward * aircraft_speed_scale_reverse * dt_float;
 		}
 
 		{
 			//Collider sync and draws
-			Collision::SyncAABB(car_box_collider, carPos);
-			Collision::SyncSphere(car_sphere_collider, carPos);
+			Collision::SyncAABB(aircraft_box_collider, aircraftPos);
+			Collision::SyncSphere(aircraft_sphere_collider, aircraftPos);
 
 			//Profile only the drawing
 			ZoneScopedC(tracy::Color::Green);
-			DrawLineAABB(car_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
-			DrawLineSphere(car_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
+			DrawLineAABB(aircraft_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
+			DrawLineSphere(aircraft_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
 		}
 		
 		
 		{
-			//Car uniform buffer changes
+			//aircraft uniform buffer changes
 			ZoneScopedC(tracy::Color::Orange);
 			glm::mat4 model(1.0f);
-			model = glm::translate(model, carPos);
-			model = glm::rotate(model, glm::radians(car_angle_degrees), worldUp);
+			model = glm::translate(model, aircraftPos);
+			model = glm::rotate(model, glm::radians(aircraft_angle_degrees), worldUp);
 
 			ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
 			ObjectUniforms b(model, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
 
-			objectBufferWheels.value().SubData(b, 0);
-			objectBufferCar.value().SubData(a, 0);
+			objectBufferaircraft.value().SubData(a, 0);
 		}
 
 		{
 			//Camera logic stuff
 			ZoneScopedC(tracy::Color::Blue);
-			glm::vec3 camPos = carPos - carForward * 15.0f + cameraOffsetTarget;
+
+			glm::vec3 camPos = aircraftPos - aircraftForward * cameraOffset.z + cameraOffsetTarget;
 			glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-			glm::mat4 view = glm::lookAt(camPos, carPos + cameraOffsetTarget, up);
+			glm::mat4 view = glm::lookAt(camPos, aircraftPos + cameraOffsetTarget, up);
 
 			//we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
 			glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
@@ -564,35 +556,30 @@ void ProjectApplication::RenderScene()
 
 	//Drawing a plane
 	{
-		//Fwog::SamplerState ss;
-		//ss.minFilter = Fwog::Filter::LINEAR;
-		//ss.magFilter = Fwog::Filter::LINEAR;
-		//ss.addressModeU = Fwog::AddressMode::REPEAT;
-		//ss.addressModeV = Fwog::AddressMode::REPEAT;
-		//auto nearestSampler = Fwog::Sampler(ss);
+		Fwog::SamplerState ss;
+		ss.minFilter = Fwog::Filter::LINEAR;
+		ss.magFilter = Fwog::Filter::LINEAR;
+		ss.addressModeU = Fwog::AddressMode::REPEAT;
+		ss.addressModeV = Fwog::AddressMode::REPEAT;
+		auto nearestSampler = Fwog::Sampler(ss);
 
-		//Fwog::Cmd::BindGraphicsPipeline(pipeline_textured.value());
-		//Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-		//Fwog::Cmd::BindUniformBuffer(1, objectBufferPlane.value());
-		//Fwog::Cmd::BindSampledImage(0, groundAlbedo.value(), nearestSampler);
-		//Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0, sizeof(Primitives::Vertex));
-		//Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(), Fwog::IndexType::UNSIGNED_SHORT);
-		//Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
+		Fwog::Cmd::BindGraphicsPipeline(pipeline_textured.value());
+		Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+		Fwog::Cmd::BindUniformBuffer(1, objectBufferPlane.value());
+		Fwog::Cmd::BindSampledImage(0, groundAlbedo.value(), nearestSampler);
+		Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0, sizeof(Primitives::Vertex));
+		Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(), Fwog::IndexType::UNSIGNED_SHORT);
+		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
 	}
 
-	//Drawing a car + wheels
+	//Drawing a aircraft + wheels
 	{
 		Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
 		Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-		Fwog::Cmd::BindUniformBuffer(1, objectBufferCar.value());
-		Fwog::Cmd::BindVertexBuffer(0, scene_car.meshes[0].vertexBuffer, 0, sizeof(Utility::Vertex));
-		Fwog::Cmd::BindIndexBuffer(scene_car.meshes[0].indexBuffer, Fwog::IndexType::UNSIGNED_INT);
-		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_car.meshes[0].indexBuffer.Size()) / sizeof(uint32_t), 1, 0, 0, 0);
-
-		Fwog::Cmd::BindUniformBuffer(1, objectBufferWheels.value());
-		Fwog::Cmd::BindVertexBuffer(0, scene_wheels.meshes[0].vertexBuffer, 0, sizeof(Utility::Vertex));
-		Fwog::Cmd::BindIndexBuffer(scene_wheels.meshes[0].indexBuffer, Fwog::IndexType::UNSIGNED_INT);
-		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_wheels.meshes[0].indexBuffer.Size()) / sizeof(uint32_t), 1, 0, 0, 0);
+		Fwog::Cmd::BindUniformBuffer(1, objectBufferaircraft.value());
+		Fwog::Cmd::BindVertexBuffer(0, scene_aircraft.meshes[0].vertexBuffer, 0, sizeof(Utility::Vertex));
+		Fwog::Cmd::BindIndexBuffer(scene_aircraft.meshes[0].indexBuffer, Fwog::IndexType::UNSIGNED_INT);
+		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_aircraft.meshes[0].indexBuffer.Size()) / sizeof(uint32_t), 1, 0, 0, 0);
 	}
 
 	//Drawing axis lines
