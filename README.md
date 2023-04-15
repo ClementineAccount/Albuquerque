@@ -18,3 +18,9 @@ Therefore, these other requirements of the project are not given as high priorit
 - Dear Imgui for editor side UI. Might not implement a separate playerside UI. 
 
 Another third party library included is Lua as a potential scope for level editing may include more complex scriptable track elements or programmable AI racers but am undecided if its fully necessary yet.
+
+
+Third Party Placeholder Asset Credits: 
+
+Grass Texture: https://www.poliigon.com/texture/ground-forest-003/1949
+Plane SFX: https://www.soundjay.com/propeller-plane-sound-effect.html
