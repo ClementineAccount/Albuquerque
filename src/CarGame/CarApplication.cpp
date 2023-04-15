@@ -1,6 +1,6 @@
 #include "stb_image.h"
-#include "ProjectApplication.hpp"
-#include "SceneLoader.h"
+#include "CarGame/CarApplication.hpp"
+#include "CarGame/SceneLoader.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -56,7 +56,7 @@ static constexpr char frag_texture_shader_path[] = "data_cargame/shaders/FwogRac
 static constexpr char vert_line_shader_path[] = "data_cargame/shaders/FwogRacing/lines.vert.glsl";
 static constexpr char frag_line_shader_path[] = "data_cargame/shaders/FwogRacing/lines.frag.glsl";
 
-std::string ProjectApplication::LoadFile(std::string_view path)
+std::string CarApplication::LoadFile(std::string_view path)
 {
 	std::ifstream file{ path.data() };
 	return { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
@@ -95,8 +95,8 @@ static Fwog::GraphicsPipeline CreatePipeline()
 	auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::TRIANGLE_LIST };
 
 
-	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, ProjectApplication::LoadFile(vert_shader_path));
-	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_shader_path));
+	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, CarApplication::LoadFile(vert_shader_path));
+	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, CarApplication::LoadFile(frag_shader_path));
 
 	return Fwog::GraphicsPipeline{ {
 	  .vertexShader = &vertexShader,
@@ -128,8 +128,8 @@ static Fwog::GraphicsPipeline CreatePipelineLines()
 
 	auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::LINE_LIST };
 	auto depthDescs = Fwog::DepthState{ .depthTestEnable = false, .depthWriteEnable = false };
-	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, ProjectApplication::LoadFile(vert_line_shader_path));
-	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_line_shader_path));
+	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, CarApplication::LoadFile(vert_line_shader_path));
+	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, CarApplication::LoadFile(frag_line_shader_path));
 
 	return Fwog::GraphicsPipeline{ {
 	  .vertexShader = &vertexShader,
@@ -173,8 +173,8 @@ static Fwog::GraphicsPipeline CreatePipelineTextured()
 	auto inputDescs = sceneInputBindingDescs;
 	auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::TRIANGLE_LIST };
 
-	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, ProjectApplication::LoadFile(vert_shader_path));
-	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_texture_shader_path));
+	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, CarApplication::LoadFile(vert_shader_path));
+	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, CarApplication::LoadFile(frag_texture_shader_path));
 
 	return Fwog::GraphicsPipeline{ {
 	  .vertexShader = &vertexShader,
@@ -187,7 +187,7 @@ static Fwog::GraphicsPipeline CreatePipelineTextured()
 
 
 
-void ProjectApplication::AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color) {
+void CarApplication::AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color) {
 
 	
 	std::array<glm::vec3, 2> linePos{ptA, ptB};
@@ -200,13 +200,13 @@ void ProjectApplication::AddCollisionDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm:
 
 
 
-void ProjectApplication::ClearLines()
+void CarApplication::ClearLines()
 {
 	curr_num_collision_points = 0;
 }
 
 
-void ProjectApplication::DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor)
+void CarApplication::DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor)
 {
 	//It is ok to recalculate face points from the extents despite performance cost because this draw function is optional
 
@@ -248,7 +248,7 @@ void ProjectApplication::DrawLineAABB(Collision::AABB const& aabb, glm::vec3 box
 }
 
 
-void ProjectApplication::DrawLineSphere(Collision::Sphere const& sphere, glm::vec3 sphereColor)
+void CarApplication::DrawLineSphere(Collision::Sphere const& sphere, glm::vec3 sphereColor)
 {
 	constexpr uint32_t num_stacks = 8;
 	constexpr uint32_t num_slices = 8;
@@ -302,18 +302,18 @@ void ProjectApplication::DrawLineSphere(Collision::Sphere const& sphere, glm::ve
 	}
 }
 
-void ProjectApplication::AfterCreatedUiContext()
+void CarApplication::AfterCreatedUiContext()
 {
 
 }
 
-void ProjectApplication::BeforeDestroyUiContext()
+void CarApplication::BeforeDestroyUiContext()
 {
 
 }
 
 
-void ProjectApplication::LoadBuffers()
+void CarApplication::LoadBuffers()
 {
 	//Creating world axis stuff
 	{
@@ -418,7 +418,7 @@ void ProjectApplication::LoadBuffers()
 	}
 }
 
-bool ProjectApplication::Load()
+bool CarApplication::Load()
 {
 
 	SetWindowTitle("Car Game");
@@ -448,7 +448,7 @@ bool ProjectApplication::Load()
 
 
 
-void ProjectApplication::Update(double dt)
+void CarApplication::Update(double dt)
 {
 
 
@@ -545,7 +545,7 @@ void ProjectApplication::Update(double dt)
 
 
 
-void ProjectApplication::RenderScene()
+void CarApplication::RenderScene()
 {
 	ZoneScopedC(tracy::Color::Red);
 
@@ -620,7 +620,7 @@ void ProjectApplication::RenderScene()
 	Fwog::EndRendering();
 }
 
-void ProjectApplication::RenderUI(double dt)
+void CarApplication::RenderUI(double dt)
 {
 	//This is needed or else there's a crash
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
@@ -632,7 +632,7 @@ void ProjectApplication::RenderUI(double dt)
 	}
 }
 
-ProjectApplication::~ProjectApplication()
+CarApplication::~CarApplication()
 {
 	soloud.stopAll();
 	soloud.deinit();

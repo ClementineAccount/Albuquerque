@@ -1,8 +1,8 @@
-#include <ProjectApplication.hpp>
+#include "CarGame/CarApplication.hpp"
 
 int main(int argc, char* argv[])
 {
-    ProjectApplication application;
+    CarApplication application;
     application.Run();
     return 0;
 }

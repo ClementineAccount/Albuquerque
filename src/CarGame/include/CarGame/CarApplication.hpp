@@ -18,7 +18,7 @@
 
 #include <optional>
 
-#include "SceneLoader.h"
+#include "CarGame/SceneLoader.h"
 #include <soloud/soloud.h>
 #include <soloud/soloud_wav.h>
 
@@ -147,11 +147,11 @@ namespace Collision
 
 
 
-class ProjectApplication final : public Application
+class CarApplication final : public Application
 {
 public:
     static std::string LoadFile(std::string_view path);
-    ~ProjectApplication();
+    ~CarApplication();
 
 protected:
     void AfterCreatedUiContext() override;

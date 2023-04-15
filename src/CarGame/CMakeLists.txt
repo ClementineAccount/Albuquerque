@@ -28,12 +28,12 @@ set_target_properties(lua54 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CUR
 set(sourceFiles
     Main.cpp
     SceneLoader.cpp
-    ProjectApplication.cpp
+    CarApplication.cpp
 )
 
 set(headerFiles
-    include/SceneLoader.h
-    include/ProjectApplication.hpp
+    include/CarGame/CarApplication.hpp
+    include/CarGame/SceneLoader.h
     )
 
 add_executable(CarGame ${sourceFiles} ${headerFiles})
