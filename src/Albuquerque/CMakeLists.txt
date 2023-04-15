@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(Albuquerque.Library)
+project(Albuquerque)
 
 add_subdirectory(lib)
 
@@ -8,10 +8,10 @@ set(sourceFiles
 )
 
 set(headerFiles
-    include/Albuquerque.Library/Application.hpp
+    include/Albuquerque/Application.hpp
 )
 
-add_library(Albuquerque.Library ${sourceFiles} ${headerFiles})
+add_library(Albuquerque ${sourceFiles} ${headerFiles})
 
 find_package(OpenGL REQUIRED)
 
@@ -27,10 +27,10 @@ set_target_properties(soloud PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE
 set_target_properties(soloud PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/soloud/include)
 
 
-target_include_directories(Albuquerque.Library PRIVATE include)
+target_include_directories(Albuquerque PRIVATE include)
 
 #To Do: Make it properly use CMake for the soloud.lib or something
 #target_link_libraries(Project.Library PRIVATE glfw glad glm TracyClient spdlog imgui fwog)
-target_link_libraries(Albuquerque.Library PRIVATE soloud glfw glad glm TracyClient spdlog imgui fwog)
+target_link_libraries(Albuquerque PRIVATE soloud glfw glad glm TracyClient spdlog imgui fwog)
 
 

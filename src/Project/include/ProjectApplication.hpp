@@ -1,5 +1,5 @@
 #pragma once
-#include <Albuquerque.Library/Application.hpp>
+#include <Albuquerque/Application.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
@@ -162,6 +162,7 @@ protected:
     void Update(double dt) override;
 private:
 
+    void LoadBuffers();
 
 //To Do: This stuff should probably pass in the line vertex buffer it wants to subData()
 

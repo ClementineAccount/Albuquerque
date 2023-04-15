@@ -40,4 +40,4 @@ add_executable(Project ${sourceFiles} ${headerFiles})
 add_dependencies(Project copy_data)
 
 
-target_link_libraries(Project PRIVATE TracyClient lua54 freetype soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Albuquerque.Library)
+target_link_libraries(Project PRIVATE TracyClient lua54 freetype soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Albuquerque)

@@ -312,20 +312,9 @@ void ProjectApplication::BeforeDestroyUiContext()
 
 }
 
-bool ProjectApplication::Load()
+
+void ProjectApplication::LoadBuffers()
 {
-
-	// Initialize SoLoud (automatic back-end selection)
-	SoLoud::result init = soloud.init();
-	SoLoud::result res = sample.load("data/sounds/start.wav"); // Load a wave file
-	soloud.setGlobalVolume(soloud_volume);
-
-	//Creating pipelines
-
-	pipeline_flat = CreatePipeline();
-	pipeline_lines = CreatePipelineLines();
-	pipeline_textured = CreatePipelineTextured();
-
 	//Creating world axis stuff
 	{
 		glm::vec3 worldUpFinal = worldOrigin + (worldUp)*axisScale;
@@ -335,11 +324,11 @@ bool ProjectApplication::Load()
 
 		std::array<glm::vec3, num_points_world_axis> axisPos{ worldOrigin, worldUpFinal, worldOrigin, worldForwardFinal, worldOrigin, worldRightFinal };
 		std::array<glm::vec3, num_points_world_axis> axisColors{ worldUpColor,
-											worldUpColor,
-											worldForwardColor,
-											worldForwardColor,
-											worldRightcolor,
-											worldRightcolor };
+			worldUpColor,
+			worldForwardColor,
+			worldForwardColor,
+			worldRightcolor,
+			worldRightcolor };
 
 		vertex_buffer_pos_line = Fwog::TypedBuffer<glm::vec3>(axisPos);
 		vertex_buffer_color_line = Fwog::TypedBuffer<glm::vec3>(axisColors);
@@ -350,8 +339,8 @@ bool ProjectApplication::Load()
 		//Doesn't matter what the default initalization is since we only draw the valid points
 		std::array<glm::vec3, max_num_collision_points> linePts{};
 
-        vertex_buffer_collision_lines = Fwog::TypedBuffer<glm::vec3>(max_num_collision_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-        vertex_buffer_collision_colors = Fwog::TypedBuffer<glm::vec3>(max_num_collision_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		vertex_buffer_collision_lines = Fwog::TypedBuffer<glm::vec3>(max_num_collision_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		vertex_buffer_collision_colors = Fwog::TypedBuffer<glm::vec3>(max_num_collision_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 		vertex_buffer_collision_lines.value().SubData(linePts, 0);
 		vertex_buffer_collision_colors.value().SubData(linePts, 0 );
 	}
@@ -380,12 +369,12 @@ bool ProjectApplication::Load()
 		assert(textureData);
 		groundAlbedo = Fwog::CreateTexture2D({ static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight) }, Fwog::Format::R8G8B8A8_SRGB);
 		Fwog::TextureUpdateInfo updateInfo{ .dimension = Fwog::UploadDimension::TWO,
-										   .level = 0,
-										   .offset = {},
-										   .size = {static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight), 1},
-										   .format = Fwog::UploadFormat::RGBA,
-										   .type = Fwog::UploadType::UBYTE,
-										   .pixels = textureData };
+			.level = 0,
+			.offset = {},
+			.size = {static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight), 1},
+			.format = Fwog::UploadFormat::RGBA,
+			.type = Fwog::UploadType::UBYTE,
+			.pixels = textureData };
 		groundAlbedo.value().SubImage(updateInfo);
 		stbi_image_free(textureData);
 
@@ -405,7 +394,7 @@ bool ProjectApplication::Load()
 		Utility::LoadModelFromFile(scene_car, "data/models/Car_BodyOnly.glb", glm::mat4{ 1.0f }, true);
 		ObjectUniforms carUniform;
 		carUniform.model = glm::mat4(1.0f);
-		
+
 		carUniform.model = glm::translate(carUniform.model, carPos);
 		carUniform.model = glm::scale(carUniform.model, carScale);
 
@@ -426,10 +415,26 @@ bool ProjectApplication::Load()
 
 		objectBufferWheels = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 		objectBufferWheels.value().SubData(wheelUniform, 0);
-
 	}
+}
 
+bool ProjectApplication::Load()
+{
 
+	SetWindowTitle("Plane Game");
+
+	// Initialize SoLoud (automatic back-end selection)
+	SoLoud::result init = soloud.init();
+	SoLoud::result res = sample.load("data/sounds/start.wav"); // Load a wave file
+	soloud.setGlobalVolume(soloud_volume);
+
+	//Creating pipelines
+
+	pipeline_flat = CreatePipeline();
+	pipeline_lines = CreatePipelineLines();
+	pipeline_textured = CreatePipelineTextured();
+
+	LoadBuffers();
 
 	return true;
 }
