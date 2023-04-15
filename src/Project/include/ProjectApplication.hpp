@@ -289,7 +289,7 @@ private:
     static constexpr glm::vec3 cameraOffset = glm::vec3(0.0f, 10.0f, 20.0f);
 
     static constexpr glm::vec3 cameraOffsetTarget = glm::vec3(0.0f, 10.0f, 0.0f);
-    static constexpr float soloud_volume{0.1f};
+    static constexpr float soloud_volume{1.0f};
 
 
     //For loading the aircraft from gltf file. aircraft and wheels as separate models (gotta implement some kind of skinned hirerarchy stuff otherwise)
@@ -302,6 +302,8 @@ private:
     SoLoud::Soloud soloud; 
     SoLoud::Wav sample;
 
+
+    SoLoud::Wav plane_flying_sfx;
 
     //Collision related stuff. Need to refactor
    

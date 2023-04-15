@@ -416,8 +416,13 @@ bool ProjectApplication::Load()
 	SetWindowTitle("Plane Game");
 
 	// Initialize SoLoud (automatic back-end selection)
+
+	//To Do: Like actually use the res properly
 	SoLoud::result init = soloud.init();
 	SoLoud::result res = sample.load("data/sounds/start.wav"); // Load a wave file
+	sample.setVolume(0.1);
+	res = plane_flying_sfx.load("data/sounds/planeFlying.wav");
+
 	soloud.setGlobalVolume(soloud_volume);
 
 	//Creating pipelines
@@ -427,6 +432,14 @@ bool ProjectApplication::Load()
 	pipeline_textured = CreatePipelineTextured();
 
 	LoadBuffers();
+
+
+	//Play sfx
+
+	plane_flying_sfx.setLooping(true);
+	plane_flying_sfx.setVolume(0.25);
+	soloud.play(plane_flying_sfx);
+
 
 	return true;
 }
@@ -442,7 +455,6 @@ bool ProjectApplication::Load()
 
 void ProjectApplication::Update(double dt)
 {
-
 
 	if (IsKeyPressed(GLFW_KEY_ESCAPE))
 	{
