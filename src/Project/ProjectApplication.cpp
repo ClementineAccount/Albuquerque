@@ -567,7 +567,7 @@ void ProjectApplication::Update(double dt)
 		Close();
 	}
 
-	if (IsKeyPressed(GLFW_KEY_Q))
+	if (IsKeyPressed(GLFW_KEY_F))
 	{
 		soloud.play(sample); 
 	}
@@ -628,6 +628,19 @@ void ProjectApplication::Update(double dt)
 
 				//aircraft_body.aircraft_angles_degrees.x -= aircraft_angle_turning_degrees * dt_float;
 			}
+
+			//Rudders (The yaw)
+			if (IsKeyPressed(GLFW_KEY_Q))
+			{
+				aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, worldUp);
+			}
+
+			if (IsKeyPressed(GLFW_KEY_E))
+			{
+				aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldUp);
+
+			}
+
 
 
 

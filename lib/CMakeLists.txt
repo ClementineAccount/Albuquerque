@@ -107,8 +107,8 @@ endif()
 set(FWOG_BUILD_EXAMPLES false)
 FetchContent_Declare(
     fwog
-    GIT_REPOSITORY https://github.com/ClementineAccount/Fwog.git
-    GIT_TAG        8970c8f9f52a40b8ecef0071f25f482ef7fb1e6b
+    GIT_REPOSITORY https://github.com/JuanDiegoMontoya/Fwog.git
+    GIT_TAG        1c7324145bdcebbdba18fcc0d5be95c4382f53b2
 )
 message("Fetching fwog")
 FetchContent_MakeAvailable(fwog)
