@@ -484,6 +484,14 @@ void ProjectApplication::Update(double dt)
 
 		aircraft_current_speed_scale = 1.0f;
 
+		aircraft_body.forward_vector = worldForward;
+		aircraft_body.right_vector = worldRight;
+		aircraft_body.up_vector = worldUp;
+
+		aircraft_body.forward_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.forward_vector, 1.0f));
+		aircraft_body.right_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.right_vector, 1.0f));
+		aircraft_body.up_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.up_vector, 1.0f));
+
 		if (IsKeyPressed(GLFW_KEY_SPACE))
 		{
 			aircraft_current_speed_scale = aircraft_speedup_scale;
@@ -493,42 +501,34 @@ void ProjectApplication::Update(double dt)
 		//Turning Left: Need to adjust both Roll and Velocity
 		if (IsKeyPressed(GLFW_KEY_RIGHT))
 		{
-			aircraft_body.aircraft_angles_degrees.y -= aircraft_angle_turning_degrees * dt_float;
 
-			if (aircraft_body.aircraft_angles_degrees.z < aircraft_max_roll_degrees)
-			{
-				aircraft_body.aircraft_angles_degrees.z += aircraft_angle_turning_degrees * dt_float;
+			//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, aircraft_angle_turning_degrees * dt_float, aircraft_body.forward_vector);
 
-				//experiment with horizontal and vertical forces 
+			//aircraft_body.aircraft_angles_degrees.z += aircraft_angle_turning_degrees * dt_float;
 
-				//glm::vec3 aircraft_right = glm::cross(glm::normalize(aircraft_body.direction_vector), worldUp);
-				//AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_right * 5.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-				//aircraftPos += aircraft_right * 40.0f * dt_float;
-			}
+			//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, aircraft_body.forward_vector);
+			aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, worldForward);
 		}
 
 		if (IsKeyPressed(GLFW_KEY_LEFT))
 		{
-			aircraft_body.aircraft_angles_degrees.y += aircraft_angle_turning_degrees * dt_float;
-			if (aircraft_body.aircraft_angles_degrees.z > -aircraft_max_roll_degrees)
-			{
-				aircraft_body.aircraft_angles_degrees.z -= aircraft_angle_turning_degrees * dt_float;
-
-				//glm::vec3 aircraft_right = glm::cross(glm::normalize(aircraft_body.direction_vector), worldUp);
-				//AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_right * 5.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-				//aircraftPos -= aircraft_right * 40.0f * dt_float;
-			}
-
+			//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, aircraft_body.forward_vector);
+			aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldForward);
 		}
 
 		if (IsKeyPressed(GLFW_KEY_UP))
 		{
-			aircraft_body.aircraft_angles_degrees.x += aircraft_angle_turning_degrees * dt_float;
+			//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, aircraft_body.right_vector);
+			aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, worldRight);
+			//aircraft_body.aircraft_angles_degrees.x += aircraft_angle_turning_degrees * dt_float;
 		}
 
 		if (IsKeyPressed(GLFW_KEY_DOWN))
 		{
-			aircraft_body.aircraft_angles_degrees.x -= aircraft_angle_turning_degrees * dt_float;
+			//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, aircraft_body.right_vector);
+			aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldRight);
+
+			//aircraft_body.aircraft_angles_degrees.x -= aircraft_angle_turning_degrees * dt_float;
 		}
 
 
@@ -536,7 +536,7 @@ void ProjectApplication::Update(double dt)
 		//Update position based off the velocity
 
 		//Experimenting with another approach
-		aircraftPos += aircraft_body.direction_vector * aircraft_body.current_speed * aircraft_current_speed_scale * dt_float;
+		aircraftPos += aircraft_body.forward_vector * aircraft_body.current_speed * aircraft_current_speed_scale * dt_float;
 
 
 		//Debug Lines
@@ -546,8 +546,8 @@ void ProjectApplication::Update(double dt)
 			//for dispaly
 			constexpr float line_length = 20.0f;
 			
-			glm::vec3 dir_vec_pt = aircraftPos + aircraft_body.direction_vector * line_length;
-			AddDebugDrawLine(aircraftPos, dir_vec_pt, glm::vec3(0.0f, 0.0f, 1.0f));
+			//glm::vec3 dir_vec_pt = aircraftPos + aircraft_body.forward_vector * line_length;
+			//AddDebugDrawLine(aircraftPos, dir_vec_pt, glm::vec3(0.0f, 0.0f, 1.0f));
 
 			//glm::vec3 velpt = aircraftPos + glm::normalize(aircraft_body.aircraft_current_velocity) * line_length;
 			//AddDebugDrawLine(aircraftPos, velpt, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -568,26 +568,22 @@ void ProjectApplication::Update(double dt)
 			ZoneScopedC(tracy::Color::Orange);
 			glm::mat4 model(1.0f);
 			model = glm::translate(model, aircraftPos);
-
-			//To Do: Make this world coordinate system agnostic
-			//Example: angleUp = magnitude of worldUp * aircraft_angle_degrees
+			model *= aircraft_body.rotMatrix;
 
 
-			//Reset to the world forward as we apply the rotation in correct sequence
-			aircraft_body.direction_vector = glm::vec3(0.0f, 0.0f, 1.0f);
-
-			//This adjusts the yaw of the aircraft
-			glm::mat4 rotModel(1.0f);
-
-			rotModel = glm::rotate(rotModel, glm::radians(aircraft_body.aircraft_angles_degrees.y), worldUp);
-			rotModel = glm::rotate(rotModel, glm::radians(aircraft_body.aircraft_angles_degrees.x), worldRight);
 
 
-			//Don't apply the roll vector to actual kinematics model
-			aircraft_body.direction_vector = glm::vec3(rotModel * glm::vec4(aircraft_body.direction_vector, 1.0f));
+			//aircraft_body.right_vector = glm::normalize(glm::cross(aircraft_body.forward_vector, worldUp));
+			//aircraft_body.up_vector = glm::cross(aircraft_body.right_vector, aircraft_body.forward_vector);
 
-			rotModel = glm::rotate(rotModel, glm::radians(aircraft_body.aircraft_angles_degrees.z), worldForward);
-			model *= rotModel;
+			constexpr float line_length = 30.0f;
+			AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_body.forward_vector * line_length, glm::vec3(0.0f, 0.0f, 1.0f));
+			AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_body.right_vector * line_length, glm::vec3(1.0f, 0.0f, 0.0f));
+			AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_body.up_vector * line_length, glm::vec3(0.0f, 1.0f, 0.0f));
+
+
+
+
 
 			ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
 			objectBufferaircraft.value().SubData(a, 0);
@@ -597,12 +593,10 @@ void ProjectApplication::Update(double dt)
 			//Camera logic stuff
 			ZoneScopedC(tracy::Color::Blue);
 
-			glm::vec3 planeRight = glm::normalize(glm::cross(aircraft_body.direction_vector, worldUp));
-			glm::vec3 planeUp = -glm::normalize(glm::cross(aircraft_body.direction_vector, planeRight));
 
-			glm::vec3 camPos = aircraftPos - aircraft_body.direction_vector * cameraOffset.z + planeUp * 10.0f;
+			glm::vec3 camPos = (aircraftPos - aircraft_body.forward_vector * 25.0f) + aircraft_body.up_vector * 10.0f;
 			glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-			glm::mat4 view = glm::lookAt(camPos, aircraftPos + planeUp * 10.0f, up);
+			glm::mat4 view = glm::lookAt(camPos, aircraftPos + (aircraft_body.up_vector * 10.0f), aircraft_body.up_vector);
 
 			//we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
 			glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
@@ -663,9 +657,9 @@ void ProjectApplication::RenderScene()
 	{
 		Fwog::Cmd::BindGraphicsPipeline(pipeline_lines.value());
 		Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-		Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_pos_line.value(), 0, 3 * sizeof(float));
-		Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_color_line.value(), 0, 3 * sizeof(float));
-		Fwog::Cmd::Draw(num_points_world_axis, 1, 0, 0);
+		//Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_pos_line.value(), 0, 3 * sizeof(float));
+		//Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_color_line.value(), 0, 3 * sizeof(float));
+		//Fwog::Cmd::Draw(num_points_world_axis, 1, 0, 0);
 
 		// Drawing collision lines
         if (curr_num_draw_points != 0 && curr_num_draw_points < max_num_draw_points) 

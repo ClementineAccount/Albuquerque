@@ -250,7 +250,11 @@ private:
         //Used for the model matrix transformation
         glm::vec3 aircraft_angles_degrees{0.0f, 0.0f, 0.0f};
 
-        glm::vec3 direction_vector{0.0f, 0.0f, 1.0f};
+        glm::vec3 forward_vector{0.0f, 0.0f, 1.0f};
+        glm::vec3 up_vector{0.0f, 1.0f, 0.0f};
+        glm::vec3 right_vector{1.0f, 0.0f, 0.0f};
+
+        glm::mat4 rotMatrix{1.0f};
     };
 
     constexpr static float aircraft_starting_speed{20.0f};
