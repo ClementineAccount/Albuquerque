@@ -474,93 +474,99 @@ void ProjectApplication::Update(double dt)
 		soloud.play(sample); 
 	}
 
-
-
-	
 	{
+
 		//aircraft Inputs
 		float dt_float = static_cast<float>(dt);
 		float zoom_speed_level = 1.0f;
 
 		aircraft_current_speed_scale = 1.0f;
 
-		aircraft_body.forward_vector = worldForward;
-		aircraft_body.right_vector = worldRight;
-		aircraft_body.up_vector = worldUp;
-
-		aircraft_body.forward_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.forward_vector, 1.0f));
-		aircraft_body.right_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.right_vector, 1.0f));
-		aircraft_body.up_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.up_vector, 1.0f));
-
-		if (IsKeyPressed(GLFW_KEY_SPACE))
 		{
-			aircraft_current_speed_scale = aircraft_speedup_scale;
-			zoom_speed_level = 1.02f;
+			ZoneScopedC(tracy::Color::Green);
+
+
+			aircraft_body.forward_vector = worldForward;
+			aircraft_body.right_vector = worldRight;
+			aircraft_body.up_vector = worldUp;
+
+			aircraft_body.forward_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.forward_vector, 1.0f));
+			aircraft_body.right_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.right_vector, 1.0f));
+			aircraft_body.up_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.up_vector, 1.0f));
+
+			if (IsKeyPressed(GLFW_KEY_SPACE))
+			{
+				aircraft_current_speed_scale = aircraft_speedup_scale;
+				zoom_speed_level = 1.02f;
+			}
+
+			//Turning Left: Need to adjust both Roll and Velocity
+			if (IsKeyPressed(GLFW_KEY_RIGHT))
+			{
+
+				//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, aircraft_angle_turning_degrees * dt_float, aircraft_body.forward_vector);
+
+				//aircraft_body.aircraft_angles_degrees.z += aircraft_angle_turning_degrees * dt_float;
+
+				//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, aircraft_body.forward_vector);
+				aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, worldForward);
+			}
+
+			if (IsKeyPressed(GLFW_KEY_LEFT))
+			{
+				//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, aircraft_body.forward_vector);
+				aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldForward);
+			}
+
+			if (IsKeyPressed(GLFW_KEY_UP))
+			{
+				//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, aircraft_body.right_vector);
+				aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, worldRight);
+				//aircraft_body.aircraft_angles_degrees.x += aircraft_angle_turning_degrees * dt_float;
+			}
+
+			if (IsKeyPressed(GLFW_KEY_DOWN))
+			{
+				//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, aircraft_body.right_vector);
+				aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldRight);
+
+				//aircraft_body.aircraft_angles_degrees.x -= aircraft_angle_turning_degrees * dt_float;
+			}
+
+
+
+			//Update position based off the velocity
+
+			//Experimenting with another approach
+			aircraftPos += aircraft_body.forward_vector * aircraft_body.current_speed * aircraft_current_speed_scale * dt_float;
+
 		}
 
-		//Turning Left: Need to adjust both Roll and Velocity
-		if (IsKeyPressed(GLFW_KEY_RIGHT))
-		{
 
-			//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, aircraft_angle_turning_degrees * dt_float, aircraft_body.forward_vector);
-
-			//aircraft_body.aircraft_angles_degrees.z += aircraft_angle_turning_degrees * dt_float;
-
-			//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, aircraft_body.forward_vector);
-			aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, worldForward);
-		}
-
-		if (IsKeyPressed(GLFW_KEY_LEFT))
-		{
-			//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, aircraft_body.forward_vector);
-			aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldForward);
-		}
-
-		if (IsKeyPressed(GLFW_KEY_UP))
-		{
-			//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, aircraft_body.right_vector);
-			aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, worldRight);
-			//aircraft_body.aircraft_angles_degrees.x += aircraft_angle_turning_degrees * dt_float;
-		}
-
-		if (IsKeyPressed(GLFW_KEY_DOWN))
-		{
-			//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, aircraft_body.right_vector);
-			aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldRight);
-
-			//aircraft_body.aircraft_angles_degrees.x -= aircraft_angle_turning_degrees * dt_float;
-		}
-
-
-
-		//Update position based off the velocity
-
-		//Experimenting with another approach
-		aircraftPos += aircraft_body.forward_vector * aircraft_body.current_speed * aircraft_current_speed_scale * dt_float;
 
 
 		//Debug Lines
 		{
-			ZoneScopedC(tracy::Color::Green);
-
-			//for dispaly
-			constexpr float line_length = 20.0f;
-			
-			//glm::vec3 dir_vec_pt = aircraftPos + aircraft_body.forward_vector * line_length;
-			//AddDebugDrawLine(aircraftPos, dir_vec_pt, glm::vec3(0.0f, 0.0f, 1.0f));
-
-			//glm::vec3 velpt = aircraftPos + glm::normalize(aircraft_body.aircraft_current_velocity) * line_length;
-			//AddDebugDrawLine(aircraftPos, velpt, glm::vec3(1.0f, 0.0f, 0.0f));
-
-
-			//Collider sync and draws
-			//Collision::SyncAABB(aircraft_box_collider, aircraftPos);
-			//Collision::SyncSphere(aircraft_sphere_collider, aircraftPos);
-
-			////Profile only the drawing
 			//
-			//DrawLineAABB(aircraft_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
-			//DrawLineSphere(aircraft_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
+
+			////for dispaly
+			//constexpr float line_length = 20.0f;
+			//
+			////glm::vec3 dir_vec_pt = aircraftPos + aircraft_body.forward_vector * line_length;
+			////AddDebugDrawLine(aircraftPos, dir_vec_pt, glm::vec3(0.0f, 0.0f, 1.0f));
+
+			////glm::vec3 velpt = aircraftPos + glm::normalize(aircraft_body.aircraft_current_velocity) * line_length;
+			////AddDebugDrawLine(aircraftPos, velpt, glm::vec3(1.0f, 0.0f, 0.0f));
+
+
+			////Collider sync and draws
+			////Collision::SyncAABB(aircraft_box_collider, aircraftPos);
+			////Collision::SyncSphere(aircraft_sphere_collider, aircraftPos);
+
+			//////Profile only the drawing
+			////
+			////DrawLineAABB(aircraft_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
+			////DrawLineSphere(aircraft_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
 		}
 		
 		{
@@ -569,21 +575,6 @@ void ProjectApplication::Update(double dt)
 			glm::mat4 model(1.0f);
 			model = glm::translate(model, aircraftPos);
 			model *= aircraft_body.rotMatrix;
-
-
-
-
-			//aircraft_body.right_vector = glm::normalize(glm::cross(aircraft_body.forward_vector, worldUp));
-			//aircraft_body.up_vector = glm::cross(aircraft_body.right_vector, aircraft_body.forward_vector);
-
-			constexpr float line_length = 30.0f;
-			AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_body.forward_vector * line_length, glm::vec3(0.0f, 0.0f, 1.0f));
-			AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_body.right_vector * line_length, glm::vec3(1.0f, 0.0f, 0.0f));
-			AddDebugDrawLine(aircraftPos, aircraftPos + aircraft_body.up_vector * line_length, glm::vec3(0.0f, 1.0f, 0.0f));
-
-
-
-
 
 			ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
 			objectBufferaircraft.value().SubData(a, 0);
@@ -595,7 +586,6 @@ void ProjectApplication::Update(double dt)
 
 
 			glm::vec3 camPos = (aircraftPos - aircraft_body.forward_vector * 25.0f) + aircraft_body.up_vector * 10.0f;
-			glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 			glm::mat4 view = glm::lookAt(camPos, aircraftPos + (aircraft_body.up_vector * 10.0f), aircraft_body.up_vector);
 
 			//we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
