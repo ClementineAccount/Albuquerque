@@ -487,11 +487,17 @@ void ProjectApplication::LoadCollectables()
 
 	//Add placeholder collectables
 
+	constexpr float start_forward_pos = 120.0f;
+	constexpr float start_up_pos = 100.0f;
 	constexpr float forward_distance_offset = 30.0f;
 	constexpr float up_distance_offset = 25.0f;
-	for (size_t i = 0; i < 20; ++i)
+
+	constexpr size_t num_collectables = 10;
+	//uniform scaling so...
+	constexpr float collectable_scale = 4.0f;
+	for (size_t i = 0; i < num_collectables; ++i)
 	{
-		AddCollectable(glm::vec3(0.0f, 50.0f + up_distance_offset * i, 100.0f + i * forward_distance_offset), glm::vec3(2.0f, 2.0f, 2.0f));
+		AddCollectable(glm::vec3(0.0f, start_up_pos + up_distance_offset * i, start_forward_pos + i * forward_distance_offset), glm::vec3(collectable_scale, collectable_scale, collectable_scale));
 	}
 
 }
