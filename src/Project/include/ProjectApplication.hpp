@@ -168,6 +168,10 @@ protected:
 private:
 
     void LoadBuffers();
+    void LoadCollectables();
+
+    //Adds a collectable to the current scene
+    void AddCollectable(glm::vec3 position, glm::vec3 scale = glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec3 color = glm::vec3{0.0f, 0.0f, 0.8f});
 
 //To Do: This stuff should probably pass in the line vertex buffer it wants to subData()
 
@@ -181,11 +185,15 @@ private:
 
 
 
+
+
 private:
     
     std::optional<Fwog::GraphicsPipeline> pipeline_lines;
     std::optional<Fwog::GraphicsPipeline> pipeline_textured;
     std::optional<Fwog::GraphicsPipeline> pipeline_flat;
+
+    std::optional<Fwog::GraphicsPipeline> pipeline_colored_indexed;
 
     static constexpr float axisScale = 1000.0f;
     static constexpr float PI = 3.1415926f;
@@ -220,7 +228,6 @@ private:
 
 
     //Objects in the world
-
     struct ObjectUniforms
     {
         glm::mat4 model;
@@ -308,9 +315,10 @@ private:
     SoLoud::Soloud soloud; 
     SoLoud::Wav sample;
 
-
     SoLoud::Wav plane_flying_sfx;
     SoLoud::Wav background_music;
+
+    SoLoud::Wav collectable_pickup_sfx;
 
     //Collision related stuff. Need to refactor
    
@@ -320,5 +328,41 @@ private:
 
     std::optional<Fwog::Buffer> vertex_buffer_draw_lines;
     std::optional<Fwog::Buffer> vertex_buffer_draw_colors;
+
+
+    //Spheres
+    struct collectable
+    {
+       glm::vec3 position{0.0f, 0.0f, 0.0f};
+       glm::vec3 scale{1.0f, 1.0f, 1.0f};
+       bool isCollected = false;
+
+       Collision::Sphere collider{position, scale.x};
+    };
+
+    std::vector<collectable> collectableList;
+
+    //Drawing with instancing
+    Utility::Scene scene_collectable;
+ 
+    //Dynamic storage
+    std::optional<Fwog::TypedBuffer<ObjectUniforms>> collectableObjectBuffers;
+
+    //How many instances to draw
+    uint32_t num_active_collectables{0};
+    static constexpr uint32_t max_num_collectables{4096};
+
+    ////Alternative approach can be multidraw
+    ////So I can batch them
+    //static constexpr uint32_t max_num_collectables = 100;
+
+
+    //std::optional<Fwog::Buffer> vertex_buffer_collectable_spheres_position;
+    //std::optional<Fwog::Buffer> vertex_buffer_collectable_spheres_colors;
+    //std::optional<Fwog::Buffer> index_buffer_collectable_spheres;
+
+
+    bool renderAxis = false;
+
 
 };

@@ -530,6 +530,7 @@ void CarApplication::Update(double dt)
 
 		{
 			//Camera logic stuff
+			//It Is possible that the lack of interpolation here can make the camera feel choppier than it should be. Possible fix?
 			ZoneScopedC(tracy::Color::Blue);
 			glm::vec3 camPos = carPos - carForward * 15.0f + cameraOffsetTarget;
 			glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);

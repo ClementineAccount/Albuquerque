@@ -56,6 +56,11 @@ static constexpr char frag_texture_shader_path[] = "data/shaders/FwogRacing/hell
 static constexpr char vert_line_shader_path[] = "data/shaders/FwogRacing/lines.vert.glsl";
 static constexpr char frag_line_shader_path[] = "data/shaders/FwogRacing/lines.frag.glsl";
 
+static constexpr char vert_indexed_shader_path[] = "data/shaders/draw_indexed.vert.glsl";
+static constexpr char frag_color_shader_path[] = "data/shaders/color.frag.glsl";
+
+
+
 std::string ProjectApplication::LoadFile(std::string_view path)
 {
 	std::ifstream file{ path.data() };
@@ -185,6 +190,50 @@ static Fwog::GraphicsPipeline CreatePipelineTextured()
 	} };
 }
 
+
+static Fwog::GraphicsPipeline CreatePipelineColoredIndex()
+{
+	//To be honest since this is the same as the others I might as well just pass in the shader paths instead
+
+	static constexpr auto sceneInputBindingDescs = std::array{
+		Fwog::VertexInputBindingDescription{
+			// color
+			.location = 0,
+			.binding = 0,
+			.format = Fwog::Format::R32G32B32_FLOAT,
+			.offset = offsetof(Primitives::Vertex, position),
+	},
+	Fwog::VertexInputBindingDescription{
+			// normal
+			.location = 1,
+			.binding = 0,
+			.format = Fwog::Format::R32G32B32_FLOAT,
+			.offset = offsetof(Primitives::Vertex, normal),
+	},
+	Fwog::VertexInputBindingDescription{
+			// texcoord
+			.location = 2,
+			.binding = 0,
+			.format = Fwog::Format::R32G32_FLOAT,
+			.offset = offsetof(Primitives::Vertex, uv),
+	},
+	};
+
+	auto inputDescs = sceneInputBindingDescs;
+	auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::TRIANGLE_LIST };
+
+	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, ProjectApplication::LoadFile(vert_indexed_shader_path));
+	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_color_shader_path));
+
+	return Fwog::GraphicsPipeline{ {
+			.vertexShader = &vertexShader,
+			.fragmentShader = &fragmentShader,
+			.inputAssemblyState = primDescs,
+			.vertexInputState = {inputDescs},
+			.depthState = {.depthTestEnable = true, .depthWriteEnable = true, .depthCompareOp = Fwog::CompareOp::LESS},
+		} };
+
+}
 
 
 void ProjectApplication::AddDebugDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color) {
@@ -413,6 +462,42 @@ void ProjectApplication::LoadBuffers()
 	}
 }
 
+
+
+void ProjectApplication::AddCollectable(glm::vec3 position, glm::vec3 scale, glm::vec3 color)
+{
+	collectableList.emplace_back(position, scale, false);
+	ObjectUniforms collectableUniform;
+	collectableUniform.model = glm::mat4(1.0f);
+
+	collectableUniform.model = glm::translate(collectableUniform.model, position);
+	collectableUniform.model = glm::scale(collectableUniform.model, scale);
+	collectableUniform.color = glm::vec4(color, 1.0f);
+
+	collectableObjectBuffers.value().SubData(collectableUniform, sizeof(collectableUniform) * num_active_collectables);
+	num_active_collectables += 1;
+}
+
+
+void ProjectApplication::LoadCollectables()
+{
+	//Load the actual scene vertices here
+	Utility::LoadModelFromFile(scene_collectable, "data/models/collectableSphere.glb", glm::mat4{ 1.0f }, true);
+	collectableObjectBuffers  = Fwog::TypedBuffer<ObjectUniforms>(max_num_collectables, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+
+	//Add placeholder collectables
+
+	constexpr float forward_distance_offset = 30.0f;
+	constexpr float up_distance_offset = 25.0f;
+	for (size_t i = 0; i < 20; ++i)
+	{
+		AddCollectable(glm::vec3(0.0f, 50.0f + up_distance_offset * i, 100.0f + i * forward_distance_offset), glm::vec3(2.0f, 2.0f, 2.0f));
+	}
+
+}
+
+
+
 bool ProjectApplication::Load()
 {
 
@@ -436,9 +521,10 @@ bool ProjectApplication::Load()
 	pipeline_flat = CreatePipeline();
 	pipeline_lines = CreatePipelineLines();
 	pipeline_textured = CreatePipelineTextured();
+	pipeline_colored_indexed = CreatePipelineColoredIndex();
 
 	LoadBuffers();
-
+	LoadCollectables();
 
 	//Play sfx
 
@@ -633,6 +719,19 @@ void ProjectApplication::RenderScene()
 		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
 	}
 
+	//Drawing the collectables
+	{
+		if (num_active_collectables > 0)
+		{
+			Fwog::Cmd::BindGraphicsPipeline(pipeline_colored_indexed.value());
+			Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+			Fwog::Cmd::BindStorageBuffer(1, collectableObjectBuffers.value());
+			Fwog::Cmd::BindVertexBuffer(0, scene_collectable.meshes[0].vertexBuffer, 0, sizeof(Utility::Vertex));
+			Fwog::Cmd::BindIndexBuffer(scene_collectable.meshes[0].indexBuffer,  Fwog::IndexType::UNSIGNED_INT);
+			Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_collectable.meshes[0].indexBuffer.Size()) / sizeof(uint32_t), num_active_collectables, 0, 0, 0);
+		}
+	}
+
 	//Drawing a aircraft + wheels
 	{
 		Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
@@ -647,9 +746,12 @@ void ProjectApplication::RenderScene()
 	{
 		Fwog::Cmd::BindGraphicsPipeline(pipeline_lines.value());
 		Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-		//Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_pos_line.value(), 0, 3 * sizeof(float));
-		//Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_color_line.value(), 0, 3 * sizeof(float));
-		//Fwog::Cmd::Draw(num_points_world_axis, 1, 0, 0);
+		if (renderAxis)
+		{
+			Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_pos_line.value(), 0, 3 * sizeof(float));
+			Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_color_line.value(), 0, 3 * sizeof(float));
+			Fwog::Cmd::Draw(num_points_world_axis, 1, 0, 0);
+		}
 
 		// Drawing collision lines
         if (curr_num_draw_points != 0 && curr_num_draw_points < max_num_draw_points) 
