@@ -367,7 +367,8 @@ private:
 
     bool renderAxis = false;
 
-    bool draw_collectable_colliders = true;
+    bool draw_collectable_colliders = false;
+    bool draw_player_colliders = false;
 
 
 };

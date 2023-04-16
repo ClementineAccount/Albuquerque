@@ -419,7 +419,7 @@ void ProjectApplication::LoadBuffers()
 		constexpr int32_t expected_num_channels = 4;
 		unsigned char* textureData = stbi_load("data/textures/GroundForest003_Flat.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
 		assert(textureData);
-		groundAlbedo = Fwog::CreateTexture2D({ static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight) }, Fwog::Format::R8G8B8A8_SRGB);
+		groundAlbedo = Fwog::CreateTexture2DMip({ static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight) }, Fwog::Format::R8G8B8A8_SRGB,uint32_t(1 + floor(log2(glm::max(textureWidth, textureHeight)))));
 		Fwog::TextureUpdateInfo updateInfo{ .dimension = Fwog::UploadDimension::TWO,
 			.level = 0,
 			.offset = {},
@@ -428,6 +428,7 @@ void ProjectApplication::LoadBuffers()
 			.type = Fwog::UploadType::UBYTE,
 			.pixels = textureData };
 		groundAlbedo.value().SubImage(updateInfo);
+		groundAlbedo.value().GenMipmaps();
 		stbi_image_free(textureData);
 
 		glm::mat4 modelPlane = glm::mat4(1.0f);
@@ -520,6 +521,9 @@ bool ProjectApplication::Load()
 
 	background_music.load("data/sounds/backgroundMusic.wav");
 	background_music.setVolume(0.30);
+
+
+	collectable_pickup_sfx.load("data/sounds/collectablePlaceholderSound.wav");
 
 	soloud.setGlobalVolume(soloud_volume);
 
@@ -632,7 +636,11 @@ void ProjectApplication::Update(double dt)
 			//Experimenting with another approach
 			aircraftPos += aircraft_body.forward_vector * aircraft_body.current_speed * aircraft_current_speed_scale * dt_float;
 			Collision::SyncSphere(aircraft_sphere_collider, aircraftPos);
-			DrawLineSphere(aircraft_sphere_collider, glm::vec3(1.0f, 0.0, 0.0f));
+
+			if (draw_player_colliders)
+			{
+				DrawLineSphere(aircraft_sphere_collider, glm::vec3(1.0f, 0.0, 0.0f));
+			}
 		}
 
 
@@ -697,11 +705,17 @@ void ProjectApplication::Update(double dt)
 		{
 			continue;
 		}
-		DrawLineSphere(collectable.collider, glm::vec3(1.0f, 0.0, 0.0f));
+
+		if (draw_collectable_colliders)
+		{
+			DrawLineSphere(collectable.collider, glm::vec3(1.0f, 0.0, 0.0f));
+		}
+
 
 
 		if (Collision::sphereCollisionCheck(aircraft_sphere_collider, collectable.collider))
 		{
+			soloud.play(collectable_pickup_sfx);
 			collectable.isCollected = true;
 
 			//Because we use instancing. Decided to simply change the scale to set it to not render. Maybe there is a better way?
@@ -736,8 +750,10 @@ void ProjectApplication::RenderScene()
 		Fwog::SamplerState ss;
 		ss.minFilter = Fwog::Filter::LINEAR;
 		ss.magFilter = Fwog::Filter::LINEAR;
+		ss.mipmapFilter = Fwog::Filter::LINEAR;
 		ss.addressModeU = Fwog::AddressMode::REPEAT;
 		ss.addressModeV = Fwog::AddressMode::REPEAT;
+		ss.anisotropy = Fwog::SampleCount::SAMPLES_16;
 		auto nearestSampler = Fwog::Sampler(ss);
 
 		Fwog::Cmd::BindGraphicsPipeline(pipeline_textured.value());
