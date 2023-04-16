@@ -230,8 +230,11 @@ private:
     //Objects in the world
     struct ObjectUniforms
     {
+
+        //Currently I set the scale to 0.0f if I want to not render an object uniform that is indexed but there has to be an alterative way
         glm::mat4 model;
         glm::vec4 color;
+ 
     };
 
 
@@ -296,7 +299,7 @@ private:
     glm::vec3 aircraftCollisionScale{1.5f, 1.2f, 1.5f};
     Collision::AABB aircraft_box_collider;
 
-    float aircraft_sphere_radius = 1.0f;
+    float aircraft_sphere_radius = 5.5f;
     Collision::Sphere aircraft_sphere_collider;
 
     static constexpr glm::vec3 cameraOffset = glm::vec3(0.0f, 10.0f, 20.0f);
@@ -349,7 +352,7 @@ private:
     std::optional<Fwog::TypedBuffer<ObjectUniforms>> collectableObjectBuffers;
 
     //How many instances to draw
-    uint32_t num_active_collectables{0};
+    //uint32_t num_active_collectables{0};
     static constexpr uint32_t max_num_collectables{4096};
 
     ////Alternative approach can be multidraw
@@ -363,6 +366,8 @@ private:
 
 
     bool renderAxis = false;
+
+    bool draw_collectable_colliders = true;
 
 
 };

@@ -466,7 +466,7 @@ void ProjectApplication::LoadBuffers()
 
 void ProjectApplication::AddCollectable(glm::vec3 position, glm::vec3 scale, glm::vec3 color)
 {
-	collectableList.emplace_back(position, scale, false);
+
 	ObjectUniforms collectableUniform;
 	collectableUniform.model = glm::mat4(1.0f);
 
@@ -474,8 +474,9 @@ void ProjectApplication::AddCollectable(glm::vec3 position, glm::vec3 scale, glm
 	collectableUniform.model = glm::scale(collectableUniform.model, scale);
 	collectableUniform.color = glm::vec4(color, 1.0f);
 
-	collectableObjectBuffers.value().SubData(collectableUniform, sizeof(collectableUniform) * num_active_collectables);
-	num_active_collectables += 1;
+	collectableObjectBuffers.value().SubData(collectableUniform, sizeof(collectableUniform) * collectableList.size());
+	
+	collectableList.emplace_back(position, scale, false);
 }
 
 
@@ -556,6 +557,7 @@ bool ProjectApplication::Load()
 void ProjectApplication::Update(double dt)
 {
 
+
 	if (IsKeyPressed(GLFW_KEY_ESCAPE))
 	{
 		Close();
@@ -567,13 +569,11 @@ void ProjectApplication::Update(double dt)
 	}
 
 	{
-
 		//aircraft Inputs
 		float dt_float = static_cast<float>(dt);
 		float zoom_speed_level = 1.0f;
 
 		aircraft_current_speed_scale = 1.0f;
-
 		{
 			ZoneScopedC(tracy::Color::Green);
 
@@ -631,7 +631,8 @@ void ProjectApplication::Update(double dt)
 
 			//Experimenting with another approach
 			aircraftPos += aircraft_body.forward_vector * aircraft_body.current_speed * aircraft_current_speed_scale * dt_float;
-
+			Collision::SyncSphere(aircraft_sphere_collider, aircraftPos);
+			DrawLineSphere(aircraft_sphere_collider, glm::vec3(1.0f, 0.0, 0.0f));
 		}
 
 
@@ -639,28 +640,28 @@ void ProjectApplication::Update(double dt)
 
 		//Debug Lines
 		{
-			//
+		//
 
-			////for dispaly
-			//constexpr float line_length = 20.0f;
-			//
-			////glm::vec3 dir_vec_pt = aircraftPos + aircraft_body.forward_vector * line_length;
-			////AddDebugDrawLine(aircraftPos, dir_vec_pt, glm::vec3(0.0f, 0.0f, 1.0f));
+		////for dispaly
+		//constexpr float line_length = 20.0f;
+		//
+		////glm::vec3 dir_vec_pt = aircraftPos + aircraft_body.forward_vector * line_length;
+		////AddDebugDrawLine(aircraftPos, dir_vec_pt, glm::vec3(0.0f, 0.0f, 1.0f));
 
-			////glm::vec3 velpt = aircraftPos + glm::normalize(aircraft_body.aircraft_current_velocity) * line_length;
-			////AddDebugDrawLine(aircraftPos, velpt, glm::vec3(1.0f, 0.0f, 0.0f));
+		////glm::vec3 velpt = aircraftPos + glm::normalize(aircraft_body.aircraft_current_velocity) * line_length;
+		////AddDebugDrawLine(aircraftPos, velpt, glm::vec3(1.0f, 0.0f, 0.0f));
 
 
-			////Collider sync and draws
-			////Collision::SyncAABB(aircraft_box_collider, aircraftPos);
-			////Collision::SyncSphere(aircraft_sphere_collider, aircraftPos);
+		////Collider sync and draws
+		////Collision::SyncAABB(aircraft_box_collider, aircraftPos);
+		////
 
-			//////Profile only the drawing
-			////
-			////DrawLineAABB(aircraft_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
-			////DrawLineSphere(aircraft_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
+		//////Profile only the drawing
+		////
+		////DrawLineAABB(aircraft_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
+		////DrawLineSphere(aircraft_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
 		}
-		
+
 		{
 			//aircraft uniform buffer changes
 			ZoneScopedC(tracy::Color::Orange);
@@ -684,6 +685,29 @@ void ProjectApplication::Update(double dt)
 			glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
 			glm::mat4 viewProj = proj * view;
 			globalUniformsBuffer.value().SubData(viewProj, 0);
+		}
+	}
+
+	//Collision Checks
+	for (size_t i = 0; i < collectableList.size(); ++i)
+	{
+		auto& collectable = collectableList[i];
+
+		if (collectable.isCollected)
+		{
+			continue;
+		}
+		DrawLineSphere(collectable.collider, glm::vec3(1.0f, 0.0, 0.0f));
+
+
+		if (Collision::sphereCollisionCheck(aircraft_sphere_collider, collectable.collider))
+		{
+			collectable.isCollected = true;
+
+			//Because we use instancing. Decided to simply change the scale to set it to not render. Maybe there is a better way?
+			ObjectUniforms temp;
+			temp.model = glm::scale(temp.model, glm::vec3(0.0f, 0.0f, 0.0f));
+			collectableObjectBuffers.value().SubData(temp, sizeof(ObjectUniforms) * i);
 		}
 	}
 }
@@ -727,14 +751,14 @@ void ProjectApplication::RenderScene()
 
 	//Drawing the collectables
 	{
-		if (num_active_collectables > 0)
+		if (!collectableList.empty())
 		{
 			Fwog::Cmd::BindGraphicsPipeline(pipeline_colored_indexed.value());
 			Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
 			Fwog::Cmd::BindStorageBuffer(1, collectableObjectBuffers.value());
 			Fwog::Cmd::BindVertexBuffer(0, scene_collectable.meshes[0].vertexBuffer, 0, sizeof(Utility::Vertex));
 			Fwog::Cmd::BindIndexBuffer(scene_collectable.meshes[0].indexBuffer,  Fwog::IndexType::UNSIGNED_INT);
-			Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_collectable.meshes[0].indexBuffer.Size()) / sizeof(uint32_t), num_active_collectables, 0, 0, 0);
+			Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_collectable.meshes[0].indexBuffer.Size()) / sizeof(uint32_t), collectableList.size(), 0, 0, 0);
 		}
 	}
 
