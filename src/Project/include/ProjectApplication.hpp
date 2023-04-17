@@ -120,12 +120,18 @@ namespace Collision
     {
       glm::vec3 halfExtents{1.0f, 1.0f, 1.0f};
       glm::vec3 center{0.0f, 0.0f, 0.0f};
+
+      //because I don't need the half-points for Syncing, only for Sphere on AABB checks
+      inline glm::vec3 get_max_point() const {return center + halfExtents;};
+      inline glm::vec3 get_min_point() const {return center - halfExtents;};
     };
+
+
 
     static bool AABBCollisionCheck(AABB const& lhs, AABB const& rhs) 
     {
       if (abs(lhs.center.x - rhs.center.x) >
-          (lhs.halfExtents.x + rhs.halfExtents.y))
+          (lhs.halfExtents.x + rhs.halfExtents.x))
         return false;
 
       if (abs(lhs.center.y - rhs.center.y) >
@@ -135,6 +141,30 @@ namespace Collision
       if (abs(lhs.center.z - rhs.center.z) >
           (lhs.halfExtents.z + rhs.halfExtents.z))
         return false;
+    }
+
+
+
+    static bool CheckPointOnAABB(glm::vec3 const& point, AABB const& aabb)
+    {
+        glm::vec3 maxPoint = aabb.get_max_point();
+        glm::vec3 minPoint = aabb.get_min_point();
+
+        //Early rejection
+        if ((point.x > maxPoint.x || point.x < minPoint.x) || 
+            (point.y > maxPoint.y || point.y < minPoint.y) ||
+            (point.z > maxPoint.z || point.z < minPoint.z))
+            return false;
+
+        return true;
+    }
+
+    static bool SphereAABBCollisionCheck(Sphere const& sphere, AABB const& aabb)
+    {
+        glm::vec3 dir_to_center_AABB = glm::normalize(aabb.center - sphere.center);
+        glm::vec3 nearestPointOnSphere = sphere.center + (sphere.radius * dir_to_center_AABB);
+
+        return CheckPointOnAABB(nearestPointOnSphere, aabb);
     }
 
     //To Do: Write unit tests for the collision detection
@@ -168,6 +198,8 @@ protected:
 private:
 
     void LoadBuffers();
+    void LoadGroundPlane();
+
     void LoadCollectables();
 
     //Adds a collectable to the current scene
@@ -184,8 +216,8 @@ private:
  void ClearLines();
 
 
-
-
+    void LoadBuildings();
+    void AddBuilding(glm::vec3 position, glm::vec3 scale = glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec3 color = glm::vec3{1.0f, 0.0f, 0.0f});
 
 private:
     
@@ -230,7 +262,6 @@ private:
     //Objects in the world
     struct ObjectUniforms
     {
-
         //Currently I set the scale to 0.0f if I want to not render an object uniform that is indexed but there has to be an alterative way
         glm::mat4 model;
         glm::vec4 color;
@@ -355,20 +386,31 @@ private:
     //uint32_t num_active_collectables{0};
     static constexpr uint32_t max_num_collectables{4096};
 
-    ////Alternative approach can be multidraw
-    ////So I can batch them
-    //static constexpr uint32_t max_num_collectables = 100;
-
-
-    //std::optional<Fwog::Buffer> vertex_buffer_collectable_spheres_position;
-    //std::optional<Fwog::Buffer> vertex_buffer_collectable_spheres_colors;
-    //std::optional<Fwog::Buffer> index_buffer_collectable_spheres;
-
-
     bool renderAxis = false;
-
     bool draw_collectable_colliders = false;
     bool draw_player_colliders = false;
+
+
+    //To Do: Could probably make some kind of 'object class' for collectables and building stuff.
+
+
+    //To Do: Refactor so all building stuff drawn with one call
+    struct buildingObject
+    {
+        glm::vec3 building_center{200.0f, 0.0f, 200.0f};
+        glm::vec3 building_scale{10.0f, 1000.0f, 10.0f};
+        Collision::AABB building_collider{building_scale * 0.5f, building_center};
+        std::optional<Fwog::Buffer> object_buffer;
+
+        static std::optional<Fwog::Texture> buildingAlbedo;
+
+    };
+
+    
+    std::optional<Fwog::Buffer> building_vertex_buffer;
+    std::optional<Fwog::Buffer> building_index_buffer;
+
+    buildingObject hello_building;
 
 
 };

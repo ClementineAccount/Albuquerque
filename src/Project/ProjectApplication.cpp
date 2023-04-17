@@ -142,7 +142,7 @@ static Fwog::GraphicsPipeline CreatePipelineLines()
 	  .inputAssemblyState = primDescs,
 	  .vertexInputState = {inputDescs},
 	  .rasterizationState = {.cullMode = Fwog::CullMode::NONE},
-	  .depthState = {.depthTestEnable = false, .depthWriteEnable = false},
+	  .depthState = {.depthTestEnable = true, .depthWriteEnable = true},
 	} };
 }
 
@@ -365,6 +365,38 @@ void ProjectApplication::BeforeDestroyUiContext()
 }
 
 
+
+void ProjectApplication::LoadGroundPlane()
+{
+	//to do: better texture loading systems. this can break so easily and its jank as hell
+	int32_t textureWidth, textureHeight, textureChannels;
+	constexpr int32_t expected_num_channels = 4;
+	unsigned char* textureData = stbi_load("data/textures/GroundForest003_Flat.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
+	assert(textureData);
+	groundAlbedo = Fwog::CreateTexture2DMip({ static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight) }, Fwog::Format::R8G8B8A8_SRGB,uint32_t(1 + floor(log2(glm::max(textureWidth, textureHeight)))));
+	Fwog::TextureUpdateInfo updateInfo{ .dimension = Fwog::UploadDimension::TWO,
+		.level = 0,
+		.offset = {},
+		.size = {static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight), 1},
+		.format = Fwog::UploadFormat::RGBA,
+		.type = Fwog::UploadType::UBYTE,
+		.pixels = textureData };
+	groundAlbedo.value().SubImage(updateInfo);
+	groundAlbedo.value().GenMipmaps();
+	stbi_image_free(textureData);
+
+	glm::mat4 modelPlane = glm::mat4(1.0f);
+	modelPlane = glm::scale(modelPlane, planeScale);
+	ObjectUniforms planeUniform;
+	planeUniform.model = modelPlane;
+	objectBufferPlane = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+	objectBufferPlane.value().SubData(planeUniform, 0);
+
+	vertex_buffer_plane.emplace(Primitives::plane_vertices);
+	index_buffer_plane.emplace(Primitives::plane_indices);
+
+}
+
 void ProjectApplication::LoadBuffers()
 {
 	//Creating world axis stuff
@@ -372,7 +404,6 @@ void ProjectApplication::LoadBuffers()
 		glm::vec3 worldUpFinal = worldOrigin + (worldUp)*axisScale;
 		glm::vec3 worldForwardFinal = worldOrigin + (worldForward)*axisScale;
 		glm::vec3 worldRightFinal = worldOrigin + (worldRight)*axisScale;
-
 
 		std::array<glm::vec3, num_points_world_axis> axisPos{ worldOrigin, worldUpFinal, worldOrigin, worldForwardFinal, worldOrigin, worldRightFinal };
 		std::array<glm::vec3, num_points_world_axis> axisColors{ worldUpColor,
@@ -413,34 +444,7 @@ void ProjectApplication::LoadBuffers()
 
 
 	//Creating ground plane
-	{
-		//to do: better texture loading systems. this can break so easily and its jank as hell
-		int32_t textureWidth, textureHeight, textureChannels;
-		constexpr int32_t expected_num_channels = 4;
-		unsigned char* textureData = stbi_load("data/textures/GroundForest003_Flat.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
-		assert(textureData);
-		groundAlbedo = Fwog::CreateTexture2DMip({ static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight) }, Fwog::Format::R8G8B8A8_SRGB,uint32_t(1 + floor(log2(glm::max(textureWidth, textureHeight)))));
-		Fwog::TextureUpdateInfo updateInfo{ .dimension = Fwog::UploadDimension::TWO,
-			.level = 0,
-			.offset = {},
-			.size = {static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight), 1},
-			.format = Fwog::UploadFormat::RGBA,
-			.type = Fwog::UploadType::UBYTE,
-			.pixels = textureData };
-		groundAlbedo.value().SubImage(updateInfo);
-		groundAlbedo.value().GenMipmaps();
-		stbi_image_free(textureData);
-
-		glm::mat4 modelPlane = glm::mat4(1.0f);
-		modelPlane = glm::scale(modelPlane, planeScale);
-		ObjectUniforms planeUniform;
-		planeUniform.model = modelPlane;
-		objectBufferPlane = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-		objectBufferPlane.value().SubData(planeUniform, 0);
-
-		vertex_buffer_plane.emplace(Primitives::plane_vertices);
-		index_buffer_plane.emplace(Primitives::plane_indices);
-	}
+	LoadGroundPlane();
 
 	//Creating the aircraft
 	{
@@ -461,6 +465,8 @@ void ProjectApplication::LoadBuffers()
 		objectBufferaircraft = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 		objectBufferaircraft.value().SubData(aircraftUniform, 0);
 	}
+
+
 }
 
 
@@ -488,7 +494,6 @@ void ProjectApplication::LoadCollectables()
 	collectableObjectBuffers  = Fwog::TypedBuffer<ObjectUniforms>(max_num_collectables, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 
 	//Add placeholder collectables
-
 	constexpr float start_forward_pos = 120.0f;
 	constexpr float start_up_pos = 100.0f;
 	constexpr float forward_distance_offset = 30.0f;
@@ -502,6 +507,24 @@ void ProjectApplication::LoadCollectables()
 		AddCollectable(glm::vec3(0.0f, start_up_pos + up_distance_offset * i, start_forward_pos + i * forward_distance_offset), glm::vec3(collectable_scale, collectable_scale, collectable_scale));
 	}
 
+}
+
+void ProjectApplication::LoadBuildings()
+{
+	building_vertex_buffer.emplace(Primitives::cube_vertices);
+	building_index_buffer.emplace(Primitives::cube_indices);
+
+	//Just the starting building idea
+	glm::mat4 model(1.0f);
+	model = glm::translate(model, hello_building.building_center);
+	model = glm::scale(model, hello_building.building_scale);
+
+	ObjectUniforms temp;
+	temp.model = model;
+	temp.color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+
+	hello_building.object_buffer = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+	hello_building.object_buffer.value().SubData(temp, 0);
 }
 
 
@@ -536,6 +559,7 @@ bool ProjectApplication::Load()
 
 	LoadBuffers();
 	LoadCollectables();
+	LoadBuildings();
 
 	//Play sfx
 
@@ -709,6 +733,10 @@ void ProjectApplication::Update(double dt)
 		}
 	}
 
+
+	//Drawing a building
+	DrawLineAABB(hello_building.building_collider, glm::vec3(0.0f, 1.0f, 0.0f));
+
 	//Collision Checks
 	for (size_t i = 0; i < collectableList.size(); ++i)
 	{
@@ -776,6 +804,16 @@ void ProjectApplication::RenderScene()
 		Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0, sizeof(Primitives::Vertex));
 		Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(), Fwog::IndexType::UNSIGNED_SHORT);
 		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
+	}
+
+	//Drawing buildings
+	{
+		Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
+		Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+		Fwog::Cmd::BindUniformBuffer(1, hello_building.object_buffer.value());
+		Fwog::Cmd::BindVertexBuffer(0, building_vertex_buffer.value(), 0, sizeof(Primitives::Vertex));
+		Fwog::Cmd::BindIndexBuffer(building_index_buffer.value(), Fwog::IndexType::UNSIGNED_SHORT);
+		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(building_index_buffer.value().Size()), 1, 0, 0, 0);
 	}
 
 	//Drawing the collectables
