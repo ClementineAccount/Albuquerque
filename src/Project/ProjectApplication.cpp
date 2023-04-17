@@ -737,6 +737,22 @@ void ProjectApplication::Update(double dt)
 	//Drawing a building
 	DrawLineAABB(hello_building.building_collider, glm::vec3(0.0f, 1.0f, 0.0f));
 
+	static bool wasColliding = false;
+	//Test building on plane
+	if (Collision::SphereAABBCollisionCheck(aircraft_sphere_collider, hello_building.building_collider))
+	{
+		//Tired just gonna do a cout to spd instead for now
+		std::cout << "Colliding with building!\n";
+		wasColliding = true;
+	}
+	else if (wasColliding)
+	{
+		std::cout << "not colliding with building\n";
+		wasColliding = false;
+	} 
+
+
+
 	//Collision Checks
 	for (size_t i = 0; i < collectableList.size(); ++i)
 	{
