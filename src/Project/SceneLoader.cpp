@@ -316,7 +316,7 @@ namespace Utility
     {
       vertices[i] = {
         positions[i],
-        glm::packSnorm2x16(float32x3_to_oct(normals[i])),
+        normals[i],
         texcoords[i]
       };
     }

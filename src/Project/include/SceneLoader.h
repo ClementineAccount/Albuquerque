@@ -17,7 +17,7 @@ namespace Utility
   struct Vertex
   {
     glm::vec3 position;
-    uint32_t normal;
+    glm::vec3 normal;
     glm::vec2 texcoord;
   };
 
