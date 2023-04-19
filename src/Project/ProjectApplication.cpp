@@ -497,7 +497,50 @@ void ProjectApplication::LoadBuffers()
 
 }
 
+void ProjectApplication::CreateGroundChunks()
+{
+	//Makes the chunks surrounding relative to a center
+	constexpr glm::vec3 center_position{0.0f, 0.0f, 0.0f};
+	constexpr glm::vec3 center_chunk_scale{planeScale};
 
+	//length of the world unit vectors (can also be dot product) allows not having to worry about what direction is forward/front
+	glm::vec3 forward_chunk_offset{center_position.x, center_position.y, center_position.z + glm::length(worldForward) * center_chunk_scale.z};
+	glm::vec3 back_chunk_offset{center_position.x, center_position.y, center_position.z - glm::length(worldForward) * center_chunk_scale.z};
+	glm::vec3 right_chunk_offset{center_position.x + glm::length(worldRight) * center_chunk_scale.x, center_position.y, center_position.z};
+	glm::vec3 left_chunk_offset{center_position.x - glm::length(worldRight) * center_chunk_scale.x, center_position.y, center_position.z};
+
+	glm::vec3 forward_right_chunk_offset{center_position.x + glm::length(worldRight)  * center_chunk_scale.x, center_position.y, center_position.z + glm::length(worldForward) * center_chunk_scale.z};
+	glm::vec3 forward_left_chunk_offset{center_position.x - glm::length(worldRight)  * center_chunk_scale.x, center_position.y, center_position.z + glm::length(worldForward) * center_chunk_scale.z};
+
+	glm::vec3 back_right_chunk_offset{center_position.x + glm::length(worldRight) * center_chunk_scale.x, center_position.y, center_position.z - glm::length(worldForward) * center_chunk_scale.z};
+	glm::vec3 back_left_chunk_offset{center_position.x - glm::length(worldRight) * center_chunk_scale.x, center_position.y, center_position.z - glm::length(worldForward) * center_chunk_scale.z};
+
+
+
+	//I heard rumors of these things called 'constructors'...
+	//Not as clumsy or random as a lambda; an elegant weapon for a more civilized age...
+	auto create_chunk = [&](glm::vec3 chunk_center) {
+
+		grond_chunk_list.emplace_back();
+		ground_chunk& chunk = grond_chunk_list.back();
+		chunk.ground_center = chunk_center;
+		glm::mat4 model(1.0f);
+		model = glm::translate(model, chunk_center);
+		model = glm::scale(model, planeScale);
+		chunk.ground_uniform.model = model;
+		chunk.object_buffer =  Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		chunk.object_buffer.value().SubData(chunk.ground_uniform, 0);
+	};
+
+	create_chunk(forward_chunk_offset);
+	create_chunk(back_chunk_offset);
+	create_chunk(right_chunk_offset);
+	create_chunk(left_chunk_offset);
+	create_chunk(forward_right_chunk_offset);
+	create_chunk(forward_left_chunk_offset);
+	create_chunk(back_right_chunk_offset);
+	create_chunk(back_left_chunk_offset);
+}
 
 void ProjectApplication::AddCollectable(glm::vec3 position, glm::vec3 scale, glm::vec3 color)
 {
@@ -544,7 +587,7 @@ void ProjectApplication::LoadBuildings()
 	{
 
 
-		buildingObjectList.emplace_back(curr_center + worldRight * (distance_offset * i), glm::vec3(curr_scale.x, curr_scale.y + y_scale_offset * i, curr_scale.z));
+		buildingObjectList.emplace_back(curr_center + worldRight * (distance_offset * i), glm::vec3(curr_scale.x, curr_scale.y + y_scale_offset * i, curr_center + worldForward * (distance_offset * i)));
 
 
 		//Just the starting building idea
@@ -595,6 +638,7 @@ bool ProjectApplication::Load()
 	pipeline_colored_indexed = CreatePipelineColoredIndex();
 
 	LoadBuffers();
+	CreateGroundChunks();
 
 	//LoadCollectables();
 	//LoadBuildings();
@@ -607,6 +651,7 @@ bool ProjectApplication::Load()
 	soloud.play(background_music);
 
 	StartLevel();
+
 
 	return true;
 }
@@ -1146,7 +1191,7 @@ void ProjectApplication::RenderScene()
 		});
 
 
-	//Drawing a plane
+	//Drawing a ground plane
 	{
 		Fwog::SamplerState ss;
 		ss.minFilter = Fwog::Filter::LINEAR;
@@ -1164,7 +1209,19 @@ void ProjectApplication::RenderScene()
 		Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0, sizeof(Primitives::Vertex));
 		Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(), Fwog::IndexType::UNSIGNED_SHORT);
 		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
+
+		//Drawing the other ground planes
+		for (auto const& ground : grond_chunk_list)
+		{
+			Fwog::Cmd::BindUniformBuffer(1, ground.object_buffer.value());
+			Fwog::Cmd::BindSampledImage(0, groundAlbedo.value(), nearestSampler);
+			Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0, sizeof(Primitives::Vertex));
+			Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(), Fwog::IndexType::UNSIGNED_SHORT);
+			Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
+		}
 	}
+
+
 
 	//Drawing buildings
 	{

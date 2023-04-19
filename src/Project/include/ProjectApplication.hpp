@@ -245,7 +245,7 @@ private:
     void LoadBuildings();
     void AddBuilding(glm::vec3 position, glm::vec3 scale = glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec3 color = glm::vec3{1.0f, 0.0f, 0.0f});
 
-
+    void CreateGroundChunks();
 
 private:
 
@@ -313,12 +313,28 @@ private:
 
 
     //Ground Plane Stuff
-    //Could these live in the same data?
+    //Could these live in the same data? 
     static constexpr glm::vec3 planeScale = glm::vec3(4000.0f, 1.0f, 4000.0f);
+    //static constexpr glm::vec3 planeScale = glm::vec3(100.0f, 1.0f, 100.0f);
     std::optional<Fwog::Buffer> vertex_buffer_plane;
     std::optional<Fwog::Buffer> index_buffer_plane;
     std::optional<Fwog::Texture> groundAlbedo;
     std::optional<Fwog::Buffer> objectBufferPlane;
+
+
+    //Want to test multiple ground chunks 
+    struct ground_chunk
+    {
+        std::optional<Fwog::Buffer> object_buffer;
+
+        ObjectUniforms ground_uniform;
+        glm::vec3 ground_center{0.0f, 0.0f, 0.0f};
+
+        //To DO: albedo IDs?
+    };
+
+    std::vector<ground_chunk> grond_chunk_list;
+
 
 
     //aircraft stuff
@@ -341,7 +357,7 @@ private:
     float aircraft_speed_scale{ 40.0f };
     float aircraft_speed_scale_reverse{ 10.0f };
 
-    constexpr static float aircraft_speedup_scale{4.0f};
+    constexpr static float aircraft_speedup_scale{30.0f};
     float aircraft_current_speed_scale{1.0f};
 
     // aircraft's rotation when turning relative to the z-axis forward (per second of course)
