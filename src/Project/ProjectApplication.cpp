@@ -1090,22 +1090,39 @@ void ProjectApplication::MouseRaycast(camera const& cam)
 
 	//Test if it works lol
 	AddDebugDrawLine(aircraftPos, cam.position + ray_world_vec3 * debug_mouse_click_length, glm::vec3(0.0f, 0.0f, 1.0f));
+
+	std::vector<buildingObject*> accepted_colliders;
+
 	for (auto& buillding : buildingObjectList)
 	{
 		if (Collision::RaycastCheck(cam.position, ray_world_vec3, buillding.building_collider))
 		{
-			//Yea we should create a function for this
-			ObjectUniforms temp;
-			glm::mat4 model(1.0f);
-			model = glm::translate(model, buillding.building_center);
-			model = glm::scale(model, buillding.building_scale);
-			temp.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-			temp.model = model;
-			buillding.object_buffer.value().SubData(temp, 0);
+			accepted_colliders.push_back(&buillding);
 		}
 	}
-	
 
+	if (accepted_colliders.empty())
+		return;
+
+	std::sort<buildingObject*>(accepted_colliders.front(), accepted_colliders.back(), [&](auto const& lhs, auto const& rhs)
+	{
+			glm::vec3 lhs_vec = (lhs.building_center - cam.position);
+			glm::vec3 rhs_vec = (rhs.building_center - cam.position);
+			float dist_lhs = glm::dot(lhs_vec, lhs_vec);
+			float dist_rhs = glm::dot(rhs_vec, rhs_vec);
+			return dist_lhs < dist_rhs;
+	});
+
+	buildingObject& building = *accepted_colliders.front();
+
+	//Yea we should create a function for this
+	ObjectUniforms temp;
+	glm::mat4 model(1.0f);
+	model = glm::translate(model, building.building_center);
+	model = glm::scale(model, building.building_scale);
+	temp.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+	temp.model = model;
+	building.object_buffer.value().SubData(temp, 0);
 
 	//AddDebugDrawLine(cam.position, cam.position + ray_world_vec3 * debug_mouse_click_length, glm::vec3(0.0f, 0.0f, 1.0f));
 }

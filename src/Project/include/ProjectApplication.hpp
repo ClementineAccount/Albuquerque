@@ -175,7 +175,7 @@ namespace Collision
     }
 
 
-   static  bool RaycastCheck(glm::vec3 startPosition, glm::vec3 normalizedRay, AABB const& aabb, float stepDistance = 1.0f, size_t numSteps = 2000)
+   static  bool RaycastCheck(glm::vec3 startPosition, glm::vec3 normalizedRay, AABB const& aabb, float stepDistance = 1.0f, size_t numSteps = 1000)
     {
         //Early rejection test. (Disregard AABBs that are are not in the direction of the ray)
         glm::vec3 dir = aabb.center - startPosition;
