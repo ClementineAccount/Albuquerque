@@ -587,7 +587,7 @@ void ProjectApplication::LoadBuildings()
 	{
 
 
-		buildingObjectList.emplace_back(curr_center + worldRight * (distance_offset * i), glm::vec3(curr_scale.x, curr_scale.y + y_scale_offset * i, curr_center + worldForward * (distance_offset * i)));
+		buildingObjectList.emplace_back(curr_center + worldRight * (distance_offset * i) + worldForward * (distance_offset * i), glm::vec3(curr_scale.x, curr_scale.y + y_scale_offset * i,  curr_scale.z));
 
 
 		//Just the starting building idea
