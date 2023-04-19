@@ -528,19 +528,28 @@ void ProjectApplication::LoadCollectables()
 
 void ProjectApplication::LoadBuildings()
 {
+	constexpr size_t num_buildings = 2;
+	constexpr float distance_offset = 30.0f;
+
+	glm::vec3 curr_center{50.0f, 0.0f, 100.0f};
+
+	for (size_t i = 0; i < num_buildings; ++i)
+	{
+		buildingObjectList.emplace_back(curr_center + worldRight * (distance_offset * i));
 
 
-	//Just the starting building idea
-	glm::mat4 model(1.0f);
-	model = glm::translate(model, hello_building.building_center);
-	model = glm::scale(model, hello_building.building_scale);
+		//Just the starting building idea
+		glm::mat4 model(1.0f);
+		model = glm::translate(model, buildingObjectList[i].building_center);
+		model = glm::scale(model, buildingObjectList[i].building_scale);
 
-	ObjectUniforms temp;
-	temp.model = model;
-	temp.color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+		ObjectUniforms temp;
+		temp.model = model;
+		temp.color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
-	hello_building.object_buffer = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-	hello_building.object_buffer.value().SubData(temp, 0);
+		buildingObjectList[i].object_buffer = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		buildingObjectList[i].object_buffer.value().SubData(temp, 0);
+	}
 }
 
 
@@ -574,8 +583,8 @@ bool ProjectApplication::Load()
 
 	LoadBuffers();
 
-	LoadCollectables();
-	LoadBuildings();
+	//LoadCollectables();
+	//LoadBuildings();
 
 	//Play sfx
 	plane_flying_sfx.setLooping(true);
@@ -591,6 +600,7 @@ bool ProjectApplication::Load()
 void ProjectApplication::ResetLevel()
 {
 	collectableList.clear();
+	buildingObjectList.clear();
 	StartLevel();
 }
 
@@ -598,6 +608,8 @@ void ProjectApplication::StartLevel()
 {
 	sample.stop();
 	soloud.play(plane_flying_sfx);
+
+	LoadBuildings();
 	LoadCollectables();
 
 	render_plane = true;
@@ -803,11 +815,14 @@ void ProjectApplication::Update(double dt)
 		}
 
 		//Collision checks with buildings
-		if (Collision::SphereAABBCollisionCheck(aircraft_sphere_collider, hello_building.building_collider))
+		for (auto const& building : buildingObjectList)
 		{
-			curr_game_state = game_states::game_over;
+			if (Collision::SphereAABBCollisionCheck(aircraft_sphere_collider, building.building_collider))
+			{
+				curr_game_state = game_states::game_over;
+				break;
+			}
 		}
-
 	}
 }
 
@@ -852,12 +867,15 @@ void ProjectApplication::RenderScene()
 
 	//Drawing buildings
 	{
-		Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
-		Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-		Fwog::Cmd::BindUniformBuffer(1, hello_building.object_buffer.value());
-		Fwog::Cmd::BindVertexBuffer(0, building_vertex_buffer.value(), 0, sizeof(Primitives::Vertex));
-		Fwog::Cmd::BindIndexBuffer(building_index_buffer.value(), Fwog::IndexType::UNSIGNED_SHORT);
-		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(building_index_buffer.value().Size()), 1, 0, 0, 0);
+		for (auto const& building : buildingObjectList)
+		{
+			Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
+			Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+			Fwog::Cmd::BindUniformBuffer(1, building.object_buffer.value());
+			Fwog::Cmd::BindVertexBuffer(0, building_vertex_buffer.value(), 0, sizeof(Primitives::Vertex));
+			Fwog::Cmd::BindIndexBuffer(building_index_buffer.value(), Fwog::IndexType::UNSIGNED_SHORT);
+			Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(building_index_buffer.value().Size()), 1, 0, 0, 0);
+		}
 	}
 
 	//Drawing the collectables

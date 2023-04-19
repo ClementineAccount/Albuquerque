@@ -406,7 +406,7 @@ private:
     std::optional<Fwog::Buffer> building_vertex_buffer;
     std::optional<Fwog::Buffer> building_index_buffer;
 
-    buildingObject hello_building;
+    //buildingObject hello_building;
     std::vector<buildingObject> buildingObjectList;
 
 
