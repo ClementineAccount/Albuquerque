@@ -2,6 +2,8 @@ Gonna rescope the game from driving to flying as flying has easier collision res
 
 Currently being developed with a driving game I am working on (placeholder screenshot):
 
+![image](https://user-images.githubusercontent.com/26779639/233076790-2059073c-58e7-45f7-8b8e-d72d5aea6956.png)
+
 
 This project is a self-learning exercise in understanding and implementing the complexities of how to render seamless open world environments with presistent states (level editing features) in an optimized way. It is also an exercise in learning more complex vehicle physics simulation considerations. 
 
