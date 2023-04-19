@@ -8,6 +8,9 @@
 #include <string_view>
 #include <vector>
 #include <memory>
+#include <unordered_map>
+#include <optional>
+#include <functional>
 
 #include <Fwog/BasicTypes.h>
 #include <Fwog/Buffer.h>
@@ -16,11 +19,12 @@
 #include <Fwog/Shader.h>
 #include <Fwog/Texture.h>
 
-#include <optional>
-
 #include "SceneLoader.h"
 #include <soloud/soloud.h>
 #include <soloud/soloud_wav.h>
+
+
+
 
 namespace Primitives
 {
@@ -151,21 +155,17 @@ namespace Collision
         glm::vec3 minPoint = aabb.get_min_point();
 
         //Early rejection
-        if ((point.x > maxPoint.x || point.x < minPoint.x) || 
-            (point.y > maxPoint.y || point.y < minPoint.y) ||
-            (point.z > maxPoint.z || point.z < minPoint.z))
+        if (point.x > maxPoint.x || point.x < minPoint.x ||
+            point.y > maxPoint.y || point.y < minPoint.y ||
+            point.z > maxPoint.z || point.z < minPoint.z)
+        {
             return false;
+        }
 
         return true;
     }
 
-    static bool SphereAABBCollisionCheck(Sphere const& sphere, AABB const& aabb)
-    {
-        glm::vec3 dir_to_center_AABB = glm::normalize(aabb.center - sphere.center);
-        glm::vec3 nearestPointOnSphere = sphere.center + (sphere.radius * dir_to_center_AABB);
-
-        return CheckPointOnAABB(nearestPointOnSphere, aabb);
-    }
+    static bool SphereAABBCollisionCheck(Sphere const& sphere, AABB const& aabb);
 
     //To Do: Write unit tests for the collision detection
 
@@ -174,13 +174,6 @@ namespace Collision
         aabb.center = pos;
     }
 }
-
-
-namespace Physics
-{
-
-}
-
 
 class ProjectApplication final : public Application
 {
@@ -205,22 +198,35 @@ private:
     //Adds a collectable to the current scene
     void AddCollectable(glm::vec3 position, glm::vec3 scale = glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec3 color = glm::vec3{0.0f, 0.0f, 0.8f});
 
-//To Do: This stuff should probably pass in the line vertex buffer it wants to subData()
+    //To Do: This stuff should probably pass in the line vertex buffer it wants to subData()
 
-//Adds the line to the specified buffer that is then draw I need to find a better name for this tbh
- void AddDebugDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color);
- void DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor);
- void DrawLineSphere(Collision::Sphere const& sphere, glm::vec3 sphereColor);
+    //Adds the line to the specified buffer that is then draw I need to find a better name for this tbh
+     void AddDebugDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color);
+     void DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor);
+     void DrawLineSphere(Collision::Sphere const& sphere, glm::vec3 sphereColor);
 
- //Can call this to reset the collision count in order to call 'DrawLine' every frame without creating new buffers
- void ClearLines();
+     //Can call this to reset the collision count in order to call 'DrawLine' every frame without creating new buffers
+     void ClearLines();
 
 
     void LoadBuildings();
     void AddBuilding(glm::vec3 position, glm::vec3 scale = glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec3 color = glm::vec3{1.0f, 0.0f, 0.0f});
 
-private:
     
+
+private:
+
+    enum class game_states : int32_t
+    {
+        playing,
+        game_over
+    };
+
+    game_states curr_game_state = game_states::playing;
+    game_states prev_game_state = game_states::playing;
+
+
+
     std::optional<Fwog::GraphicsPipeline> pipeline_lines;
     std::optional<Fwog::GraphicsPipeline> pipeline_textured;
     std::optional<Fwog::GraphicsPipeline> pipeline_flat;
@@ -265,7 +271,6 @@ private:
         //Currently I set the scale to 0.0f if I want to not render an object uniform that is indexed but there has to be an alterative way
         glm::mat4 model;
         glm::vec4 color;
- 
     };
 
 
@@ -283,14 +288,6 @@ private:
     {
         float current_speed = 0.0f;
         
-        //This should always be unit vector : determines where the actual model faces
-        //constexpr static glm::vec3 aircraft_starting_direction{0.0f, 0.0f, 1.0f};
-
-        //Store as angles first.
-        //Consider this as: {Pitch, Yaw, Roll}
-        //Used for the model matrix transformation
-        glm::vec3 aircraft_angles_degrees{0.0f, 0.0f, 0.0f};
-
         glm::vec3 forward_vector{0.0f, 0.0f, 1.0f};
         glm::vec3 up_vector{0.0f, 1.0f, 0.0f};
         glm::vec3 right_vector{1.0f, 0.0f, 0.0f};
@@ -299,14 +296,12 @@ private:
     };
 
     constexpr static float aircraft_starting_speed{20.0f};
-    constexpr static glm::vec3 aircraft_starting_angles_degrees{0.0f, 0.0f, 0.0f};
     constexpr static glm::vec3 aircraft_starting_direction_vector{0.0f, 0.0f, 1.0f};
 
-    PhysicsBody aircraft_body{aircraft_starting_speed, aircraft_starting_angles_degrees, aircraft_starting_direction_vector};
+    PhysicsBody aircraft_body{aircraft_starting_speed, aircraft_starting_direction_vector};
 
     float aircraft_speed_scale{ 40.0f };
     float aircraft_speed_scale_reverse{ 10.0f };
-
 
     constexpr static float aircraft_speedup_scale{2.0f};
     float aircraft_current_speed_scale{1.0f};
@@ -319,6 +314,9 @@ private:
 
     static constexpr float aircraft_max_roll_degrees{60.0f};
 
+    bool render_plane = true;
+
+
     //not used yet
     //glm::vec3 wheelForward{ worldForward };
 
@@ -330,7 +328,7 @@ private:
     glm::vec3 aircraftCollisionScale{1.5f, 1.2f, 1.5f};
     Collision::AABB aircraft_box_collider;
 
-    float aircraft_sphere_radius = 5.5f;
+    float aircraft_sphere_radius = 6.0f;
     Collision::Sphere aircraft_sphere_collider;
 
     static constexpr glm::vec3 cameraOffset = glm::vec3(0.0f, 10.0f, 20.0f);
@@ -388,29 +386,22 @@ private:
 
     bool renderAxis = false;
     bool draw_collectable_colliders = false;
-    bool draw_player_colliders = false;
+    bool draw_player_colliders = true;
 
-
-    //To Do: Could probably make some kind of 'object class' for collectables and building stuff.
-
-
-    //To Do: Refactor so all building stuff drawn with one call
     struct buildingObject
     {
-        glm::vec3 building_center{200.0f, 0.0f, 200.0f};
-        glm::vec3 building_scale{10.0f, 1000.0f, 10.0f};
+        glm::vec3 building_center{50.0f, 0.0f, 100.0f};
+        glm::vec3 building_scale{10.0f, 100.0f, 10.0f};
         Collision::AABB building_collider{building_scale * 0.5f, building_center};
         std::optional<Fwog::Buffer> object_buffer;
-
         static std::optional<Fwog::Texture> buildingAlbedo;
-
     };
 
-    
     std::optional<Fwog::Buffer> building_vertex_buffer;
     std::optional<Fwog::Buffer> building_index_buffer;
 
     buildingObject hello_building;
+    std::vector<buildingObject> buildingObjectList;
 
 
 };

@@ -61,6 +61,24 @@ static constexpr char frag_color_shader_path[] = "data/shaders/color.frag.glsl";
 
 
 
+static bool Collision::SphereAABBCollisionCheck(Sphere const& sphere, AABB const& aabb)
+{
+	using std::max;
+	using std::min;
+
+	glm::vec3 maxPoint = aabb.get_max_point();
+	glm::vec3 minPoint = aabb.get_min_point();
+
+	glm::vec3 nearestPointbox;
+	nearestPointbox.x = max(minPoint.x, min(sphere.center.x, maxPoint.x));
+	nearestPointbox.y = max(minPoint.y, min(sphere.center.y, maxPoint.y));
+	nearestPointbox.z = max(minPoint.z, min(sphere.center.z, maxPoint.z));
+
+
+	glm::vec3 center_to_point_box = nearestPointbox - sphere.center;
+	return glm::dot(center_to_point_box, center_to_point_box)  < (sphere.radius * sphere.radius);
+}
+
 std::string ProjectApplication::LoadFile(std::string_view path)
 {
 	std::ifstream file{ path.data() };
@@ -142,7 +160,7 @@ static Fwog::GraphicsPipeline CreatePipelineLines()
 	  .inputAssemblyState = primDescs,
 	  .vertexInputState = {inputDescs},
 	  .rasterizationState = {.cullMode = Fwog::CullMode::NONE},
-	  .depthState = {.depthTestEnable = true, .depthWriteEnable = true},
+	  .depthState = {.depthTestEnable = false, .depthWriteEnable = false},
 	} };
 }
 
@@ -302,8 +320,8 @@ void ProjectApplication::DrawLineSphere(Collision::Sphere const& sphere, glm::ve
 
 	//http://www.songho.ca/opengl/gl_sphere.html
 
-	constexpr uint32_t num_stacks = 8;
-	constexpr uint32_t num_slices = 8;
+	constexpr uint32_t num_stacks = 16;
+	constexpr uint32_t num_slices = 16;
 
 	static glm::vec3 temp_horizontal{ 0.f };
 	static glm::vec3 temp_vert{ 0.f };
@@ -539,7 +557,7 @@ bool ProjectApplication::Load()
 	//To Do: Like actually use the res properly
 	SoLoud::result init = soloud.init();
 	SoLoud::result res = sample.load("data/sounds/start.wav"); // Load a wave file
-	sample.setVolume(0.1);
+	sample.setVolume(0.75);
 	res = plane_flying_sfx.load("data/sounds/planeFlying.wav");
 
 	background_music.load("data/sounds/backgroundMusic.wav");
@@ -584,201 +602,186 @@ bool ProjectApplication::Load()
 
 void ProjectApplication::Update(double dt)
 {
+	//Change of state
+	if (prev_game_state != curr_game_state)
+	{
+		if (curr_game_state == game_states::game_over)
+		{
+			soloud.play(sample); 
+			background_music.stop();
+			plane_flying_sfx.stop();
+			render_plane = false;
+		}
 
+		prev_game_state = curr_game_state;
+	}
 
 	if (IsKeyPressed(GLFW_KEY_ESCAPE))
 	{
 		Close();
 	}
 
-	if (IsKeyPressed(GLFW_KEY_F))
+	static bool gameover_button_down = false;
+	if (!gameover_button_down && IsKeyPressed(GLFW_KEY_F))
 	{
-		soloud.play(sample); 
+		gameover_button_down = true;
+		curr_game_state = game_states::game_over;
+	}
+	else if (gameover_button_down && IsKeyRelease(GLFW_KEY_F))
+	{
+		gameover_button_down = false;
 	}
 
+	if (curr_game_state == game_states::playing)
 	{
-		//aircraft Inputs
-		float dt_float = static_cast<float>(dt);
-		float zoom_speed_level = 1.0f;
-
-		aircraft_current_speed_scale = 1.0f;
 		{
-			ZoneScopedC(tracy::Color::Green);
+			//aircraft Inputs
+			float dt_float = static_cast<float>(dt);
+			float zoom_speed_level = 1.0f;
 
-
-			aircraft_body.forward_vector = worldForward;
-			aircraft_body.right_vector = worldRight;
-			aircraft_body.up_vector = worldUp;
-
-			aircraft_body.forward_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.forward_vector, 1.0f));
-			aircraft_body.right_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.right_vector, 1.0f));
-			aircraft_body.up_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.up_vector, 1.0f));
-
-			if (IsKeyPressed(GLFW_KEY_SPACE))
+			aircraft_current_speed_scale = 1.0f;
 			{
-				aircraft_current_speed_scale = aircraft_speedup_scale;
-				zoom_speed_level = 1.02f;
+				ZoneScopedC(tracy::Color::Green);
+
+
+				aircraft_body.forward_vector = worldForward;
+				aircraft_body.right_vector = worldRight;
+				aircraft_body.up_vector = worldUp;
+
+				aircraft_body.forward_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.forward_vector, 1.0f));
+				aircraft_body.right_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.right_vector, 1.0f));
+				aircraft_body.up_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.up_vector, 1.0f));
+
+				if (IsKeyPressed(GLFW_KEY_SPACE))
+				{
+					aircraft_current_speed_scale = aircraft_speedup_scale;
+					zoom_speed_level = 1.02f;
+				}
+
+				//Turning Left: Need to adjust both Roll and Velocity
+				if (IsKeyPressed(GLFW_KEY_RIGHT))
+				{
+
+					//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, aircraft_angle_turning_degrees * dt_float, aircraft_body.forward_vector);
+
+					//aircraft_body.aircraft_angles_degrees.z += aircraft_angle_turning_degrees * dt_float;
+
+					//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, aircraft_body.forward_vector);
+					aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, worldForward);
+				}
+
+				if (IsKeyPressed(GLFW_KEY_LEFT))
+				{
+					//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, aircraft_body.forward_vector);
+					aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldForward);
+				}
+
+				if (IsKeyPressed(GLFW_KEY_UP))
+				{
+					//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, aircraft_body.right_vector);
+					aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, worldRight);
+					//aircraft_body.aircraft_angles_degrees.x += aircraft_angle_turning_degrees * dt_float;
+				}
+
+				if (IsKeyPressed(GLFW_KEY_DOWN))
+				{
+					//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, aircraft_body.right_vector);
+					aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldRight);
+
+					//aircraft_body.aircraft_angles_degrees.x -= aircraft_angle_turning_degrees * dt_float;
+				}
+
+				//Rudders (The yaw)
+				if (IsKeyPressed(GLFW_KEY_Q))
+				{
+					aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, worldUp);
+				}
+
+				if (IsKeyPressed(GLFW_KEY_E))
+				{
+					aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldUp);
+
+				}
+
+				//Update position based off the velocity
+
+				//Experimenting with another approach
+				aircraftPos += aircraft_body.forward_vector * aircraft_body.current_speed * aircraft_current_speed_scale * dt_float;
+				Collision::SyncSphere(aircraft_sphere_collider, aircraftPos);
+
+				if (draw_player_colliders)
+				{
+					DrawLineSphere(aircraft_sphere_collider, glm::vec3(1.0f, 0.0, 0.0f));
+				}
 			}
 
-			//Turning Left: Need to adjust both Roll and Velocity
-			if (IsKeyPressed(GLFW_KEY_RIGHT))
 			{
+				//aircraft uniform buffer changes
+				ZoneScopedC(tracy::Color::Orange);
+				glm::mat4 model(1.0f);
+				model = glm::translate(model, aircraftPos);
+				model *= aircraft_body.rotMatrix;
 
-				//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, aircraft_angle_turning_degrees * dt_float, aircraft_body.forward_vector);
-
-				//aircraft_body.aircraft_angles_degrees.z += aircraft_angle_turning_degrees * dt_float;
-
-				//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, aircraft_body.forward_vector);
-				aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, worldForward);
+				ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
+				objectBufferaircraft.value().SubData(a, 0);
 			}
 
-			if (IsKeyPressed(GLFW_KEY_LEFT))
 			{
-				//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, aircraft_body.forward_vector);
-				aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldForward);
-			}
-
-			if (IsKeyPressed(GLFW_KEY_UP))
-			{
-				//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, aircraft_body.right_vector);
-				aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, worldRight);
-				//aircraft_body.aircraft_angles_degrees.x += aircraft_angle_turning_degrees * dt_float;
-			}
-
-			if (IsKeyPressed(GLFW_KEY_DOWN))
-			{
-				//aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, aircraft_body.right_vector);
-				aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldRight);
-
-				//aircraft_body.aircraft_angles_degrees.x -= aircraft_angle_turning_degrees * dt_float;
-			}
-
-			//Rudders (The yaw)
-			if (IsKeyPressed(GLFW_KEY_Q))
-			{
-				aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(aircraft_angle_turning_degrees) * dt_float, worldUp);
-			}
-
-			if (IsKeyPressed(GLFW_KEY_E))
-			{
-				aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldUp);
-
-			}
+				//Camera logic stuff
+				ZoneScopedC(tracy::Color::Blue);
 
 
+				glm::vec3 camPos = (aircraftPos - aircraft_body.forward_vector * 25.0f) + aircraft_body.up_vector * 10.0f;
+				glm::mat4 view = glm::lookAt(camPos, aircraftPos + (aircraft_body.up_vector * 10.0f), aircraft_body.up_vector);
 
-
-			//Update position based off the velocity
-
-			//Experimenting with another approach
-			aircraftPos += aircraft_body.forward_vector * aircraft_body.current_speed * aircraft_current_speed_scale * dt_float;
-			Collision::SyncSphere(aircraft_sphere_collider, aircraftPos);
-
-			if (draw_player_colliders)
-			{
-				DrawLineSphere(aircraft_sphere_collider, glm::vec3(1.0f, 0.0, 0.0f));
+				//we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
+				glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
+				glm::mat4 viewProj = proj * view;
+				globalUniformsBuffer.value().SubData(viewProj, 0);
 			}
 		}
 
-
-
-
-		//Debug Lines
+		static bool wasColliding = false;
+		//Collision checks with buildings
+		if (Collision::SphereAABBCollisionCheck(aircraft_sphere_collider, hello_building.building_collider))
 		{
-		//
-
-		////for dispaly
-		//constexpr float line_length = 20.0f;
-		//
-		////glm::vec3 dir_vec_pt = aircraftPos + aircraft_body.forward_vector * line_length;
-		////AddDebugDrawLine(aircraftPos, dir_vec_pt, glm::vec3(0.0f, 0.0f, 1.0f));
-
-		////glm::vec3 velpt = aircraftPos + glm::normalize(aircraft_body.aircraft_current_velocity) * line_length;
-		////AddDebugDrawLine(aircraftPos, velpt, glm::vec3(1.0f, 0.0f, 0.0f));
-
-
-		////Collider sync and draws
-		////Collision::SyncAABB(aircraft_box_collider, aircraftPos);
-		////
-
-		//////Profile only the drawing
-		////
-		////DrawLineAABB(aircraft_box_collider, glm::vec3(0.0f, 0.0f, 1.0f));
-		////DrawLineSphere(aircraft_sphere_collider, glm::vec3(0.0f, 0.0, 1.0f));
+			curr_game_state = game_states::game_over;
+			wasColliding = true;
 		}
-
+		else if (wasColliding)
 		{
-			//aircraft uniform buffer changes
-			ZoneScopedC(tracy::Color::Orange);
-			glm::mat4 model(1.0f);
-			model = glm::translate(model, aircraftPos);
-			model *= aircraft_body.rotMatrix;
 
-			ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
-			objectBufferaircraft.value().SubData(a, 0);
-		}
+			wasColliding = false;
+		} 
 
+
+
+		//Collision Checks with collectable
+		for (size_t i = 0; i < collectableList.size(); ++i)
 		{
-			//Camera logic stuff
-			ZoneScopedC(tracy::Color::Blue);
+			auto& collectable = collectableList[i];
+
+			if (collectable.isCollected)
+			{
+				continue;
+			}
+
+			if (draw_collectable_colliders)
+			{
+				DrawLineSphere(collectable.collider, glm::vec3(1.0f, 0.0, 0.0f));
+			}
 
 
-			glm::vec3 camPos = (aircraftPos - aircraft_body.forward_vector * 25.0f) + aircraft_body.up_vector * 10.0f;
-			glm::mat4 view = glm::lookAt(camPos, aircraftPos + (aircraft_body.up_vector * 10.0f), aircraft_body.up_vector);
+			if (Collision::sphereCollisionCheck(aircraft_sphere_collider, collectable.collider))
+			{
+				soloud.play(collectable_pickup_sfx);
+				collectable.isCollected = true;
 
-			//we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
-			glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
-			glm::mat4 viewProj = proj * view;
-			globalUniformsBuffer.value().SubData(viewProj, 0);
-		}
-	}
-
-
-	//Drawing a building
-	DrawLineAABB(hello_building.building_collider, glm::vec3(0.0f, 1.0f, 0.0f));
-
-	static bool wasColliding = false;
-	//Test building on plane
-	if (Collision::SphereAABBCollisionCheck(aircraft_sphere_collider, hello_building.building_collider))
-	{
-		//Tired just gonna do a cout to spd instead for now
-		std::cout << "Colliding with building!\n";
-		wasColliding = true;
-	}
-	else if (wasColliding)
-	{
-		std::cout << "not colliding with building\n";
-		wasColliding = false;
-	} 
-
-
-
-	//Collision Checks
-	for (size_t i = 0; i < collectableList.size(); ++i)
-	{
-		auto& collectable = collectableList[i];
-
-		if (collectable.isCollected)
-		{
-			continue;
-		}
-
-		if (draw_collectable_colliders)
-		{
-			DrawLineSphere(collectable.collider, glm::vec3(1.0f, 0.0, 0.0f));
-		}
-
-
-
-		if (Collision::sphereCollisionCheck(aircraft_sphere_collider, collectable.collider))
-		{
-			soloud.play(collectable_pickup_sfx);
-			collectable.isCollected = true;
-
-			//Because we use instancing. Decided to simply change the scale to set it to not render. Maybe there is a better way?
-			ObjectUniforms temp;
-			temp.model = glm::scale(temp.model, glm::vec3(0.0f, 0.0f, 0.0f));
-			collectableObjectBuffers.value().SubData(temp, sizeof(ObjectUniforms) * i);
+				//Because we use instancing. Decided to simply change the scale to set it to not render. Maybe there is a better way?
+				ObjectUniforms temp;
+				temp.model = glm::scale(temp.model, glm::vec3(0.0f, 0.0f, 0.0f));
+				collectableObjectBuffers.value().SubData(temp, sizeof(ObjectUniforms) * i);
+			}
 		}
 	}
 }
@@ -845,7 +848,8 @@ void ProjectApplication::RenderScene()
 		}
 	}
 
-	//Drawing a aircraft + wheels
+	//Drawing a aircraft
+	if (render_plane)
 	{
 		Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
 		Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());

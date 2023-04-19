@@ -16,6 +16,8 @@ protected:
 
     void Close();
     bool IsKeyPressed(int32_t key);
+    bool IsKeyRelease(int32_t key);
+
     virtual void AfterCreatedUiContext();
     virtual void BeforeDestroyUiContext();
     virtual bool Initialize();

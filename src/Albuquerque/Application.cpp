@@ -65,6 +65,11 @@ bool Application::IsKeyPressed(int32_t key)
     return glfwGetKey(_windowHandle, key) == GLFW_PRESS;
 }
 
+bool Application::IsKeyRelease(int32_t key)
+{
+    return glfwGetKey(_windowHandle, key) == GLFW_RELEASE;
+}
+
 bool Application::Initialize()
 {
     if (!glfwInit())
