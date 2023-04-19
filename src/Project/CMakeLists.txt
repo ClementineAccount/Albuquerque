@@ -28,11 +28,13 @@ set_target_properties(lua54 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CUR
 set(sourceFiles
     Main.cpp
     SceneLoader.cpp
+    ImGuizmo.cpp
     ProjectApplication.cpp
 )
 
 set(headerFiles
     include/SceneLoader.h
+    include/ImGuizmo.h
     include/ProjectApplication.hpp
     )
 

@@ -18,6 +18,8 @@ protected:
     bool IsKeyPressed(int32_t key);
     bool IsKeyRelease(int32_t key);
 
+    bool IsMouseKeyPressed(int32_t key);
+
     virtual void AfterCreatedUiContext();
     virtual void BeforeDestroyUiContext();
     virtual bool Initialize();
@@ -29,6 +31,8 @@ protected:
 
     //I think this only called once in awhile so copy is fine. No ownership anyways
     void SetWindowTitle(const char* winTitle);
+
+    void GetMousePosition(double& mouseX, double& mouseY);
 
 private:
     GLFWwindow* _windowHandle = nullptr;

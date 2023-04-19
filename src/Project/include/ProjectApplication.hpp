@@ -195,6 +195,9 @@ protected:
     void RenderScene() override;
     void RenderUI(double dt) override;
     void Update(double dt) override;
+
+    void UpdateEditorCamera(double dt);
+
 private:
 
     void LoadBuffers();
@@ -420,5 +423,18 @@ private:
     //buildingObject hello_building;
     std::vector<buildingObject> buildingObjectList;
 
+
+
+    struct camera
+    {
+        glm::vec3 position;
+        glm::vec3 target;
+        glm::vec3 up;
+
+        glm::vec3 forward;
+        glm::vec3 right;
+    };
+    camera editorCamera;
+    camera gameplayCamera;
 
 };

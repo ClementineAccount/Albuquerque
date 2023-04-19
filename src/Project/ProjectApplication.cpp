@@ -644,6 +644,142 @@ void ProjectApplication::StartLevel()
 }
 
 
+//Free roam camera controls
+void ProjectApplication::UpdateEditorCamera(double dt)
+{
+	//First person camera controls
+	static bool first_person_camera_mode = true;
+	static bool first_person_button_down = false;
+
+
+	static constexpr float editor_camera_speed_scale = 30.0f;
+
+	if (!first_person_button_down && IsKeyPressed(GLFW_KEY_GRAVE_ACCENT))
+	{
+		first_person_camera_mode = !first_person_camera_mode;
+		first_person_button_down = true;
+
+		editorCamera.forward = glm::normalize(editorCamera.target - editorCamera.position);
+		editorCamera.right = glm::cross(editorCamera.forward, worldUp);
+		editorCamera.up = glm::cross(editorCamera.right, editorCamera.forward);
+
+	}
+	else if (first_person_button_down && IsKeyRelease(GLFW_KEY_GRAVE_ACCENT))
+	{
+		first_person_button_down = false;
+	}
+
+
+	if (first_person_camera_mode)
+	{
+		if (IsKeyPressed(GLFW_KEY_W))
+		{
+			editorCamera.position = editorCamera.position + editorCamera.forward * static_cast<float>(dt) * editor_camera_speed_scale;
+			editorCamera.target = editorCamera.target + editorCamera.forward * static_cast<float>(dt) * editor_camera_speed_scale;
+		}
+
+		if (IsKeyPressed(GLFW_KEY_S))
+		{
+		
+			editorCamera.position = editorCamera.position - editorCamera.forward * static_cast<float>(dt) * editor_camera_speed_scale;
+			editorCamera.target = editorCamera.target - editorCamera.forward * static_cast<float>(dt) * editor_camera_speed_scale;
+		}
+
+		if (IsKeyPressed(GLFW_KEY_A))
+		{
+			editorCamera.position = editorCamera.position - editorCamera.right * static_cast<float>(dt) * editor_camera_speed_scale;
+			editorCamera.target = editorCamera.target - editorCamera.right * static_cast<float>(dt) * editor_camera_speed_scale;
+		}
+
+		if (IsKeyPressed(GLFW_KEY_D))
+		{
+			editorCamera.position = editorCamera.position + editorCamera.right * static_cast<float>(dt) * editor_camera_speed_scale;
+			editorCamera.target = editorCamera.target + editorCamera.right * static_cast<float>(dt) * editor_camera_speed_scale;
+		}
+
+		if (IsKeyPressed(GLFW_KEY_Q))
+		{
+			editorCamera.position = editorCamera.position + editorCamera.up * static_cast<float>(dt) * editor_camera_speed_scale;
+			editorCamera.target = editorCamera.target + editorCamera.up * static_cast<float>(dt) * editor_camera_speed_scale;
+		}
+
+		if (IsKeyPressed(GLFW_KEY_E))
+		{
+			editorCamera.position = editorCamera.position - editorCamera.up * static_cast<float>(dt) * editor_camera_speed_scale;
+			editorCamera.target = editorCamera.target - editorCamera.up * static_cast<float>(dt) * editor_camera_speed_scale;
+		}
+
+
+		//To Do: Make this cneter of the screen
+		static double mouseX = windowWidth / 2;
+		static double mouseY = windowHeight / 2;
+		static double lastX = windowWidth / 2;
+		static double lastY =  windowHeight / 2;
+		GetMousePosition(mouseX, mouseY);
+
+		static float yawDegrees = 90.0f;
+		static float pitchDegrees = 0.0f;
+
+		static bool firstMouseRotate = true;
+
+		if (!(mouseX == std::numeric_limits<double>::infinity() ||
+			mouseX == -std::numeric_limits<double>::infinity() ||
+			mouseY == std::numeric_limits<double>::infinity() ||
+			mouseY == -std::numeric_limits<double>::infinity()))
+		{
+			if (IsMouseKeyPressed(GLFW_MOUSE_BUTTON_2)) //Right click
+ 			{
+				//Prototype from https://learnopengl.com/code_viewer_gh.php?code=src/1.getting_started/7.3.camera_mouse_zoom/camera_mouse_zoom.cpp first
+
+				//Relative to entire window for now
+
+				if (firstMouseRotate)
+				{
+					lastX = mouseX;
+					lastY = mouseY;
+					firstMouseRotate = false;
+				}
+
+
+				float xoffset = mouseX - lastX;
+				float yoffset = mouseY - lastY;
+				lastX = mouseX;
+				lastY = mouseY;
+
+
+				float sensitivity = 1.0f;
+				xoffset *= sensitivity;
+				yoffset *= sensitivity;
+
+
+				yawDegrees += xoffset;
+				pitchDegrees += yoffset;
+
+				// make sure that when pitch is out of bounds, screen doesn't get flipped
+				if (pitchDegrees > 89.0f)
+					pitchDegrees = 89.0f;
+				if (pitchDegrees < -89.0f)
+					pitchDegrees = -89.0f;
+
+				editorCamera.forward.x = cos(glm::radians(yawDegrees)) * cos(glm::radians(pitchDegrees));
+				editorCamera.forward.y = sin(glm::radians(pitchDegrees));
+				editorCamera.forward.z = sin(glm::radians(yawDegrees)) * cos(glm::radians(pitchDegrees));
+				editorCamera.forward = glm::normalize(editorCamera.forward);
+
+				editorCamera.right = glm::cross(editorCamera.forward, worldUp);
+				editorCamera.up = glm::cross(editorCamera.right, editorCamera.forward);
+
+				editorCamera.target = editorCamera.position + editorCamera.forward;
+			}
+			else
+			{
+				firstMouseRotate = true;
+			}
+		}
+	}
+
+}
+
 
 void ProjectApplication::Update(double dt)
 {
@@ -683,6 +819,12 @@ void ProjectApplication::Update(double dt)
 			plane_flying_sfx.stop();
 			background_music.stop();
 			soloud.play(level_editor_music);
+
+			editorCamera = gameplayCamera;
+
+			editorCamera.forward = glm::normalize(editorCamera.target - editorCamera.position);
+			editorCamera.right = glm::cross(editorCamera.forward, worldUp);
+			editorCamera.up = glm::cross(editorCamera.right, editorCamera.forward);
 		}
 
 		prev_game_state = curr_game_state;
@@ -708,7 +850,6 @@ void ProjectApplication::Update(double dt)
 
 	if (curr_game_state == game_states::level_editor)
 	{
-
 		static bool wasKeyPressed_Gameplay = false;
 		if (!wasKeyPressed_Editor && IsKeyPressed(GLFW_KEY_2))
 		{
@@ -723,6 +864,20 @@ void ProjectApplication::Update(double dt)
 			wasKeyPressed_Editor = false;
 		}
 
+		UpdateEditorCamera(dt);
+
+
+		//Camera logic stuff
+		ZoneScopedC(tracy::Color::Blue);
+
+		glm::mat4 view = glm::lookAt(editorCamera.position, editorCamera.target, editorCamera.up);
+		glm::mat4 proj = glm::perspective((PI / 2.0f), 1.6f, nearPlane, farPlane);
+		glm::mat4 viewProj = proj * view;
+
+		globalStruct.viewProj = viewProj;
+		globalStruct.eyePos = editorCamera.position;
+
+		globalUniformsBuffer.value().SubData(globalStruct, 0);
 	}
 
 
@@ -830,16 +985,18 @@ void ProjectApplication::Update(double dt)
 				//Camera logic stuff
 				ZoneScopedC(tracy::Color::Blue);
 
+				gameplayCamera.position = (aircraftPos - aircraft_body.forward_vector * 25.0f) + aircraft_body.up_vector * 10.0f;
+				gameplayCamera.target =  aircraftPos + (aircraft_body.up_vector * 10.0f);
+				gameplayCamera.up =  aircraft_body.up_vector;
 
-				glm::vec3 camPos = (aircraftPos - aircraft_body.forward_vector * 25.0f) + aircraft_body.up_vector * 10.0f;
-				glm::mat4 view = glm::lookAt(camPos, aircraftPos + (aircraft_body.up_vector * 10.0f), aircraft_body.up_vector);
+				glm::mat4 view = glm::lookAt(gameplayCamera.position, gameplayCamera.target, gameplayCamera.up);
 
 				//we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
 				glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
 				glm::mat4 viewProj = proj * view;
 
 				globalStruct.viewProj = viewProj;
-				globalStruct.eyePos = camPos;
+				globalStruct.eyePos = gameplayCamera.position;
 
 				globalUniformsBuffer.value().SubData(globalStruct, 0);
 			}
