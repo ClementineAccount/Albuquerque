@@ -272,6 +272,7 @@ private:
     std::optional<Fwog::Buffer> vertex_buffer_color_line;
 
     static constexpr glm::vec3 skyColorDefault{ 0.1f, 0.3f, 0.5f };
+    static constexpr glm::vec3 skyColorFoggy{ 0.8f, 0.8f, 0.8f };
     glm::vec3 skyColor{ skyColorDefault };
 
 
@@ -287,7 +288,7 @@ private:
 
     //Ground Plane Stuff
     //Could these live in the same data?
-    static constexpr glm::vec3 planeScale = glm::vec3(1000.0f, 1.0f, 1000.0f);
+    static constexpr glm::vec3 planeScale = glm::vec3(4000.0f, 1.0f, 4000.0f);
     std::optional<Fwog::Buffer> vertex_buffer_plane;
     std::optional<Fwog::Buffer> index_buffer_plane;
     std::optional<Fwog::Texture> groundAlbedo;

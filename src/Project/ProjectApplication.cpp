@@ -58,7 +58,7 @@ static constexpr char frag_line_shader_path[] = "data/shaders/FwogRacing/lines.f
 
 static constexpr char vert_indexed_shader_path[] = "data/shaders/draw_indexed.vert.glsl";
 static constexpr char frag_color_shader_path[] = "data/shaders/color.frag.glsl";
-static constexpr char frag_phong_shader_path[] = "data/shaders/phong.frag.glsl";
+static constexpr char frag_phong_shader_path[] = "data/shaders/phongFog.frag.glsl";
 
 
 static bool Collision::SphereAABBCollisionCheck(Sphere const& sphere, AABB const& aabb)
