@@ -247,8 +247,11 @@ private:
     struct GlobalUniforms
     {
         glm::mat4 viewProj;
+        glm::vec3 eyePos;
     };
     std::optional<Fwog::TypedBuffer<GlobalUniforms>> globalUniformsBuffer;
+
+    GlobalUniforms globalStruct;
 
     static constexpr uint32_t num_points_world_axis = 6;
 
@@ -278,6 +281,7 @@ private:
         //Currently I set the scale to 0.0f if I want to not render an object uniform that is indexed but there has to be an alterative way
         glm::mat4 model;
         glm::vec4 color;
+
     };
 
 

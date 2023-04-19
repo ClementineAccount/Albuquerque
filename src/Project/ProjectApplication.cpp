@@ -58,7 +58,7 @@ static constexpr char frag_line_shader_path[] = "data/shaders/FwogRacing/lines.f
 
 static constexpr char vert_indexed_shader_path[] = "data/shaders/draw_indexed.vert.glsl";
 static constexpr char frag_color_shader_path[] = "data/shaders/color.frag.glsl";
-
+static constexpr char frag_phong_shader_path[] = "data/shaders/phong.frag.glsl";
 
 
 static bool Collision::SphereAABBCollisionCheck(Sphere const& sphere, AABB const& aabb)
@@ -119,7 +119,7 @@ static Fwog::GraphicsPipeline CreatePipeline()
 
 
 	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, ProjectApplication::LoadFile(vert_shader_path));
-	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_shader_path));
+	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_phong_shader_path));
 
 	return Fwog::GraphicsPipeline{ {
 	  .vertexShader = &vertexShader,
@@ -241,7 +241,7 @@ static Fwog::GraphicsPipeline CreatePipelineColoredIndex()
 	auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::TRIANGLE_LIST };
 
 	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, ProjectApplication::LoadFile(vert_indexed_shader_path));
-	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_color_shader_path));
+	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_phong_shader_path));
 
 	return Fwog::GraphicsPipeline{ {
 			.vertexShader = &vertexShader,
@@ -456,8 +456,12 @@ void ProjectApplication::LoadBuffers()
 		static glm::mat4 view = glm::lookAt(camPos, origin, up);
 		static glm::mat4 proj = glm::perspective(PI / 2.0f, 1.6f, nearPlane, farPlane);
 		static glm::mat4 viewProj = proj * view;
+
+		globalStruct.viewProj = viewProj;
+		globalStruct.eyePos = camPos;
+
 		globalUniformsBuffer = Fwog::TypedBuffer<GlobalUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-		globalUniformsBuffer.value().SubData(viewProj, 0);
+		globalUniformsBuffer.value().SubData(globalStruct, 0);
 	}
 
 
@@ -530,12 +534,14 @@ void ProjectApplication::LoadBuildings()
 {
 	constexpr size_t num_buildings = 2;
 	constexpr float distance_offset = 30.0f;
+	constexpr float y_scale_offset = 250.0f;
 
 	glm::vec3 curr_center{50.0f, 0.0f, 100.0f};
+	glm::vec3 curr_scale{10.0f, 100.0f, 10.0f};
 
 	for (size_t i = 0; i < num_buildings; ++i)
 	{
-		buildingObjectList.emplace_back(curr_center + worldRight * (distance_offset * i));
+		buildingObjectList.emplace_back(curr_center + worldRight * (distance_offset * i), glm::vec3(curr_scale.x, curr_scale.y + y_scale_offset * i, curr_scale.z));
 
 
 		//Just the starting building idea
@@ -779,7 +785,11 @@ void ProjectApplication::Update(double dt)
 				//we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
 				glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
 				glm::mat4 viewProj = proj * view;
-				globalUniformsBuffer.value().SubData(viewProj, 0);
+
+				globalStruct.viewProj = viewProj;
+				globalStruct.eyePos = camPos;
+
+				globalUniformsBuffer.value().SubData(globalStruct, 0);
 			}
 		}
 

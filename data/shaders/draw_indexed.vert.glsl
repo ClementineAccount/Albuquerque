@@ -8,17 +8,17 @@ layout(location = 1) in vec3 a_normal;
 layout(location = 2) in vec2 a_uv;
 
 layout(location = 0) out vec4 o_color;
-layout(location = 1) out vec2 v_uv;
-layout(location = 2) out vec3 v_normal;
-layout(location = 3) out vec3 v_position;
-
-
+layout(location = 1) out vec3 v_normal;
+layout(location = 2) out vec2 v_uv;
+layout(location = 3) out vec3 v_eye;
+layout(location = 4) out vec3 v_position;
 
 
 
 layout(binding = 0, std140) uniform UBO0
 {
   mat4 viewProj;
+  vec3 eyePos;
 };
 
 struct ObjectUniforms
@@ -40,4 +40,5 @@ void main()
   v_uv = a_uv;
   o_color = objects[i].color.rgba;
   gl_Position = viewProj * vec4(v_position, 1.0);
+  v_eye = eyePos;
 }
