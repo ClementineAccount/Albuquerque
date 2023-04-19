@@ -173,6 +173,28 @@ namespace Collision
     {
         aabb.center = pos;
     }
+
+
+   static  bool RaycastCheck(glm::vec3 startPosition, glm::vec3 normalizedRay, AABB const& aabb, float stepDistance = 1.0f, size_t numSteps = 2000)
+    {
+        //Early rejection test. (Disregard AABBs that are are not in the direction of the ray)
+        glm::vec3 dir = aabb.center - startPosition;
+        if (glm::dot(dir, normalizedRay) < 0.0f)
+        {
+            return false;
+        }
+       
+
+        glm::vec3 currPosition = startPosition;
+        for (size_t i = 0; i < numSteps; ++i)
+        {
+            currPosition += (i * stepDistance) * normalizedRay;
+            if (CheckPointOnAABB(currPosition, aabb))
+                return true;
+        }
+
+        return false;
+    }
 }
 
 class ProjectApplication final : public Application
@@ -193,6 +215,8 @@ protected:
     void StartLevel();
 
     void RenderScene() override;
+    void RenderMousePick();
+
     void RenderUI(double dt) override;
     void Update(double dt) override;
 
@@ -208,8 +232,7 @@ private:
     //Adds a collectable to the current scene
     void AddCollectable(glm::vec3 position, glm::vec3 scale = glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec3 color = glm::vec3{0.0f, 0.0f, 0.8f});
 
-    //To Do: This stuff should probably pass in the line vertex buffer it wants to subData()
-
+    
     //Adds the line to the specified buffer that is then draw I need to find a better name for this tbh
      void AddDebugDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color);
      void DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor);
@@ -222,7 +245,7 @@ private:
     void LoadBuildings();
     void AddBuilding(glm::vec3 position, glm::vec3 scale = glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec3 color = glm::vec3{1.0f, 0.0f, 0.0f});
 
-    
+
 
 private:
 
@@ -286,7 +309,6 @@ private:
         //Currently I set the scale to 0.0f if I want to not render an object uniform that is indexed but there has to be an alterative way
         glm::mat4 model;
         glm::vec4 color;
-
     };
 
 
@@ -423,7 +445,8 @@ private:
     //buildingObject hello_building;
     std::vector<buildingObject> buildingObjectList;
 
-
+    //Might have to use a map so you can mouse click these
+    //std::unordered_map<size_t, buildingObject> buildingMap;
 
     struct camera
     {
@@ -436,5 +459,10 @@ private:
     };
     camera editorCamera;
     camera gameplayCamera;
+
+
+    std::optional<Fwog::Texture> mousePick_Texture;
+    void MouseRaycast(camera const& cam);
+
 
 };

@@ -28,6 +28,7 @@
 #include <set>
 #include <array>
 #include <iostream>
+#include <functional>
 
 #include <cstdarg>
 #include <thread>
@@ -541,6 +542,8 @@ void ProjectApplication::LoadBuildings()
 
 	for (size_t i = 0; i < num_buildings; ++i)
 	{
+
+
 		buildingObjectList.emplace_back(curr_center + worldRight * (distance_offset * i), glm::vec3(curr_scale.x, curr_scale.y + y_scale_offset * i, curr_scale.z));
 
 
@@ -707,6 +710,11 @@ void ProjectApplication::UpdateEditorCamera(double dt)
 		{
 			editorCamera.position = editorCamera.position - editorCamera.up * static_cast<float>(dt) * editor_camera_speed_scale;
 			editorCamera.target = editorCamera.target - editorCamera.up * static_cast<float>(dt) * editor_camera_speed_scale;
+		}
+
+		if (IsMouseKeyPressed(GLFW_MOUSE_BUTTON_1))
+		{
+			MouseRaycast(editorCamera);
 		}
 
 
@@ -1046,9 +1054,66 @@ void ProjectApplication::Update(double dt)
 }
 
 
+void ProjectApplication::MouseRaycast(camera const& cam)
+{
+	ZoneScopedC(tracy::Color::Purple2);
+
+	glm::mat4 proj = glm::perspective((PI / 2.0f), 1.6f, nearPlane, farPlane);
+	glm::mat4 view = glm::lookAt(cam.position, cam.target, cam.up);
+	//https://antongerdelan.net/opengl/raycasting.html
+
+	//Viewport Coordinate
+	static double mouseX = windowWidth / 2;
+	static double mouseY = windowHeight / 2;
+	GetMousePosition(mouseX, mouseY);
+
+	//NDC Coordinate
+	float x = (2.0f * mouseX) / windowWidth - 1.0f;
+	float y = 1.0f - (2.0f * mouseY) / windowHeight;
+	float z = 1.0f;
+	glm::vec3 ray_nds = glm::vec3(x, y, z);
+
+	//Homogenous Clip Coordinates
+	glm::vec4 ray_clip = glm::vec4(ray_nds.x, ray_nds.y, -1.0, 1.0);
+
+	//View Space Coordinates
+	glm::vec4 ray_eye = inverse(proj) * ray_clip;
+
+	ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0, 0.0);
+
+	//World Coordinates
+	glm::vec4 ray_wor = (inverse(view) * ray_eye);
+	glm::vec3 ray_world_vec3 = glm::vec3(ray_wor.x, ray_wor.y, ray_wor.z);
+	ray_world_vec3 = glm::normalize(ray_world_vec3);
+
+	constexpr float debug_mouse_click_length = 5000.0f;
+
+	//Test if it works lol
+	AddDebugDrawLine(aircraftPos, cam.position + ray_world_vec3 * debug_mouse_click_length, glm::vec3(0.0f, 0.0f, 1.0f));
+	for (auto& buillding : buildingObjectList)
+	{
+		if (Collision::RaycastCheck(cam.position, ray_world_vec3, buillding.building_collider))
+		{
+			//Yea we should create a function for this
+			ObjectUniforms temp;
+			glm::mat4 model(1.0f);
+			model = glm::translate(model, buillding.building_center);
+			model = glm::scale(model, buillding.building_scale);
+			temp.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+			temp.model = model;
+			buillding.object_buffer.value().SubData(temp, 0);
+		}
+	}
+	
+
+
+	//AddDebugDrawLine(cam.position, cam.position + ray_world_vec3 * debug_mouse_click_length, glm::vec3(0.0f, 0.0f, 1.0f));
+}
 
 void ProjectApplication::RenderScene()
 {
+	//RenderMousePick();
+
 	ZoneScopedC(tracy::Color::Red);
 
 	Fwog::BeginSwapchainRendering(Fwog::SwapchainRenderInfo{
