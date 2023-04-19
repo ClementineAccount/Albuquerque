@@ -185,6 +185,13 @@ protected:
     void AfterCreatedUiContext() override;
     void BeforeDestroyUiContext() override;
     bool Load() override;
+
+
+    void ResetLevel();
+
+    //For restarting and starting the game
+    void StartLevel();
+
     void RenderScene() override;
     void RenderUI(double dt) override;
     void Update(double dt) override;
@@ -317,11 +324,10 @@ private:
     bool render_plane = true;
 
 
-    //not used yet
-    //glm::vec3 wheelForward{ worldForward };
+    static constexpr glm::vec3 aircarftStartPos{0.0f, 65.0f, 0.0f};
 
     glm::vec3 aircraftForward{ worldForward };
-    glm::vec3 aircraftPos{ 0.0f, 65.0f, 0.0f };
+    glm::vec3 aircraftPos{ aircarftStartPos };
     glm::vec3 aircraftScale{1.0f, 1.0f, 1.0f};
 
     //Multiply with the aircraftScale

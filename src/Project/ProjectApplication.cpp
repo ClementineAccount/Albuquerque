@@ -469,7 +469,6 @@ void ProjectApplication::LoadBuffers()
 		Utility::LoadModelFromFile(scene_aircraft, "data/models/aircraftPlaceholder.glb", glm::mat4{ 1.0f }, true);
 		ObjectUniforms aircraftUniform;
 		aircraftUniform.model = glm::mat4(1.0f);
-
 		aircraftUniform.model = glm::translate(aircraftUniform.model, aircraftPos);
 		aircraftUniform.model = glm::scale(aircraftUniform.model, aircraftScale);
 
@@ -484,6 +483,12 @@ void ProjectApplication::LoadBuffers()
 		objectBufferaircraft.value().SubData(aircraftUniform, 0);
 	}
 
+	//Load the actual scene vertices here
+	Utility::LoadModelFromFile(scene_collectable, "data/models/collectableSphere.glb", glm::mat4{ 1.0f }, true);
+	collectableObjectBuffers  = Fwog::TypedBuffer<ObjectUniforms>(max_num_collectables, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+
+	building_vertex_buffer.emplace(Primitives::cube_vertices);
+	building_index_buffer.emplace(Primitives::cube_indices);
 
 }
 
@@ -491,25 +496,19 @@ void ProjectApplication::LoadBuffers()
 
 void ProjectApplication::AddCollectable(glm::vec3 position, glm::vec3 scale, glm::vec3 color)
 {
-
 	ObjectUniforms collectableUniform;
 	collectableUniform.model = glm::mat4(1.0f);
-
 	collectableUniform.model = glm::translate(collectableUniform.model, position);
 	collectableUniform.model = glm::scale(collectableUniform.model, scale);
 	collectableUniform.color = glm::vec4(color, 1.0f);
 
 	collectableObjectBuffers.value().SubData(collectableUniform, sizeof(collectableUniform) * collectableList.size());
-	
 	collectableList.emplace_back(position, scale, false);
 }
 
 
 void ProjectApplication::LoadCollectables()
 {
-	//Load the actual scene vertices here
-	Utility::LoadModelFromFile(scene_collectable, "data/models/collectableSphere.glb", glm::mat4{ 1.0f }, true);
-	collectableObjectBuffers  = Fwog::TypedBuffer<ObjectUniforms>(max_num_collectables, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 
 	//Add placeholder collectables
 	constexpr float start_forward_pos = 120.0f;
@@ -529,8 +528,7 @@ void ProjectApplication::LoadCollectables()
 
 void ProjectApplication::LoadBuildings()
 {
-	building_vertex_buffer.emplace(Primitives::cube_vertices);
-	building_index_buffer.emplace(Primitives::cube_indices);
+
 
 	//Just the starting building idea
 	glm::mat4 model(1.0f);
@@ -563,7 +561,6 @@ bool ProjectApplication::Load()
 	background_music.load("data/sounds/backgroundMusic.wav");
 	background_music.setVolume(0.30);
 
-
 	collectable_pickup_sfx.load("data/sounds/collectablePlaceholderSound.wav");
 
 	soloud.setGlobalVolume(soloud_volume);
@@ -576,41 +573,83 @@ bool ProjectApplication::Load()
 	pipeline_colored_indexed = CreatePipelineColoredIndex();
 
 	LoadBuffers();
+
 	LoadCollectables();
 	LoadBuildings();
 
 	//Play sfx
-
 	plane_flying_sfx.setLooping(true);
 	plane_flying_sfx.setVolume(0.40);
-	soloud.play(plane_flying_sfx);
-
 	soloud.play(background_music);
 
+	StartLevel();
 
 	return true;
 }
 
-//void DrawVAO(uint32_t shader_id, uint32_t vao)
-//{
-//    glUseProgram(shader_id);
-//    glBindVertexArray(vao);
-//    glDrawArrays(GL_TRIANGLES, 0, 3);
-//}
+
+void ProjectApplication::ResetLevel()
+{
+	collectableList.clear();
+	StartLevel();
+}
+
+void ProjectApplication::StartLevel()
+{
+	sample.stop();
+	soloud.play(plane_flying_sfx);
+	LoadCollectables();
+
+	render_plane = true;
+	aircraftPos = aircarftStartPos;
+	aircraft_body = PhysicsBody{aircraft_starting_speed, aircraft_starting_direction_vector};
+
+	ObjectUniforms aircraftUniform;
+	aircraftUniform.model = glm::mat4(1.0f);
+	aircraftUniform.model = glm::translate(aircraftUniform.model, aircraftPos);
+	aircraftUniform.model = glm::scale(aircraftUniform.model, aircraftScale);
+
+	aircraft_box_collider.center = aircraftPos;
+	aircraft_box_collider.halfExtents = aircraftScale * aircraftCollisionScale;
+
+	aircraft_sphere_collider.radius = aircraft_sphere_radius;
+	aircraft_sphere_collider.center = aircraftPos;
+
+	aircraftUniform.color = aircraftColor;
+	objectBufferaircraft.value().SubData(aircraftUniform, 0);
+}
 
 
 
 void ProjectApplication::Update(double dt)
 {
+	static bool gameover_button_down = false;
+	if (!gameover_button_down && IsKeyPressed(GLFW_KEY_F))
+	{
+		gameover_button_down = true;
+		if (curr_game_state == game_states::playing)
+			curr_game_state = game_states::game_over;
+		else if (curr_game_state == game_states::game_over)
+			curr_game_state = game_states::playing;
+	}
+	else if (gameover_button_down && IsKeyRelease(GLFW_KEY_F))
+	{
+		gameover_button_down = false;
+	}
+
+
 	//Change of state
 	if (prev_game_state != curr_game_state)
 	{
 		if (curr_game_state == game_states::game_over)
 		{
 			soloud.play(sample); 
-			background_music.stop();
 			plane_flying_sfx.stop();
 			render_plane = false;
+		}
+		else if (curr_game_state == game_states::playing)
+		{
+			ResetLevel();
 		}
 
 		prev_game_state = curr_game_state;
@@ -621,16 +660,7 @@ void ProjectApplication::Update(double dt)
 		Close();
 	}
 
-	static bool gameover_button_down = false;
-	if (!gameover_button_down && IsKeyPressed(GLFW_KEY_F))
-	{
-		gameover_button_down = true;
-		curr_game_state = game_states::game_over;
-	}
-	else if (gameover_button_down && IsKeyRelease(GLFW_KEY_F))
-	{
-		gameover_button_down = false;
-	}
+
 
 	if (curr_game_state == game_states::playing)
 	{
@@ -741,18 +771,6 @@ void ProjectApplication::Update(double dt)
 			}
 		}
 
-		static bool wasColliding = false;
-		//Collision checks with buildings
-		if (Collision::SphereAABBCollisionCheck(aircraft_sphere_collider, hello_building.building_collider))
-		{
-			curr_game_state = game_states::game_over;
-			wasColliding = true;
-		}
-		else if (wasColliding)
-		{
-
-			wasColliding = false;
-		} 
 
 
 
@@ -783,6 +801,13 @@ void ProjectApplication::Update(double dt)
 				collectableObjectBuffers.value().SubData(temp, sizeof(ObjectUniforms) * i);
 			}
 		}
+
+		//Collision checks with buildings
+		if (Collision::SphereAABBCollisionCheck(aircraft_sphere_collider, hello_building.building_collider))
+		{
+			curr_game_state = game_states::game_over;
+		}
+
 	}
 }
 
