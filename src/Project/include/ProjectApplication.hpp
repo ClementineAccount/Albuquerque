@@ -315,7 +315,7 @@ private:
     float aircraft_speed_scale{ 40.0f };
     float aircraft_speed_scale_reverse{ 10.0f };
 
-    constexpr static float aircraft_speedup_scale{2.0f};
+    constexpr static float aircraft_speedup_scale{4.0f};
     float aircraft_current_speed_scale{1.0f};
 
     // aircraft's rotation when turning relative to the z-axis forward (per second of course)
@@ -358,7 +358,10 @@ private:
     SoLoud::Soloud soloud; 
     SoLoud::Wav sample;
 
+    int plane_flying_sfx_handle;
     SoLoud::Wav plane_flying_sfx;
+    SoLoud::Wav plane_speedup_sfx;
+
     SoLoud::Wav background_music;
 
     SoLoud::Wav collectable_pickup_sfx;
@@ -397,7 +400,7 @@ private:
 
     bool renderAxis = false;
     bool draw_collectable_colliders = false;
-    bool draw_player_colliders = true;
+    bool draw_player_colliders = false;
 
     struct buildingObject
     {

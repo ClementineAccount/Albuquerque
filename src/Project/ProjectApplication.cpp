@@ -572,6 +572,7 @@ bool ProjectApplication::Load()
 	SoLoud::result res = sample.load("data/sounds/start.wav"); // Load a wave file
 	sample.setVolume(0.75);
 	res = plane_flying_sfx.load("data/sounds/planeFlying.wav");
+	plane_speedup_sfx.load("data/sounds/planeFlying.wav");
 
 	background_music.load("data/sounds/backgroundMusic.wav");
 	background_music.setVolume(0.30);
@@ -595,6 +596,8 @@ bool ProjectApplication::Load()
 	//Play sfx
 	plane_flying_sfx.setLooping(true);
 	plane_flying_sfx.setVolume(0.40);
+
+
 	soloud.play(background_music);
 
 	StartLevel();
@@ -613,7 +616,7 @@ void ProjectApplication::ResetLevel()
 void ProjectApplication::StartLevel()
 {
 	sample.stop();
-	soloud.play(plane_flying_sfx);
+	plane_flying_sfx_handle = soloud.play(plane_flying_sfx);
 
 	LoadBuildings();
 	LoadCollectables();
@@ -700,10 +703,14 @@ void ProjectApplication::Update(double dt)
 				aircraft_body.right_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.right_vector, 1.0f));
 				aircraft_body.up_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.up_vector, 1.0f));
 
+				soloud.setVolume(plane_flying_sfx_handle, 0.40);
+
 				if (IsKeyPressed(GLFW_KEY_SPACE))
 				{
 					aircraft_current_speed_scale = aircraft_speedup_scale;
 					zoom_speed_level = 1.02f;
+
+					soloud.setVolume(plane_flying_sfx_handle, 0.80);
 				}
 
 				//Turning Left: Need to adjust both Roll and Velocity
@@ -750,6 +757,7 @@ void ProjectApplication::Update(double dt)
 					aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldUp);
 
 				}
+
 
 				//Update position based off the velocity
 
