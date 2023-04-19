@@ -226,7 +226,8 @@ private:
     enum class game_states : int32_t
     {
         playing,
-        game_over
+        game_over,
+        level_editor
     };
 
     game_states curr_game_state = game_states::playing;
@@ -363,6 +364,8 @@ private:
     SoLoud::Wav plane_speedup_sfx;
 
     SoLoud::Wav background_music;
+
+    SoLoud::Wav level_editor_music;
 
     SoLoud::Wav collectable_pickup_sfx;
 

@@ -577,6 +577,9 @@ bool ProjectApplication::Load()
 	background_music.load("data/sounds/backgroundMusic.wav");
 	background_music.setVolume(0.30);
 
+	level_editor_music.load("data/sounds/levelEditorMusic.wav");
+	level_editor_music.setVolume(0.70);
+
 	collectable_pickup_sfx.load("data/sounds/collectablePlaceholderSound.wav");
 
 	soloud.setGlobalVolume(soloud_volume);
@@ -670,7 +673,16 @@ void ProjectApplication::Update(double dt)
 		}
 		else if (curr_game_state == game_states::playing)
 		{
-			ResetLevel();
+			if (prev_game_state == game_states::game_over)
+			{
+				ResetLevel();
+			}
+		}
+		else if (curr_game_state == game_states::level_editor)
+		{
+			plane_flying_sfx.stop();
+			background_music.stop();
+			soloud.play(level_editor_music);
 		}
 
 		prev_game_state = curr_game_state;
@@ -681,6 +693,37 @@ void ProjectApplication::Update(double dt)
 		Close();
 	}
 
+
+	static bool wasKeyPressed_Editor = false;
+	if (!wasKeyPressed_Editor && IsKeyPressed(GLFW_KEY_1))
+	{
+		wasKeyPressed_Editor = true;
+		curr_game_state = game_states::level_editor;
+	}
+	else if (wasKeyPressed_Editor && IsKeyRelease(GLFW_KEY_1))
+	{
+		wasKeyPressed_Editor = false;
+	}
+
+
+	if (curr_game_state == game_states::level_editor)
+	{
+
+		static bool wasKeyPressed_Gameplay = false;
+		if (!wasKeyPressed_Editor && IsKeyPressed(GLFW_KEY_2))
+		{
+			wasKeyPressed_Editor = true;
+			curr_game_state = game_states::playing;
+			level_editor_music.stop();
+			soloud.play(background_music);
+			plane_flying_sfx_handle = soloud.play(plane_flying_sfx);
+		}
+		else if (wasKeyPressed_Editor && IsKeyRelease(GLFW_KEY_2))
+		{
+			wasKeyPressed_Editor = false;
+		}
+
+	}
 
 
 	if (curr_game_state == game_states::playing)
@@ -757,6 +800,7 @@ void ProjectApplication::Update(double dt)
 					aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix, glm::radians(-aircraft_angle_turning_degrees) * dt_float, worldUp);
 
 				}
+
 
 
 				//Update position based off the velocity
