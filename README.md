@@ -19,11 +19,29 @@ Therefore, these other requirements of the project are not given as high priorit
 
 Another third party library included is Lua as a potential scope for level editing may include more complex scriptable track elements or programmable AI racers but am undecided if its fully necessary yet.
 
+Library List:
+
+- GLFW
+- GLAD
+- Dear Imgui
+- ImGuizmo
+- SoLoud
+- tinygltf
+- FreeType
+- stb_image
+- Tracy
+- spdlog
+
 
 Third Party Placeholder Asset Credits: 
-
 Grass Texture: https://www.poliigon.com/texture/ground-forest-003/1949
-
 Plane SFX: https://www.soundjay.com/propeller-plane-sound-effect.html
-
 Background Music: https://soundcloud.com/personahofficial/personah-real-love-free-download
+
+Level Editor Music:
+Above The Clouds
+You are free to use  Above The Clouds  music track (even for commercial purposes on social media / monetized videos), but you must include the following in your video description (copy & paste):
+Above The Clouds by | e s c p | https://escp-music.bandcamp.com
+Music promoted by https://www.free-stock-music.com
+Creative Commons / Attribution 3.0 Unported License (CC BY 3.0)
+https://creativecommons.org/licenses/by/3.0/deed.en_US
