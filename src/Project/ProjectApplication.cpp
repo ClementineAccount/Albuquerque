@@ -1185,7 +1185,7 @@ void ProjectApplication::RenderScene()
 		.minDepth = 0.0f, .maxDepth = 1.0f
 	  },
 	.colorLoadOp = Fwog::AttachmentLoadOp::CLEAR,
-	.clearColorValue = {skyColor.r, skyColor.g, skyColor.b, 1.0f},
+	.clearColorValue = {skyColorFoggy.r, skyColorFoggy.g, skyColorFoggy.b, 1.0f},
 	 .depthLoadOp = Fwog::AttachmentLoadOp::CLEAR,
 	  .clearDepthValue = 1.0f
 		});

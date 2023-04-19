@@ -299,8 +299,8 @@ private:
     std::optional<Fwog::Buffer> vertex_buffer_color_line;
 
     static constexpr glm::vec3 skyColorDefault{ 0.1f, 0.3f, 0.5f };
-    static constexpr glm::vec3 skyColorFoggy{ 0.8f, 0.8f, 0.8f };
-    glm::vec3 skyColor{ skyColorDefault };
+    static constexpr glm::vec3 skyColorFoggy{0.04519f, 0.05781f, 0.09084f};
+    glm::vec3 skyColor{ skyColorFoggy };
 
 
     //Objects in the world

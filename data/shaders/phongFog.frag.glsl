@@ -8,7 +8,7 @@ layout(location = 2) in vec2 v_uv;
 layout(location = 3) in vec3 v_eye;
 layout(location = 4) in vec3 v_position;
 
-uniform vec3 fogColor = vec3(0.1f, 0.3f, 0.5f);
+uniform vec3 fogColor = vec3(0.04519f, 0.05781f, 0.09084f);
 uniform float density = 0.0022f;
 
 void main()
@@ -32,7 +32,7 @@ void main()
   float ks = 1.0f;
 
   //Perfect Reflector Direction
-  vec3 reflected_light = reflect(directional_light, in_normal);
+  vec3 reflected_light = reflect(-directional_light, in_normal);
   vec3 dir_to_viewer = normalize(v_eye - v_position);
 
   float specular_scale = ks * max(pow(dot(reflected_light, dir_to_viewer), alpha), 0.0);   
