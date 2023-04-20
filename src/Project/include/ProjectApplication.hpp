@@ -247,6 +247,11 @@ private:
 
     void CreateGroundChunks();
 
+
+    void CreateSkybox();
+
+    static float lerp(float start, float end, float t);
+
 private:
 
     enum class game_states : int32_t
@@ -322,6 +327,8 @@ private:
     std::optional<Fwog::Buffer> objectBufferPlane;
 
 
+    std::optional<Fwog::Texture> skybox_texture;
+
     //Want to test multiple ground chunks 
     struct ground_chunk
     {
@@ -347,12 +354,20 @@ private:
         glm::vec3 right_vector{1.0f, 0.0f, 0.0f};
 
         glm::mat4 rotMatrix{1.0f};
+
+        float propeller_angle_degrees = 0.0f;
     };
 
     constexpr static float aircraft_starting_speed{20.0f};
     constexpr static glm::vec3 aircraft_starting_direction_vector{0.0f, 0.0f, 1.0f};
 
     PhysicsBody aircraft_body{aircraft_starting_speed, aircraft_starting_direction_vector};
+
+    //convering RPM to degrees per second (https://www.infoconverter.com/conversion/frequency/revolutions-per-minute-to-degrees-per-second)
+    constexpr static float propeller_angle_turning_degrees = -1000.0f;
+
+    float elasped_propeller_t = 0.0f;
+    constexpr static float propeller_revolutions_per_second = 180.0f / 60.0f;
 
     float aircraft_speed_scale{ 40.0f };
     float aircraft_speed_scale_reverse{ 10.0f };
@@ -395,6 +410,9 @@ private:
     Utility::Scene scene_wheels;
 
     std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferaircraft;
+    std::optional<Fwog::TypedBuffer<ObjectUniforms>> object_buffer_propeller;
+
+
     std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferWheels;
 
     SoLoud::Soloud soloud; 

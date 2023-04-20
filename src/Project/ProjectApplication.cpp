@@ -385,6 +385,84 @@ void ProjectApplication::BeforeDestroyUiContext()
 
 
 
+void ProjectApplication::CreateSkybox()
+{
+	//So I don't forgor: https://github.com/fendevel/Guide-to-Modern-OpenGL-Functions#uploading-cube-maps
+
+
+	using namespace Fwog;
+
+	int32_t textureWidth, textureHeight, textureChannels;
+	constexpr int32_t expected_num_channels = 4;
+	
+	unsigned char* textureData_skybox_front = stbi_load("data/skybox/front.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
+	assert(textureData_skybox_front);
+
+	unsigned char* textureData_skybox_back = stbi_load("data/skybox/back.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
+	assert(textureData_skybox_back);
+
+	unsigned char* textureData_skybox_left = stbi_load("data/skybox/left.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
+	assert(textureData_skybox_left);
+
+	unsigned char* textureData_skybox_right = stbi_load("data/skybox/right.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
+	assert(textureData_skybox_right);
+
+	unsigned char* textureData_skybox_up = stbi_load("data/skybox/up.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
+	assert(textureData_skybox_up);
+
+	unsigned char* textureData_skybox_down = stbi_load("data/skybox/down.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
+	assert(textureData_skybox_down);
+
+	//https://www.khronos.org/opengl/wiki/Cubemap_Texture
+	const uint32_t right_id = 0;
+	const uint32_t left_id = 1;
+	const uint32_t up_id = 2;
+	const uint32_t down_id = 3;
+
+	//front instead of forwrad to match the cubemap naming
+	const uint32_t front_id = 4;
+	const uint32_t back_id = 5;
+
+	uint32_t num_cube_faces = 6;
+
+	Fwog::TextureCreateInfo createInfo{
+		.imageType = ImageType::TEX_CUBEMAP,
+		.format = Fwog::Format::R8G8B8A8_SRGB,
+		.extent = { static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight), num_cube_faces},
+		.mipLevels =  uint32_t(1 + floor(log2(glm::max(textureWidth, textureHeight)))),
+		.arrayLayers = 1,
+		.sampleCount = SampleCount::SAMPLES_1,
+	};
+
+	skybox_texture = Fwog::Texture(createInfo);
+
+	//groundAlbedo = Fwog::CreateTexture2DMip({ Fwog::ImageType::TEX_CUBEMAP, static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight) }, Fwog::Format::R8G8B8A8_SRGB, uint32_t(1 + floor(log2(glm::max(textureWidth, textureHeight)))));
+
+	auto upload_face = [&](uint32_t curr_face, unsigned char* texture_pixel_data)
+	{
+		Fwog::TextureUpdateInfo updateInfo{ .dimension = Fwog::UploadDimension::TWO,
+			.level = 0,
+			.offset = {},
+			.size = {static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight), curr_face},
+			.format = Fwog::UploadFormat::RGBA,
+			.type = Fwog::UploadType::UBYTE,
+			.pixels = texture_pixel_data };
+		skybox_texture.value().SubImage(updateInfo);
+
+		stbi_image_free(texture_pixel_data);
+	};
+
+
+	upload_face(right_id, textureData_skybox_right);
+	upload_face(left_id, textureData_skybox_left);
+	upload_face(up_id, textureData_skybox_up);
+	upload_face(down_id, textureData_skybox_down);
+	upload_face(front_id, textureData_skybox_front);
+	upload_face(back_id, textureData_skybox_back);
+
+	skybox_texture.value().GenMipmaps();
+}
+
 void ProjectApplication::LoadGroundPlane()
 {
 	//to do: better texture loading systems. this can break so easily and its jank as hell
@@ -471,7 +549,7 @@ void ProjectApplication::LoadBuffers()
 
 	//Creating the aircraft
 	{
-		Utility::LoadModelFromFile(scene_aircraft, "data/models/aircraftPlaceholder.glb", glm::mat4{ 1.0f }, true);
+		Utility::LoadModelFromFile(scene_aircraft, "data/models/AircraftPropeller.glb", glm::mat4{ 1.0f }, true);
 		ObjectUniforms aircraftUniform;
 		aircraftUniform.model = glm::mat4(1.0f);
 		aircraftUniform.model = glm::translate(aircraftUniform.model, aircraftPos);
@@ -485,7 +563,12 @@ void ProjectApplication::LoadBuffers()
 
 		aircraftUniform.color = aircraftColor;
 		objectBufferaircraft = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		object_buffer_propeller = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 		objectBufferaircraft.value().SubData(aircraftUniform, 0);
+
+		aircraftUniform.color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+
+		object_buffer_propeller.value().SubData(aircraftUniform, 0);
 	}
 
 	//Load the actual scene vertices here
@@ -833,6 +916,11 @@ void ProjectApplication::UpdateEditorCamera(double dt)
 
 }
 
+float ProjectApplication::lerp(float start, float end, float t)
+{
+	return start + (end - start) * t;
+
+}
 
 void ProjectApplication::Update(double dt)
 {
@@ -946,6 +1034,20 @@ void ProjectApplication::Update(double dt)
 				ZoneScopedC(tracy::Color::Green);
 
 
+				aircraft_body.propeller_angle_degrees = lerp(0.0f, 360.0f, elasped_propeller_t);
+				elasped_propeller_t += propeller_revolutions_per_second * dt;
+				if (aircraft_body.propeller_angle_degrees > 360.0f)
+				{
+					aircraft_body.propeller_angle_degrees = fmod(aircraft_body.propeller_angle_degrees, 360.0f);
+					elasped_propeller_t -= 1.0f;
+				}
+
+				//aircraft_body.propeller_angle_degrees += propeller_angle_turning_degrees * dt;
+
+
+				//To Do: Reset if after 360?
+
+
 				aircraft_body.forward_vector = worldForward;
 				aircraft_body.right_vector = worldRight;
 				aircraft_body.up_vector = worldUp;
@@ -1027,11 +1129,22 @@ void ProjectApplication::Update(double dt)
 				//aircraft uniform buffer changes
 				ZoneScopedC(tracy::Color::Orange);
 				glm::mat4 model(1.0f);
+				glm::mat4 propModel(1.0f);
+
 				model = glm::translate(model, aircraftPos);
+				propModel = glm::translate(propModel, aircraftPos);
+				propModel = glm::rotate(propModel, glm::radians(aircraft_body.propeller_angle_degrees), aircraft_body.forward_vector);
+
+				propModel *= aircraft_body.rotMatrix;
 				model *= aircraft_body.rotMatrix;
 
 				ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
 				objectBufferaircraft.value().SubData(a, 0);
+
+				a.model = propModel;
+				a.color = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+
+				object_buffer_propeller.value().SubData(a, 0);
 			}
 
 			{
@@ -1255,6 +1368,11 @@ void ProjectApplication::RenderScene()
 		Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
 		Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
 		Fwog::Cmd::BindUniformBuffer(1, objectBufferaircraft.value());
+		Fwog::Cmd::BindVertexBuffer(0, scene_aircraft.meshes[1].vertexBuffer, 0, sizeof(Utility::Vertex));
+		Fwog::Cmd::BindIndexBuffer(scene_aircraft.meshes[1].indexBuffer, Fwog::IndexType::UNSIGNED_INT);
+		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_aircraft.meshes[1].indexBuffer.Size()) / sizeof(uint32_t), 1, 0, 0, 0);
+
+		Fwog::Cmd::BindUniformBuffer(1, object_buffer_propeller.value());
 		Fwog::Cmd::BindVertexBuffer(0, scene_aircraft.meshes[0].vertexBuffer, 0, sizeof(Utility::Vertex));
 		Fwog::Cmd::BindIndexBuffer(scene_aircraft.meshes[0].indexBuffer, Fwog::IndexType::UNSIGNED_INT);
 		Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_aircraft.meshes[0].indexBuffer.Size()) / sizeof(uint32_t), 1, 0, 0, 0);
