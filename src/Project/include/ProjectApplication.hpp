@@ -431,7 +431,7 @@ private:
     //convering RPM to degrees per second (https://www.infoconverter.com/conversion/frequency/revolutions-per-minute-to-degrees-per-second)
     constexpr static float propeller_angle_turning_degrees = -1000.0f;
 
-    float elasped_propeller_t = 0.0f;
+    float elasped_propeller_time = 0.0f;
     constexpr static float propeller_revolutions_per_second = 720.0f / 60.0f; //maximium value
 
     float aircraft_speed_scale{ 3.0f };

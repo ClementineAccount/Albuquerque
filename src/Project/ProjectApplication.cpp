@@ -1082,7 +1082,7 @@ void ProjectApplication::Update(double dt)
 
 
 				aircraft_body.propeller_angle_degrees = lerp(0.0f, 360.0f, elasped_propeller_t);
-				elasped_propeller_t += propeller_revolutions_per_second * (aircraft_body.current_speed / aircraft_max_speed) * dt;
+				elasped_propeller_time += propeller_revolutions_per_second * (aircraft_body.current_speed / aircraft_max_speed) * dt;
 				if (aircraft_body.propeller_angle_degrees > 360.0f)
 				{
 					aircraft_body.propeller_angle_degrees = fmod(aircraft_body.propeller_angle_degrees, 360.0f);
