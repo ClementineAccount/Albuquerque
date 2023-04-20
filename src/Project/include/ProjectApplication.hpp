@@ -414,7 +414,7 @@ private:
         float propeller_angle_degrees = 0.0f;
     };
 
-    constexpr static float aircraft_starting_speed{20.0f};
+    constexpr static float aircraft_starting_speed{50.0f};
     constexpr static glm::vec3 aircraft_starting_direction_vector{0.0f, 0.0f, 1.0f};
 
     PhysicsBody aircraft_body{aircraft_starting_speed, aircraft_starting_direction_vector};
@@ -425,7 +425,7 @@ private:
     float elasped_propeller_t = 0.0f;
     constexpr static float propeller_revolutions_per_second = 180.0f / 60.0f;
 
-    float aircraft_speed_scale{ 40.0f };
+    float aircraft_speed_scale{ 3.0f };
     float aircraft_speed_scale_reverse{ 10.0f };
 
     constexpr static float aircraft_speedup_scale{30.0f};

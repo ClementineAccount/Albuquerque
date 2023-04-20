@@ -1217,7 +1217,6 @@ void ProjectApplication::Update(double dt)
 
 
 
-
 		//Collision Checks with collectable
 		for (size_t i = 0; i < collectableList.size(); ++i)
 		{
@@ -1254,6 +1253,13 @@ void ProjectApplication::Update(double dt)
 				curr_game_state = game_states::game_over;
 				break;
 			}
+		}
+
+
+		//Check if crashed with the ground
+		if (aircraftPos.y < 0.0f)
+		{
+			curr_game_state = game_states::game_over;
 		}
 	}
 }
