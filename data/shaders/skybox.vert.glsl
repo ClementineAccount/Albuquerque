@@ -12,6 +12,7 @@ layout(binding = 0, std140) uniform UBO0
 
 void main()
 {
-    gl_Position = viewProj * vec4(a_position, 1.0); 
-	v_uv = a_position;
+  v_uv = a_position.xyz;
+  vec4 pos = viewProj * vec4(a_position, 1.0); 
+  gl_Position = pos.xyww;
 }

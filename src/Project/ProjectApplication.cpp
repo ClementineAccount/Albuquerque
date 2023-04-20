@@ -280,7 +280,7 @@ Fwog::GraphicsPipeline ProjectApplication::CreatePipelineSkybox()
 			.fragmentShader = &fragmentShader,
 			.inputAssemblyState = primDescs,
 			.vertexInputState = {inputDescs},
-			.depthState = {.depthTestEnable = false, .depthWriteEnable = false},
+			.depthState = {.depthTestEnable = true, .depthWriteEnable = true, .depthCompareOp = Fwog::CompareOp::LESS_OR_EQUAL},
 		} };
 
 }
@@ -1351,24 +1351,7 @@ void ProjectApplication::RenderScene()
 		});
 
 
-	//Drawing skybox first without any depth buffer
-	{
 
-		Fwog::SamplerState ss;
-		ss.minFilter = Fwog::Filter::LINEAR;
-		ss.magFilter = Fwog::Filter::LINEAR;
-		ss.mipmapFilter = Fwog::Filter::LINEAR;
-		ss.addressModeU = Fwog::AddressMode::REPEAT;
-		ss.addressModeV = Fwog::AddressMode::REPEAT;
-		ss.anisotropy = Fwog::SampleCount::SAMPLES_16;
-		auto nearestSampler = Fwog::Sampler(ss);
-
-		Fwog::Cmd::BindGraphicsPipeline(pipeline_skybox.value());
-		Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer_skybox.value());
-		Fwog::Cmd::BindSampledImage(0, skybox_texture.value(), nearestSampler);
-		Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_skybox.value(), 0, 3 * sizeof(float));
-		Fwog::Cmd::Draw(Primitives::skybox_vertices.size() / 3, 1, 0, 0);
-	}
 
 
 	//Drawing a ground plane
@@ -1468,6 +1451,25 @@ void ProjectApplication::RenderScene()
         }
 	}
 
+
+	//Drawing skybox last depth buffer
+	{
+
+		Fwog::SamplerState ss;
+		ss.minFilter = Fwog::Filter::LINEAR;
+		ss.magFilter = Fwog::Filter::LINEAR;
+		ss.mipmapFilter = Fwog::Filter::LINEAR;
+		ss.addressModeU = Fwog::AddressMode::REPEAT;
+		ss.addressModeV = Fwog::AddressMode::REPEAT;
+		ss.anisotropy = Fwog::SampleCount::SAMPLES_16;
+		auto nearestSampler = Fwog::Sampler(ss);
+
+		Fwog::Cmd::BindGraphicsPipeline(pipeline_skybox.value());
+		Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer_skybox.value());
+		Fwog::Cmd::BindSampledImage(0, skybox_texture.value(), nearestSampler);
+		Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_skybox.value(), 0, 3 * sizeof(float));
+		Fwog::Cmd::Draw(Primitives::skybox_vertices.size() / 3, 1, 0, 0);
+	}
 
 
 

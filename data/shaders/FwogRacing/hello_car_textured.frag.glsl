@@ -10,7 +10,7 @@ layout(location = 4) in vec3 v_position;
 layout(location = 0) out vec4 o_color;
 
 uniform vec3 fogColor = vec3(0.04519f, 0.05781f, 0.09084f);
-uniform float density = 0.0015f;
+uniform float density = 0.0010f;
 
 
 void main()

@@ -9,7 +9,7 @@ layout(location = 3) in vec3 v_eye;
 layout(location = 4) in vec3 v_position;
 
 uniform vec3 fogColor = vec3(0.04519f, 0.05781f, 0.09084f);
-uniform float density = 0.0022f;
+uniform float density = 0.0010f;
 
 void main()
 {

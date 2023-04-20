@@ -348,7 +348,7 @@ private:
     static constexpr glm::vec3 worldRight = glm::vec3(1.0f, 0.0f, 0.0f);
     static constexpr glm::vec3 worldForward = glm::vec3(0.0f, 0.0f, 1.0f);
     static constexpr float nearPlane = 0.01f;
-    static constexpr float farPlane = 1000.0f;
+    static constexpr float farPlane = 5000.0f;
 
     //World Axis stuff
 
@@ -516,7 +516,7 @@ private:
     //uint32_t num_active_collectables{0};
     static constexpr uint32_t max_num_collectables{4096};
 
-    bool renderAxis = true;
+    bool renderAxis = false;
     bool draw_collectable_colliders = false;
     bool draw_player_colliders = false;
 
