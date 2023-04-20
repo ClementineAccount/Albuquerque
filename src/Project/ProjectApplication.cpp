@@ -496,6 +496,8 @@ void ProjectApplication::CreateSkybox()
 	skybox_texture.value().GenMipmaps();
 	pipeline_skybox = CreatePipelineSkybox();
 	vertex_buffer_skybox.emplace(Primitives::skybox_vertices);
+
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
 void ProjectApplication::LoadGroundPlane()
@@ -1070,7 +1072,9 @@ void ProjectApplication::Update(double dt)
 		{
 			//aircraft Inputs
 			float dt_float = static_cast<float>(dt);
-			float zoom_speed_level = 1.0f;
+			float zoom_speed_level = min_zoom_level_scale + (max_zoom_level_scale - min_zoom_level_scale) * (aircraft_body.current_speed / aircraft_max_speed);
+
+
 
 			aircraft_current_speed_scale = 1.0f;
 			{
@@ -1078,7 +1082,7 @@ void ProjectApplication::Update(double dt)
 
 
 				aircraft_body.propeller_angle_degrees = lerp(0.0f, 360.0f, elasped_propeller_t);
-				elasped_propeller_t += propeller_revolutions_per_second * dt;
+				elasped_propeller_t += propeller_revolutions_per_second * (aircraft_body.current_speed / aircraft_max_speed) * dt;
 				if (aircraft_body.propeller_angle_degrees > 360.0f)
 				{
 					aircraft_body.propeller_angle_degrees = fmod(aircraft_body.propeller_angle_degrees, 360.0f);
@@ -1099,7 +1103,7 @@ void ProjectApplication::Update(double dt)
 				aircraft_body.right_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.right_vector, 1.0f));
 				aircraft_body.up_vector = glm::vec3(aircraft_body.rotMatrix * glm::vec4(aircraft_body.up_vector, 1.0f));
 
-				soloud.setVolume(plane_flying_sfx_handle, 0.40);
+				soloud.setVolume(plane_flying_sfx_handle, 1.0 * (aircraft_body.current_speed / aircraft_max_speed));
 
 				if (IsKeyPressed(GLFW_KEY_SPACE))
 				{
@@ -1107,6 +1111,16 @@ void ProjectApplication::Update(double dt)
 					zoom_speed_level = 1.02f;
 
 					soloud.setVolume(plane_flying_sfx_handle, 0.80);
+				}
+
+				//Increase/Lower speed
+				if (IsKeyPressed(GLFW_KEY_W) && aircraft_body.current_speed < aircraft_max_speed)
+				{
+					aircraft_body.current_speed += aircraft_speed_increase_per_second * dt;
+				}
+				else if (IsKeyPressed(GLFW_KEY_S) && aircraft_body.current_speed > aircraft_min_speed)
+				{
+					aircraft_body.current_speed += aircraft_speed_decrease_per_second * dt;
 				}
 
 				//Turning Left: Need to adjust both Roll and Velocity
@@ -1142,6 +1156,7 @@ void ProjectApplication::Update(double dt)
 					//aircraft_body.aircraft_angles_degrees.x -= aircraft_angle_turning_degrees * dt_float;
 				}
 
+
 				//Rudders (The yaw)
 				if (IsKeyPressed(GLFW_KEY_Q))
 				{
@@ -1160,6 +1175,8 @@ void ProjectApplication::Update(double dt)
 
 				//Experimenting with another approach
 				aircraftPos += aircraft_body.forward_vector * aircraft_body.current_speed * aircraft_current_speed_scale * dt_float;
+
+
 				Collision::SyncSphere(aircraft_sphere_collider, aircraftPos);
 
 				if (draw_player_colliders)
@@ -1298,9 +1315,6 @@ void ProjectApplication::MouseRaycast(camera const& cam)
 	ray_world_vec3 = glm::normalize(ray_world_vec3);
 
 	constexpr float debug_mouse_click_length = 5000.0f;
-
-
-	std::cout << "Ray: " <<  (ray_world_vec3).x << ", " << (ray_world_vec3).y << ", " << (ray_world_vec3).z << "\n";
 
 	std::vector<buildingObject*> accepted_colliders;
 

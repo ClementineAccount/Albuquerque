@@ -414,6 +414,15 @@ private:
         float propeller_angle_degrees = 0.0f;
     };
 
+
+    static constexpr float aircraft_max_speed = 300.0f;
+    static constexpr float aircraft_min_speed = 40.0f;
+    static constexpr float aircraft_speed_increase_per_second = 30.0f;
+    static constexpr float aircraft_speed_decrease_per_second = -30.0f;
+
+    static constexpr float max_zoom_level_scale = 1.3f;
+    static constexpr float min_zoom_level_scale = 1.0f;
+
     constexpr static float aircraft_starting_speed{50.0f};
     constexpr static glm::vec3 aircraft_starting_direction_vector{0.0f, 0.0f, 1.0f};
 
@@ -423,7 +432,7 @@ private:
     constexpr static float propeller_angle_turning_degrees = -1000.0f;
 
     float elasped_propeller_t = 0.0f;
-    constexpr static float propeller_revolutions_per_second = 180.0f / 60.0f;
+    constexpr static float propeller_revolutions_per_second = 720.0f / 60.0f; //maximium value
 
     float aircraft_speed_scale{ 3.0f };
     float aircraft_speed_scale_reverse{ 10.0f };
@@ -443,6 +452,8 @@ private:
 
 
     static constexpr glm::vec3 aircarftStartPos{0.0f, 65.0f, 0.0f};
+
+
 
     glm::vec3 aircraftForward{ worldForward };
     glm::vec3 aircraftPos{ aircarftStartPos };
