@@ -17,7 +17,7 @@ void main()
 
 
   //Placeholder directional light
-  vec3 directional_light = vec3(2.0, 1.0, -2.0);
+  vec3 directional_light = vec3(-0.465f, 0.810f, 0.355f);
   directional_light = normalize(directional_light);
 
   //Ambient scale (I consider this like a 'mininium global white light')

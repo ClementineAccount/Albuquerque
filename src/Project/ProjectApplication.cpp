@@ -61,6 +61,10 @@ static constexpr char vert_indexed_shader_path[] = "data/shaders/draw_indexed.ve
 static constexpr char frag_color_shader_path[] = "data/shaders/color.frag.glsl";
 static constexpr char frag_phong_shader_path[] = "data/shaders/phongFog.frag.glsl";
 
+static constexpr char vert_skybox_shader_path[] = "data/shaders/skybox.vert.glsl";
+static constexpr char frag_skybox_shader_path[] = "data/shaders/skybox.frag.glsl";
+
+
 
 static bool Collision::SphereAABBCollisionCheck(Sphere const& sphere, AABB const& aabb)
 {
@@ -216,7 +220,7 @@ static Fwog::GraphicsPipeline CreatePipelineColoredIndex()
 
 	static constexpr auto sceneInputBindingDescs = std::array{
 		Fwog::VertexInputBindingDescription{
-			// color
+			// position
 			.location = 0,
 			.binding = 0,
 			.format = Fwog::Format::R32G32B32_FLOAT,
@@ -250,6 +254,33 @@ static Fwog::GraphicsPipeline CreatePipelineColoredIndex()
 			.inputAssemblyState = primDescs,
 			.vertexInputState = {inputDescs},
 			.depthState = {.depthTestEnable = true, .depthWriteEnable = true, .depthCompareOp = Fwog::CompareOp::LESS},
+		} };
+
+}
+
+Fwog::GraphicsPipeline ProjectApplication::CreatePipelineSkybox()
+{
+	static constexpr auto sceneInputBindingDescs = std::array{
+		Fwog::VertexInputBindingDescription{
+			// position
+			.location = 0,
+			.binding = 0,
+			.format = Fwog::Format::R32G32B32_FLOAT,
+			.offset = 0
+	}};
+
+	auto inputDescs = sceneInputBindingDescs;
+	auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::TRIANGLE_LIST };
+
+	auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, ProjectApplication::LoadFile(vert_skybox_shader_path));
+	auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, ProjectApplication::LoadFile(frag_skybox_shader_path));
+
+	return Fwog::GraphicsPipeline{ {
+			.vertexShader = &vertexShader,
+			.fragmentShader = &fragmentShader,
+			.inputAssemblyState = primDescs,
+			.vertexInputState = {inputDescs},
+			.depthState = {.depthTestEnable = false, .depthWriteEnable = false},
 		} };
 
 }
@@ -395,6 +426,7 @@ void ProjectApplication::CreateSkybox()
 	int32_t textureWidth, textureHeight, textureChannels;
 	constexpr int32_t expected_num_channels = 4;
 	
+
 	unsigned char* textureData_skybox_front = stbi_load("data/skybox/front.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
 	assert(textureData_skybox_front);
 
@@ -406,6 +438,7 @@ void ProjectApplication::CreateSkybox()
 
 	unsigned char* textureData_skybox_right = stbi_load("data/skybox/right.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
 	assert(textureData_skybox_right);
+
 
 	unsigned char* textureData_skybox_up = stbi_load("data/skybox/up.png", &textureWidth, &textureHeight, &textureChannels, expected_num_channels);
 	assert(textureData_skybox_up);
@@ -428,7 +461,7 @@ void ProjectApplication::CreateSkybox()
 	Fwog::TextureCreateInfo createInfo{
 		.imageType = ImageType::TEX_CUBEMAP,
 		.format = Fwog::Format::R8G8B8A8_SRGB,
-		.extent = { static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight), num_cube_faces},
+		.extent = { static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight)},
 		.mipLevels =  uint32_t(1 + floor(log2(glm::max(textureWidth, textureHeight)))),
 		.arrayLayers = 1,
 		.sampleCount = SampleCount::SAMPLES_1,
@@ -440,10 +473,10 @@ void ProjectApplication::CreateSkybox()
 
 	auto upload_face = [&](uint32_t curr_face, unsigned char* texture_pixel_data)
 	{
-		Fwog::TextureUpdateInfo updateInfo{ .dimension = Fwog::UploadDimension::TWO,
+		Fwog::TextureUpdateInfo updateInfo{ .dimension = Fwog::UploadDimension::THREE,
 			.level = 0,
-			.offset = {},
-			.size = {static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight), curr_face},
+			.offset = {.depth = curr_face},
+			.size = {static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight), 1},
 			.format = Fwog::UploadFormat::RGBA,
 			.type = Fwog::UploadType::UBYTE,
 			.pixels = texture_pixel_data };
@@ -461,6 +494,8 @@ void ProjectApplication::CreateSkybox()
 	upload_face(back_id, textureData_skybox_back);
 
 	skybox_texture.value().GenMipmaps();
+	pipeline_skybox = CreatePipelineSkybox();
+	vertex_buffer_skybox.emplace(Primitives::skybox_vertices);
 }
 
 void ProjectApplication::LoadGroundPlane()
@@ -540,7 +575,9 @@ void ProjectApplication::LoadBuffers()
 		globalStruct.eyePos = camPos;
 
 		globalUniformsBuffer = Fwog::TypedBuffer<GlobalUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		globalUniformsBuffer_skybox = Fwog::TypedBuffer<GlobalUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 		globalUniformsBuffer.value().SubData(globalStruct, 0);
+		globalUniformsBuffer_skybox.value().SubData(globalStruct, 0);
 	}
 
 
@@ -722,6 +759,7 @@ bool ProjectApplication::Load()
 
 	LoadBuffers();
 	CreateGroundChunks();
+	CreateSkybox();
 
 	//LoadCollectables();
 	//LoadBuildings();
@@ -1017,8 +1055,13 @@ void ProjectApplication::Update(double dt)
 
 		globalStruct.viewProj = viewProj;
 		globalStruct.eyePos = editorCamera.position;
-
+		
 		globalUniformsBuffer.value().SubData(globalStruct, 0);
+		
+		glm::mat4 view_rot_only = glm::mat4(glm::mat3(view));
+		globalStruct.viewProj = proj * view_rot_only;
+		globalUniformsBuffer_skybox.value().SubData(globalStruct, 0);
+
 	}
 
 
@@ -1156,10 +1199,14 @@ void ProjectApplication::Update(double dt)
 				gameplayCamera.up =  aircraft_body.up_vector;
 
 				glm::mat4 view = glm::lookAt(gameplayCamera.position, gameplayCamera.target, gameplayCamera.up);
+				glm::mat4 view_rot_only = glm::mat4(glm::mat3(view));
 
 				//we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
 				glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
 				glm::mat4 viewProj = proj * view;
+
+				globalStruct.viewProj = proj * view_rot_only;
+				globalUniformsBuffer_skybox.value().SubData(globalStruct, 0);
 
 				globalStruct.viewProj = viewProj;
 				globalStruct.eyePos = gameplayCamera.position;
@@ -1246,8 +1293,8 @@ void ProjectApplication::MouseRaycast(camera const& cam)
 
 	constexpr float debug_mouse_click_length = 5000.0f;
 
-	//Test if it works lol
-	AddDebugDrawLine(aircraftPos, cam.position + ray_world_vec3 * debug_mouse_click_length, glm::vec3(0.0f, 0.0f, 1.0f));
+
+	std::cout << "Ray: " <<  (ray_world_vec3).x << ", " << (ray_world_vec3).y << ", " << (ray_world_vec3).z << "\n";
 
 	std::vector<buildingObject*> accepted_colliders;
 
@@ -1302,6 +1349,26 @@ void ProjectApplication::RenderScene()
 	 .depthLoadOp = Fwog::AttachmentLoadOp::CLEAR,
 	  .clearDepthValue = 1.0f
 		});
+
+
+	//Drawing skybox first without any depth buffer
+	{
+
+		Fwog::SamplerState ss;
+		ss.minFilter = Fwog::Filter::LINEAR;
+		ss.magFilter = Fwog::Filter::LINEAR;
+		ss.mipmapFilter = Fwog::Filter::LINEAR;
+		ss.addressModeU = Fwog::AddressMode::REPEAT;
+		ss.addressModeV = Fwog::AddressMode::REPEAT;
+		ss.anisotropy = Fwog::SampleCount::SAMPLES_16;
+		auto nearestSampler = Fwog::Sampler(ss);
+
+		Fwog::Cmd::BindGraphicsPipeline(pipeline_skybox.value());
+		Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer_skybox.value());
+		Fwog::Cmd::BindSampledImage(0, skybox_texture.value(), nearestSampler);
+		Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_skybox.value(), 0, 3 * sizeof(float));
+		Fwog::Cmd::Draw(Primitives::skybox_vertices.size() / 3, 1, 0, 0);
+	}
 
 
 	//Drawing a ground plane
@@ -1400,6 +1467,8 @@ void ProjectApplication::RenderScene()
 			ClearLines();
         }
 	}
+
+
 
 
 

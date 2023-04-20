@@ -85,6 +85,53 @@ namespace Primitives
         {{-0.5, -0.5, 0.5}, {0, -1, 0}, {0, 1}},
     };
 
+    //Lazy so I stole it from the cursed LOGL https://learnopengl.com/Advanced-OpenGL/Cubemaps
+    static constexpr std::array<float, 3 * 6 * 6> skybox_vertices = {
+
+        -1.0f,  1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+
+        -1.0f,  1.0f, -1.0f,
+        1.0f,  1.0f, -1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f, -1.0f,
+
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+        1.0f, -1.0f,  1.0f
+    };
+
+
     static constexpr std::array<uint16_t, 36> cube_indices{
       0,  1,  2,  2,  3,  0,
 
@@ -248,6 +295,7 @@ private:
     void CreateGroundChunks();
 
 
+    Fwog::GraphicsPipeline CreatePipelineSkybox();
     void CreateSkybox();
 
     static float lerp(float start, float end, float t);
@@ -272,6 +320,13 @@ private:
 
     std::optional<Fwog::GraphicsPipeline> pipeline_colored_indexed;
 
+ 
+    std::optional<Fwog::GraphicsPipeline> pipeline_skybox;
+
+    //Draw with arrays and not indexed so we don't need indices
+    std::optional<Fwog::Buffer> vertex_buffer_skybox;
+
+
     static constexpr float axisScale = 1000.0f;
     static constexpr float PI = 3.1415926f;
 
@@ -282,6 +337,7 @@ private:
         glm::vec3 eyePos;
     };
     std::optional<Fwog::TypedBuffer<GlobalUniforms>> globalUniformsBuffer;
+    std::optional<Fwog::TypedBuffer<GlobalUniforms>> globalUniformsBuffer_skybox;
 
     GlobalUniforms globalStruct;
 
@@ -460,7 +516,7 @@ private:
     //uint32_t num_active_collectables{0};
     static constexpr uint32_t max_num_collectables{4096};
 
-    bool renderAxis = false;
+    bool renderAxis = true;
     bool draw_collectable_colliders = false;
     bool draw_player_colliders = false;
 
