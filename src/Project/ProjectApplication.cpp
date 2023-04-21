@@ -726,10 +726,20 @@ void ProjectApplication::LoadBuildings()
 	}
 }
 
-
+void ProjectApplication::SetBackgroundMusic(SoLoud::Wav& bgm)
+{
+	if (curr_backgrond_music != nullptr)
+		curr_backgrond_music->stop();
+	curr_backgrond_music = &bgm;
+	if (!is_background_music_muted)
+	{
+		soloud.play(bgm);
+	}
+}
 
 bool ProjectApplication::Load()
 {
+
 
 	SetWindowTitle("Plane Game");
 
@@ -771,7 +781,9 @@ bool ProjectApplication::Load()
 	plane_flying_sfx.setVolume(0.40);
 
 
-	soloud.play(background_music);
+	SetBackgroundMusic(background_music);
+
+	//soloud.play(background_music);
 
 	StartLevel();
 
@@ -826,7 +838,14 @@ void ProjectApplication::UpdateEditorCamera(double dt)
 	static bool first_person_button_down = false;
 
 
-	static constexpr float editor_camera_speed_scale = 30.0f;
+	static constexpr float editor_camera_default_speed_scale = 30.0f;
+	static float editor_camera_speed_scale = editor_camera_default_speed_scale;
+	editor_camera_speed_scale = editor_camera_default_speed_scale;
+
+	if (IsKeyPressed(GLFW_KEY_LEFT_SHIFT))
+	{
+		editor_camera_speed_scale = editor_camera_default_speed_scale * 5.0f;
+	}
 
 	if (!first_person_button_down && IsKeyPressed(GLFW_KEY_GRAVE_ACCENT))
 	{
@@ -908,6 +927,8 @@ void ProjectApplication::UpdateEditorCamera(double dt)
 		{
 			if (IsMouseKeyPressed(GLFW_MOUSE_BUTTON_2)) //Right click
  			{
+				SetMouseCursorHidden(true);
+
 				//Prototype from https://learnopengl.com/code_viewer_gh.php?code=src/1.getting_started/7.3.camera_mouse_zoom/camera_mouse_zoom.cpp first
 
 				//Relative to entire window for now
@@ -952,6 +973,7 @@ void ProjectApplication::UpdateEditorCamera(double dt)
 			}
 			else
 			{
+				SetMouseCursorHidden(false);
 				firstMouseRotate = true;
 			}
 		}
@@ -1001,8 +1023,7 @@ void ProjectApplication::Update(double dt)
 		else if (curr_game_state == game_states::level_editor)
 		{
 			plane_flying_sfx.stop();
-			background_music.stop();
-			soloud.play(level_editor_music);
+			SetBackgroundMusic(level_editor_music);
 
 			editorCamera = gameplayCamera;
 
@@ -1053,8 +1074,8 @@ void ProjectApplication::Update(double dt)
 		{
 			wasKeyPressed_Editor = true;
 			curr_game_state = game_states::playing;
-			level_editor_music.stop();
-			soloud.play(background_music);
+			SetBackgroundMusic(background_music);
+
 			plane_flying_sfx_handle = soloud.play(plane_flying_sfx);
 
 			SetMouseCursorHidden(true);
@@ -1071,7 +1092,7 @@ void ProjectApplication::Update(double dt)
 		ZoneScopedC(tracy::Color::Blue);
 
 		glm::mat4 view = glm::lookAt(editorCamera.position, editorCamera.target, editorCamera.up);
-		glm::mat4 proj = glm::perspective((PI / 2.0f), 1.6f, nearPlane, farPlane);
+		glm::mat4 proj = glm::perspective((base_fov_radians), 1.6f, nearPlane, farPlane);
 		glm::mat4 viewProj = proj * view;
 
 		globalStruct.viewProj = viewProj;
@@ -1238,7 +1259,7 @@ void ProjectApplication::Update(double dt)
 				glm::mat4 view_rot_only = glm::mat4(glm::mat3(view));
 
 				//we dont actually have to recalculate this every frame yet but we might wanna adjust fov i guess
-				glm::mat4 proj = glm::perspective((PI / 2.0f) * zoom_speed_level, 1.6f, nearPlane, farPlane);
+				glm::mat4 proj = glm::perspective((base_fov_radians) * zoom_speed_level, 1.6f, nearPlane, farPlane);
 				glm::mat4 viewProj = proj * view;
 
 				globalStruct.viewProj = proj * view_rot_only;

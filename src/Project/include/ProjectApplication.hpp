@@ -1,5 +1,6 @@
 #pragma once
 #include <Albuquerque/Application.hpp>
+
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
@@ -269,6 +270,9 @@ protected:
 
     void UpdateEditorCamera(double dt);
 
+    void SetBackgroundMusic(SoLoud::Wav& bgm);
+
+
 private:
 
     void LoadBuffers();
@@ -279,7 +283,6 @@ private:
     //Adds a collectable to the current scene
     void AddCollectable(glm::vec3 position, glm::vec3 scale = glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec3 color = glm::vec3{0.0f, 0.0f, 0.8f});
 
-    
     //Adds the line to the specified buffer that is then draw I need to find a better name for this tbh
      void AddDebugDrawLine(glm::vec3 ptA, glm::vec3 ptB, glm::vec3 color);
      void DrawLineAABB(Collision::AABB const& aabb, glm::vec3 boxColor);
@@ -287,7 +290,6 @@ private:
 
      //Can call this to reset the collision count in order to call 'DrawLine' every frame without creating new buffers
      void ClearLines();
-
 
     void LoadBuildings();
     void AddBuilding(glm::vec3 position, glm::vec3 scale = glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec3 color = glm::vec3{1.0f, 0.0f, 0.0f});
@@ -423,6 +425,9 @@ private:
     static constexpr float max_zoom_level_scale = 1.3f;
     static constexpr float min_zoom_level_scale = 1.0f;
 
+    static constexpr float base_fov_degrees = 90.0f;
+    static constexpr float base_fov_radians = (base_fov_degrees * PI / 180.0f);
+
     constexpr static float aircraft_starting_speed{50.0f};
     constexpr static glm::vec3 aircraft_starting_direction_vector{0.0f, 0.0f, 1.0f};
 
@@ -484,16 +489,17 @@ private:
 
     SoLoud::Soloud soloud; 
     SoLoud::Wav sample;
-
     int plane_flying_sfx_handle;
     SoLoud::Wav plane_flying_sfx;
     SoLoud::Wav plane_speedup_sfx;
-
     SoLoud::Wav background_music;
-
     SoLoud::Wav level_editor_music;
-
     SoLoud::Wav collectable_pickup_sfx;
+
+    SoLoud::Wav* curr_backgrond_music = nullptr;
+
+    bool is_background_music_muted = true;
+
 
     //Collision related stuff. Need to refactor
    
