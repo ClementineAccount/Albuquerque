@@ -785,6 +785,7 @@ void ProjectApplication::ResetLevel()
 	collectableList.clear();
 	buildingObjectList.clear();
 	StartLevel();
+
 }
 
 void ProjectApplication::StartLevel()
@@ -812,6 +813,8 @@ void ProjectApplication::StartLevel()
 
 	aircraftUniform.color = aircraftColor;
 	objectBufferaircraft.value().SubData(aircraftUniform, 0);
+
+	SetMouseCursorHidden(true);
 }
 
 
@@ -1022,11 +1025,25 @@ void ProjectApplication::Update(double dt)
 	{
 		wasKeyPressed_Editor = true;
 		curr_game_state = game_states::level_editor;
+		SetMouseCursorHidden(false);
 	}
 	else if (wasKeyPressed_Editor && IsKeyRelease(GLFW_KEY_1))
 	{
 		wasKeyPressed_Editor = false;
 	}
+
+
+	//static bool pressed_key_P = false;
+	//if (!pressed_key_P && IsKeyPressed(GLFW_KEY_P))
+	//{
+	//	ToggleMouseCursorMode();
+	//	pressed_key_P = true;
+	//}
+	//else if (pressed_key_P && IsKeyRelease(GLFW_KEY_P))
+	//{
+	//	pressed_key_P = false;
+	//}
+
 
 
 	if (curr_game_state == game_states::level_editor)
@@ -1039,6 +1056,8 @@ void ProjectApplication::Update(double dt)
 			level_editor_music.stop();
 			soloud.play(background_music);
 			plane_flying_sfx_handle = soloud.play(plane_flying_sfx);
+
+			SetMouseCursorHidden(true);
 		}
 		else if (wasKeyPressed_Editor && IsKeyRelease(GLFW_KEY_2))
 		{

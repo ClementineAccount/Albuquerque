@@ -205,4 +205,23 @@ void Application::AfterCreatedUiContext()
 
 void Application::BeforeDestroyUiContext()
 {
+
+}
+
+void Application::SetMouseCursorHidden(bool mouseHidden)
+{
+    cursor_hidden = mouseHidden;
+    if (cursor_hidden)
+    {
+        glfwSetInputMode(_windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+    else
+    {
+        glfwSetInputMode(_windowHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+}
+
+void Application::ToggleMouseCursorMode()
+{
+    SetMouseCursorHidden(!cursor_hidden);
 }

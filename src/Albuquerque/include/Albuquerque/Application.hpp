@@ -33,8 +33,11 @@ protected:
     void SetWindowTitle(const char* winTitle);
 
     void GetMousePosition(double& mouseX, double& mouseY);
+    void SetMouseCursorHidden(bool mouseHidden);
+    void ToggleMouseCursorMode();
 
 private:
     GLFWwindow* _windowHandle = nullptr;
     void Render(double dt);
+    bool cursor_hidden = false;
 };
