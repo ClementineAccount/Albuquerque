@@ -1081,12 +1081,12 @@ void ProjectApplication::Update(double dt)
 				ZoneScopedC(tracy::Color::Green);
 
 
-				aircraft_body.propeller_angle_degrees = lerp(0.0f, 360.0f, elasped_propeller_t);
+				aircraft_body.propeller_angle_degrees = lerp(0.0f, 360.0f, elasped_propeller_time);
 				elasped_propeller_time += propeller_revolutions_per_second * (aircraft_body.current_speed / aircraft_max_speed) * dt;
 				if (aircraft_body.propeller_angle_degrees > 360.0f)
 				{
 					aircraft_body.propeller_angle_degrees = fmod(aircraft_body.propeller_angle_degrees, 360.0f);
-					elasped_propeller_t -= 1.0f;
+					elasped_propeller_time -= 1.0f;
 				}
 
 				//aircraft_body.propeller_angle_degrees += propeller_angle_turning_degrees * dt;
