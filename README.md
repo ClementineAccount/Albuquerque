@@ -18,9 +18,7 @@ There are three libraries that were precompiled during my prototyping. I will ge
 
 Plane Game
 ---
-
-Pre-Alpha Release: [Link Here]
-
+Pre-Alpha Release Download Link for Plane Game[https://github.com/ClementineAccount/Albuquerque/releases/tag/v0.1.0-indev]
 
 ![image](https://user-images.githubusercontent.com/26779639/233835096-0425f3ee-9390-4a34-a07a-f1c95e81af42.png)
 
