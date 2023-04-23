@@ -43,7 +43,9 @@ Plane SFX: https://www.soundjay.com/propeller-plane-sound-effect.html
 
 Background Music: https://soundcloud.com/personahofficial/personah-real-love-free-download
 
-Level Editor Music (Plane Game)
+Skybox Textures: [Thin Matrix's Tutorial](https://www.youtube.com/watch?v=_Ix5oN8eC1E)
+
+Pause Menu Music
 ```
 Above The Clouds
 You are free to use  Above The Clouds  music track (even for commercial purposes on social media / monetized videos), but you must include the following in your video description (copy & paste):
