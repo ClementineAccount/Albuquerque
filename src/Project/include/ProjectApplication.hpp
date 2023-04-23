@@ -296,9 +296,12 @@ private:
 
     void CreateGroundChunks();
 
-
     Fwog::GraphicsPipeline CreatePipelineSkybox();
     void CreateSkybox();
+
+    void AddCheckpoint(glm::vec3 position, glm::mat4 transform = glm::mat4{1.0f}, glm::vec3 scale = glm::vec3{1.0f, 1.0f, 1.0f}, float pitch_degrees = 0.0f, float yaw_degrees = 0.0f);
+    void LoadCheckpoints();
+    //void ClearCheckpoints();
 
     static float lerp(float start, float end, float t);
 
@@ -525,8 +528,6 @@ private:
 
     //Drawing with instancing
     Utility::Scene scene_collectable;
- 
-    //Dynamic storage
     std::optional<Fwog::TypedBuffer<ObjectUniforms>> collectableObjectBuffers;
 
     //How many instances to draw
@@ -552,8 +553,43 @@ private:
     //buildingObject hello_building;
     std::vector<buildingObject> buildingObjectList;
 
-    //Might have to use a map so you can mouse click these
-    //std::unordered_map<size_t, buildingObject> buildingMap;
+
+
+    struct checkpointObject
+    {
+
+        static constexpr glm::vec3 activated_color_linear = glm::vec3(0.016f, 0.57758f, 0.00335f);
+        static constexpr glm::vec3 non_activated_color_linear = glm::vec3(1.0f, 0.0f, 0.0f);
+
+        //Based off the size of the actual model loaded in
+        static constexpr float base_radius = 13.0f;
+
+        glm::vec3 center;
+        glm::vec3 scale;
+        glm::vec3 color = non_activated_color_linear;
+
+        glm::mat4 model;
+        //glm::mat4 rotation_model_matrix{1.0f};
+
+        Collision::Sphere collider;
+        std::optional<Fwog::Buffer> object_buffer;
+
+        //First on the list is activated followed by the next. The load order from the level file is important
+        bool activated = false;
+    };
+
+    //Think maybe putting it here is easier to organize? Its like using the struct as a 'namespace'
+    std::optional<Fwog::Buffer> checkpoint_vertex_buffer;
+    std::optional<Fwog::Buffer> checkpoint_index_buffer;
+
+    Utility::Scene scene_checkpoint_ring;
+
+
+    size_t curr_active_checkpoint = 0;
+    std::vector<checkpointObject> checkpointList;
+    bool all_checkpoints_collected = false;
+
+
 
     struct camera
     {

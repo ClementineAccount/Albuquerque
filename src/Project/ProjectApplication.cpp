@@ -415,6 +415,54 @@ void ProjectApplication::BeforeDestroyUiContext()
 }
 
 
+void ProjectApplication::LoadCheckpoints()
+{
+	std::vector<glm::mat4> list = Utility::LoadTransformsFromFile("data/levels/checkpoint_layout.gltf");
+
+	for (auto const& transform : list)
+	{
+		AddCheckpoint(glm::vec3(0.0f, 0.0f, 0.0f), transform, glm::vec3(1.0f, 1.0f, 1.0f));
+	}
+
+
+	/*AddCheckpoint(glm::vec3(20.0f, 70.0f, 200.0f), glm::mat4{1.0f}, glm::vec3(1.25f, 1.25f, 1.25f));
+	AddCheckpoint(glm::vec3(20.0f, 70.0f, 400.0f), glm::mat4{1.0f}, glm::vec3(1.25f, 1.25f, 1.25f));
+	AddCheckpoint(glm::vec3(20.0f, 70.0f, 600.0f),  glm::mat4{1.0f}, glm::vec3(1.25f, 1.25f, 1.25f));*/
+}
+
+void ProjectApplication::AddCheckpoint(glm::vec3 position, glm::mat4 transform, glm::vec3 scale, float pitch_degrees, float yaw_degrees)
+{
+	//The Fwog buffers don't have copy constructors so we using emplace to avoid copy construction
+
+	//checkpointList.emplace_back();
+	//checkpointObject& checkpoint = checkpointList.back();
+	checkpointObject checkpoint;
+
+	checkpoint.center = glm::vec3(transform[3].x, transform[3].y, transform[3].z);
+	checkpoint.scale = scale;
+	if (checkpointList.empty())
+	{
+		checkpoint.activated = true;
+		checkpoint.color = checkpointObject::activated_color_linear;
+	}
+
+	checkpoint.collider.center = glm::vec3(transform[3].x, transform[3].y, transform[3].z);
+	checkpoint.collider.radius = checkpointObject::base_radius * scale.x;
+
+	checkpoint.model = transform;
+
+	//checkpoint.rotation_model_matrix = glm::rotate(checkpoint.rotation_model_matrix, glm::radians(pitch_degrees), worldRight);
+	//checkpoint.rotation_model_matrix = glm::rotate(checkpoint.rotation_model_matrix, glm::radians(yaw_degrees), worldUp);
+
+	ObjectUniforms uniform;
+	uniform.model = transform;
+	uniform.color = glm::vec4(checkpoint.color, 1.0f);
+
+	checkpoint.object_buffer = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+	checkpoint.object_buffer.value().SubData(uniform, 0);
+
+	checkpointList.push_back(std::move(checkpoint));
+}
 
 void ProjectApplication::CreateSkybox()
 {
@@ -617,6 +665,11 @@ void ProjectApplication::LoadBuffers()
 	building_vertex_buffer.emplace(Primitives::cube_vertices);
 	building_index_buffer.emplace(Primitives::cube_indices);
 
+
+	Utility::LoadModelFromFile(scene_checkpoint_ring, "data/models/checkpointRing.glb", glm::mat4{ 1.0f }, true);
+
+	//checkpoint_vertex_buffer.emplace(scene_checkpoint_ring.meshes[0].vertexBuffer);
+	//checkpoint_index_buffer.emplace(scene_checkpoint_ring.meshes[0].indexBuffer);
 }
 
 void ProjectApplication::CreateGroundChunks()
@@ -681,8 +734,8 @@ void ProjectApplication::LoadCollectables()
 {
 
 	//Add placeholder collectables
-	constexpr float start_forward_pos = 120.0f;
-	constexpr float start_up_pos = 100.0f;
+	constexpr float start_forward_pos = 300.0f;
+	constexpr float start_up_pos = 120.0f;
 	constexpr float forward_distance_offset = 30.0f;
 	constexpr float up_distance_offset = 25.0f;
 
@@ -698,31 +751,31 @@ void ProjectApplication::LoadCollectables()
 
 void ProjectApplication::LoadBuildings()
 {
-	constexpr size_t num_buildings = 2;
-	constexpr float distance_offset = 30.0f;
-	constexpr float y_scale_offset = 250.0f;
+	//Do Not export rotations or this will not work as intended. Only scale and translation! This is meant to be AABBs
+	std::vector<glm::mat4> transformList = Utility::LoadTransformsFromFile("data/levels/building_collider_layout.gltf");
 
-	glm::vec3 curr_center{50.0f, 0.0f, 100.0f};
-	glm::vec3 curr_scale{10.0f, 100.0f, 10.0f};
-
-	for (size_t i = 0; i < num_buildings; ++i)
+	for (auto const& transform : transformList)
 	{
-
-
-		buildingObjectList.emplace_back(curr_center + worldRight * (distance_offset * i) + worldForward * (distance_offset * i), glm::vec3(curr_scale.x, curr_scale.y + y_scale_offset * i,  curr_scale.z));
-
+		buildingObject object;
 
 		//Just the starting building idea
 		glm::mat4 model(1.0f);
-		model = glm::translate(model, buildingObjectList[i].building_center);
-		model = glm::scale(model, buildingObjectList[i].building_scale);
+		model = transform;
+
+		object.building_center  = glm::vec3(transform[3].x, transform[3].y, transform[3].z);
+		object.building_scale = glm::vec3(transform[0].x, transform[1].y, transform[2].z);
+
+		object.building_collider.center = object.building_center;
+		object.building_collider.halfExtents = object.building_scale * 0.5f;
 
 		ObjectUniforms temp;
 		temp.model = model;
 		temp.color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
-		buildingObjectList[i].object_buffer = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-		buildingObjectList[i].object_buffer.value().SubData(temp, 0);
+		object.object_buffer = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+		object.object_buffer.value().SubData(temp, 0);
+		
+		buildingObjectList.push_back(std::move(object));
 	}
 }
 
@@ -739,8 +792,6 @@ void ProjectApplication::SetBackgroundMusic(SoLoud::Wav& bgm)
 
 bool ProjectApplication::Load()
 {
-
-
 	SetWindowTitle("Plane Game");
 
 	// Initialize SoLoud (automatic back-end selection)
@@ -796,8 +847,10 @@ void ProjectApplication::ResetLevel()
 {
 	collectableList.clear();
 	buildingObjectList.clear();
-	StartLevel();
+	checkpointList.clear();
 
+
+	StartLevel();
 }
 
 void ProjectApplication::StartLevel()
@@ -807,6 +860,9 @@ void ProjectApplication::StartLevel()
 
 	LoadBuildings();
 	LoadCollectables();
+	LoadCheckpoints();
+	curr_active_checkpoint = 0;
+	all_checkpoints_collected = false;
 
 	render_plane = true;
 	aircraftPos = aircarftStartPos;
@@ -1054,36 +1110,10 @@ void ProjectApplication::Update(double dt)
 	}
 
 
-	//static bool pressed_key_P = false;
-	//if (!pressed_key_P && IsKeyPressed(GLFW_KEY_P))
-	//{
-	//	ToggleMouseCursorMode();
-	//	pressed_key_P = true;
-	//}
-	//else if (pressed_key_P && IsKeyRelease(GLFW_KEY_P))
-	//{
-	//	pressed_key_P = false;
-	//}
-
-
 
 	if (curr_game_state == game_states::level_editor)
 	{
-		static bool wasKeyPressed_Gameplay = false;
-		if (!wasKeyPressed_Editor && IsKeyPressed(GLFW_KEY_2))
-		{
-			wasKeyPressed_Editor = true;
-			curr_game_state = game_states::playing;
-			SetBackgroundMusic(background_music);
 
-			plane_flying_sfx_handle = soloud.play(plane_flying_sfx);
-
-			SetMouseCursorHidden(true);
-		}
-		else if (wasKeyPressed_Editor && IsKeyRelease(GLFW_KEY_2))
-		{
-			wasKeyPressed_Editor = false;
-		}
 
 		UpdateEditorCamera(dt);
 
@@ -1103,6 +1133,22 @@ void ProjectApplication::Update(double dt)
 		glm::mat4 view_rot_only = glm::mat4(glm::mat3(view));
 		globalStruct.viewProj = proj * view_rot_only;
 		globalUniformsBuffer_skybox.value().SubData(globalStruct, 0);
+
+		static bool wasKeyPressed_Gameplay = false;
+		if (!wasKeyPressed_Editor && IsKeyPressed(GLFW_KEY_2))
+		{
+			wasKeyPressed_Editor = true;
+			curr_game_state = game_states::playing;
+			SetBackgroundMusic(background_music);
+
+			plane_flying_sfx_handle = soloud.play(plane_flying_sfx);
+
+			SetMouseCursorHidden(true);
+		}
+		else if (wasKeyPressed_Editor && IsKeyRelease(GLFW_KEY_2))
+		{
+			wasKeyPressed_Editor = false;
+		}
 
 	}
 
@@ -1302,6 +1348,34 @@ void ProjectApplication::Update(double dt)
 			}
 		}
 
+
+
+		//Collision check with checkpoint (only need to check the next active one!)
+		if (!all_checkpoints_collected && !checkpointList.empty() && Collision::sphereCollisionCheck(checkpointList[curr_active_checkpoint].collider, aircraft_sphere_collider))
+		{
+			checkpointList[curr_active_checkpoint].color = checkpointObject::non_activated_color_linear;
+			checkpointList[curr_active_checkpoint].activated = false;
+			soloud.play(collectable_pickup_sfx);
+
+			if (curr_active_checkpoint + 1 != checkpointList.size())
+			{
+				curr_active_checkpoint += 1;
+				checkpointList[curr_active_checkpoint].color = checkpointObject::activated_color_linear;
+
+				ObjectUniforms uniform;
+				uniform.model = checkpointList[curr_active_checkpoint].model;
+				uniform.color = glm::vec4(checkpointList[curr_active_checkpoint].color, 1.0f);
+				checkpointList[curr_active_checkpoint].object_buffer.value().SubData(uniform, 0);
+				//checkpointList[curr_active_checkpoint].activated = true;
+			}
+			else
+			{
+				all_checkpoints_collected = true;
+				std::cout << "I guess you did it you got all the checkpoints congrats!\n";
+			}
+		}
+
+
 		//Collision checks with buildings
 		for (auto const& building : buildingObjectList)
 		{
@@ -1472,6 +1546,23 @@ void ProjectApplication::RenderScene()
 		}
 	}
 
+	//Drawing checkpoints
+	{
+		//Assumptions: All checkpoints are allocated in collection sequence linearly.
+		if (!all_checkpoints_collected)
+		{
+			for (size_t i = curr_active_checkpoint; i < checkpointList.size(); ++i)
+			{
+				Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
+				Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+				Fwog::Cmd::BindUniformBuffer(1, checkpointList[i].object_buffer.value());
+				Fwog::Cmd::BindVertexBuffer(0, scene_checkpoint_ring.meshes[0].vertexBuffer, 0, sizeof(Primitives::Vertex));
+				Fwog::Cmd::BindIndexBuffer(scene_checkpoint_ring.meshes[0].indexBuffer, Fwog::IndexType::UNSIGNED_INT);
+				Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(scene_checkpoint_ring.meshes[0].indexBuffer.Size()) / sizeof(uint32_t), 1, 0, 0, 0);
+			}
+		}
+	}
+
 	//Drawing a aircraft
 	if (render_plane)
 	{
@@ -1542,11 +1633,24 @@ void ProjectApplication::RenderUI(double dt)
 	//This is needed or else there's a crash
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 
-	ImGui::Begin("Window");
+	ImGui::Begin("Performance");
 	{
 		ImGui::Text("Framerate: %.0f Hertz", 1 / dt);
 		ImGui::End();
 	}
+
+	ImGui::Begin("Gameplay");
+	{
+		ImGui::Text("Checkpoint: %d/%d", curr_active_checkpoint + static_cast<uint32_t>(all_checkpoints_collected), checkpointList.size());
+		if (all_checkpoints_collected)
+		{
+			ImGui::Text("Level Completed");
+		}
+
+		ImGui::End();
+	}
+
+
 }
 
 ProjectApplication::~ProjectApplication()

@@ -17,6 +17,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/transform.hpp>
 
+
+
 #include FWOG_OPENGL_HEADER
 //#include <glm/gtx/string_cast.hpp>
 #define TINYGLTF_IMPLEMENTATION
@@ -685,4 +687,87 @@ namespace Utility
 
     return true;
   }
+  
+  
+  std::vector<glm::mat4> LoadTransformsFromFile(std::string_view fileName, glm::mat4 rootTransform, bool binary)
+  {
+      tinygltf::TinyGLTF loader;
+      tinygltf::Model model;
+      std::string error;
+      std::string warning;
+
+      Timer timer;
+
+      std::vector<RawImageData> rawImageData;
+      loader.SetImageLoader(LoadImageData, &rawImageData);
+
+      bool result;
+      if (binary)
+      {
+          result = loader.LoadBinaryFromFile(&model, &error, &warning, std::string(fileName));
+      }
+      else
+      {
+          result = loader.LoadASCIIFromFile(&model, &error, &warning, std::string(fileName));
+      }
+
+      if (!warning.empty())
+      {
+          std::cout << "glTF warning: " << warning << '\n';
+      }
+
+      if (!error.empty())
+      {
+          std::cout << "glTF error: " << error << '\n';
+      }
+
+      if (result == false)
+      {
+          std::cout << "Failed to load glTF: " << fileName << '\n';
+          //return std::nullopt;
+      }
+
+
+      FWOG_ASSERT(model.scenes.size() == 1);
+
+      auto ms = timer.Elapsed_us() / 1000;
+      std::cout << "Loading took " << ms << " ms\n";
+
+
+      std::vector<glm::mat4> globalTransformList;
+
+      // <node*, global transform>
+      std::stack<std::pair<const tinygltf::Node*, glm::mat4>> nodeStack;
+
+      for (int nodeIndex : model.scenes[0].nodes)
+      {
+          nodeStack.emplace(&model.nodes[nodeIndex], rootTransform);
+      }
+
+      while (!nodeStack.empty())
+      {
+          decltype(nodeStack)::value_type top = nodeStack.top();
+          const auto& [node, parentGlobalTransform] = top;
+          nodeStack.pop();
+
+          //std::cout << "Node: " << node->name << '\n';
+
+          glm::mat4 localTransform = NodeToMat4(*node);
+          glm::mat4 globalTransform = parentGlobalTransform * localTransform;
+          globalTransformList.push_back(globalTransform);
+
+          for (int childNodeIndex : node->children)
+          {
+              nodeStack.emplace(&model.nodes[childNodeIndex], globalTransform);
+          }
+      }
+
+      //std::cout << "Loaded glTF as list of transforms: " << fileName << '\n';
+
+      //Backwards because loaded as a stack
+      std::reverse(globalTransformList.begin(), globalTransformList.end());
+      return globalTransformList;
+      //return scene;
+  }
 }
+

@@ -210,6 +210,9 @@ void Application::BeforeDestroyUiContext()
 
 void Application::SetMouseCursorHidden(bool mouseHidden)
 {
+    if (cursor_hidden == mouseHidden)
+        return;
+
     cursor_hidden = mouseHidden;
     if (cursor_hidden)
     {

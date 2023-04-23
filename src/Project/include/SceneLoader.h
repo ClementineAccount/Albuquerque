@@ -110,4 +110,6 @@ namespace Utility
     std::string_view fileName, 
     glm::mat4 rootTransform = glm::mat4{ 1 }, 
     bool binary = false);
+
+  std::vector<glm::mat4> LoadTransformsFromFile(std::string_view fileName,  glm::mat4 rootTransform = glm::mat4{1.0f}, bool binary = false);
 }
