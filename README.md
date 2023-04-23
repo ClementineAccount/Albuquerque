@@ -10,6 +10,8 @@ The name 'Albuquerque' was chosen as a placeholder codename inspired by this [pa
 it was inspired by the internal codenames of Windows Operating Systems that were named after American cities. I chose Albuquerque as it is a niche and 
 unknown city in New Mexico that I have a personal connection with.
 
+It is also used to test whether OpenGL Wrapper [Fwog](https://github.com/JuanDiegoMontoya/Fwog) is suitable for use in a third party long term project.
+
 Build Instructions
 ---
 Coming Soon! Right now it only builds on Windows. If you know Cmake, just run the CMake files and cross your fingers that it works after
@@ -63,7 +65,7 @@ https://creativecommons.org/licenses/by/3.0/deed.en_US
 
 Library List
 ---
-
+- [Fwog](https://github.com/JuanDiegoMontoya/Fwog)
 - GLFW
 - GLAD
 - Dear Imgui
