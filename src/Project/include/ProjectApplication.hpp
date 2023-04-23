@@ -10,6 +10,7 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <map>
 #include <optional>
 #include <functional>
 
@@ -270,6 +271,7 @@ protected:
 
     void UpdateEditorCamera(double dt);
 
+    void MuteBackgroundMusicToggle(bool set_muted);
     void SetBackgroundMusic(SoLoud::Wav& bgm);
 
 
@@ -317,8 +319,6 @@ private:
     game_states curr_game_state = game_states::playing;
     game_states prev_game_state = game_states::playing;
 
-
-
     std::optional<Fwog::GraphicsPipeline> pipeline_lines;
     std::optional<Fwog::GraphicsPipeline> pipeline_textured;
     std::optional<Fwog::GraphicsPipeline> pipeline_flat;
@@ -334,6 +334,27 @@ private:
 
     static constexpr float axisScale = 1000.0f;
     static constexpr float PI = 3.1415926f;
+
+    //Some ideas of a score system
+
+    float current_player_level_time = 0.0f;
+    float personal_best = 100.0f; //some absurdly high number
+    static constexpr float bronze_level_time = 20.0f;
+    static constexpr float silver_level_time = 15.0f;
+    static constexpr float gold_level_time = 13.0f;
+
+    std::map<float, std::string> medal_times;
+
+    std::string player_medal_name = "None";
+    float player_medal_timing = 100.0f;
+
+    //struct medal_timing_pair
+    //{
+    //    const char* medal_name;
+    //    float medal_timing = 0.0f;
+    //};
+
+
 
     //Camera Stuff
     struct GlobalUniforms
@@ -501,7 +522,7 @@ private:
 
     SoLoud::Wav* curr_backgrond_music = nullptr;
 
-    bool is_background_music_muted = true;
+    bool is_background_music_muted = false;
 
 
     //Collision related stuff. Need to refactor
@@ -537,6 +558,9 @@ private:
     bool renderAxis = false;
     bool draw_collectable_colliders = false;
     bool draw_player_colliders = false;
+
+
+    static constexpr glm::vec3 default_building_color{0.29614, 0.43966, 0.52712};
 
     struct buildingObject
     {
@@ -584,11 +608,9 @@ private:
 
     Utility::Scene scene_checkpoint_ring;
 
-
     size_t curr_active_checkpoint = 0;
     std::vector<checkpointObject> checkpointList;
     bool all_checkpoints_collected = false;
-
 
 
     struct camera

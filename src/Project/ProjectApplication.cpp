@@ -770,7 +770,7 @@ void ProjectApplication::LoadBuildings()
 
 		ObjectUniforms temp;
 		temp.model = model;
-		temp.color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+		temp.color = glm::vec4(default_building_color, 1.0f);	
 
 		object.object_buffer = Fwog::TypedBuffer<ObjectUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 		object.object_buffer.value().SubData(temp, 0);
@@ -787,6 +787,17 @@ void ProjectApplication::SetBackgroundMusic(SoLoud::Wav& bgm)
 	if (!is_background_music_muted)
 	{
 		soloud.play(bgm);
+	}
+}
+
+void ProjectApplication::MuteBackgroundMusicToggle(bool set_muted)
+{
+	is_background_music_muted = set_muted;
+	if (curr_game_state == game_states::level_editor)
+		SetBackgroundMusic(level_editor_music);
+	else
+	{
+		SetBackgroundMusic(background_music);
 	}
 }
 
@@ -838,6 +849,10 @@ bool ProjectApplication::Load()
 
 	StartLevel();
 
+	medal_times.insert({ gold_level_time, "Gold" });
+	medal_times.insert({ silver_level_time, "Silver" });
+	medal_times.insert({ bronze_level_time, "Bronze" });
+
 
 	return true;
 }
@@ -859,7 +874,9 @@ void ProjectApplication::StartLevel()
 	plane_flying_sfx_handle = soloud.play(plane_flying_sfx);
 
 	LoadBuildings();
-	LoadCollectables();
+	
+	//LoadCollectables();
+
 	LoadCheckpoints();
 	curr_active_checkpoint = 0;
 	all_checkpoints_collected = false;
@@ -883,6 +900,7 @@ void ProjectApplication::StartLevel()
 	objectBufferaircraft.value().SubData(aircraftUniform, 0);
 
 	SetMouseCursorHidden(true);
+	current_player_level_time = 0.0f;
 }
 
 
@@ -1319,6 +1337,8 @@ void ProjectApplication::Update(double dt)
 		}
 
 
+		if (!all_checkpoints_collected)
+			current_player_level_time += dt;
 
 		//Collision Checks with collectable
 		for (size_t i = 0; i < collectableList.size(); ++i)
@@ -1372,6 +1392,23 @@ void ProjectApplication::Update(double dt)
 			{
 				all_checkpoints_collected = true;
 				std::cout << "I guess you did it you got all the checkpoints congrats!\n";
+
+				if (personal_best > current_player_level_time)
+				{
+					personal_best = current_player_level_time;
+					//Get the player's medal state
+					for (auto const& x : medal_times)
+					{
+						if (current_player_level_time < x.first)
+						{
+							player_medal_name = x.second;
+							player_medal_timing = x.first;
+
+							//Its already sorted from least time to most time
+							break;
+						}
+					}
+				}
 			}
 		}
 
@@ -1639,12 +1676,37 @@ void ProjectApplication::RenderUI(double dt)
 		ImGui::End();
 	}
 
+	ImGui::Begin("How To Play");
+	{
+		ImGui::Text("Use the arrow keys to pitch and roll!");
+		ImGui::Text("Use Q/E to control your rudder (Yaw)");
+		ImGui::Text("Use W/S to control your speed");
+		ImGui::Text("Press 'F' to Restart");
+		ImGui::Text("Press '1' to pause and '2' to unpause");
+		ImGui::End();
+	}
+
+	ImGui::Begin("Options (Pause to Release Mouse)");
+	{
+		static bool set_background_music = is_background_music_muted;
+		ImGui::Checkbox("Background Music Muted?", &set_background_music);
+		if (set_background_music != is_background_music_muted)
+		{
+			is_background_music_muted = set_background_music;
+			MuteBackgroundMusicToggle(is_background_music_muted);
+		}
+		ImGui::End();
+	}
+
 	ImGui::Begin("Gameplay");
 	{
 		ImGui::Text("Checkpoint: %d/%d", curr_active_checkpoint + static_cast<uint32_t>(all_checkpoints_collected), checkpointList.size());
+		ImGui::Text("Current Time: %f", current_player_level_time);
 		if (all_checkpoints_collected)
 		{
 			ImGui::Text("Level Completed");
+			ImGui::Text("Your personal best is: %f", personal_best);
+			ImGui::Text("You medal is %s which has a requirement of %f", player_medal_name.c_str(), player_medal_timing);
 		}
 
 		ImGui::End();
