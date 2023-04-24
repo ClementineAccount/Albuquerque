@@ -1,9 +1,29 @@
-Gonna rescope the game from driving to flying as flying has easier collision response code when not using a physics library. Will revisit driving in the future instead.
+Albuquerque
+---
+Albuquerque is the repository containing the sapling of a soon to be personal custom game and rendering engine and editor following the principles described
+in the blog post [Write Games, Not Engines](https://geometrian.com/programming/tutorials/write-games-not-engines/).
 
-Currently being developed with a driving game I am working on (placeholder screenshot):
+Currently, it is being actively used to develop 'Plane Game' which is contained under 'Projects'. Eventually, as more and more games
+are developed in the same codebase and shared code become interfaces and abstractions, it will slowly grow to become a game engine.
 
-![image](https://user-images.githubusercontent.com/26779639/233076790-2059073c-58e7-45f7-8b8e-d72d5aea6956.png)
+The name 'Albuquerque' was chosen as a placeholder codename inspired by this [page](https://wiki.osdev.org/Beginner_Mistakes) on the osdev wiki. Specifically, 
+it was inspired by the internal codenames of Windows Operating Systems that were named after American cities. I chose Albuquerque as it is a niche and 
+unknown city in New Mexico that I have a personal connection with.
 
+It is also used to test whether OpenGL Wrapper [Fwog](https://github.com/JuanDiegoMontoya/Fwog) is suitable for use in a third party long term project.
+
+Build Instructions
+---
+Coming Soon! Right now it only builds on Windows. If you know Cmake, just run the CMake files and cross your fingers that it works after
+you precompile the three libraries.
+There are three libraries that were precompiled during my prototyping. I will get around to using git submodules or Fetch_Content for these libraries in the near future.
+
+Plane Game
+---
+
+[Pre-Alpha Release Download Link for Plane Game](https://github.com/ClementineAccount/Albuquerque/releases/tag/v0.1.0-indev)
+
+![image](https://user-images.githubusercontent.com/26779639/233835096-0425f3ee-9390-4a34-a07a-f1c95e81af42.png)
 
 This project is a self-learning exercise in understanding and implementing the complexities of how to render seamless open world environments with presistent states (level editing features) in an optimized way. It is also an exercise in learning more complex vehicle physics simulation considerations. 
 
@@ -21,29 +41,40 @@ Therefore, these other requirements of the project are not given as high priorit
 
 Another third party library included is Lua as a potential scope for level editing may include more complex scriptable track elements or programmable AI racers but am undecided if its fully necessary yet.
 
-Library List:
+Third Party Placeholder Asset Credits (Plane Game)
+---
 
-- GLFW
-- GLAD
-- Dear Imgui
-- ImGuizmo
-- SoLoud
-- tinygltf
-- FreeType
-- stb_image
-- Tracy
-- spdlog
+Grass Texture: https://www.poliigon.com/texture/ground-forest-003/1949 
 
+Plane SFX: https://www.soundjay.com/propeller-plane-sound-effect.html 
 
-Third Party Placeholder Asset Credits: 
-Grass Texture: https://www.poliigon.com/texture/ground-forest-003/1949
-Plane SFX: https://www.soundjay.com/propeller-plane-sound-effect.html
 Background Music: https://soundcloud.com/personahofficial/personah-real-love-free-download
 
-Level Editor Music:
+Skybox Textures: [Thin Matrix's Tutorial](https://www.youtube.com/watch?v=_Ix5oN8eC1E)
+
+Pause Menu Music
+```
 Above The Clouds
 You are free to use  Above The Clouds  music track (even for commercial purposes on social media / monetized videos), but you must include the following in your video description (copy & paste):
 Above The Clouds by | e s c p | https://escp-music.bandcamp.com
 Music promoted by https://www.free-stock-music.com
 Creative Commons / Attribution 3.0 Unported License (CC BY 3.0)
 https://creativecommons.org/licenses/by/3.0/deed.en_US
+```
+
+
+Library List
+---
+- [Fwog](https://github.com/JuanDiegoMontoya/Fwog)
+- GLFW
+- GLAD
+- Dear Imgui
+- ImGuizmo (Not used yet)
+- SoLoud
+- cgltf (Not used)
+- tinygltf
+- FreeType (Not used yet)
+- stb_image
+- Tracy
+- spdlog
+- JPH (Not used yet)
