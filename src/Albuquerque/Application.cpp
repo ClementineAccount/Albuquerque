@@ -1,6 +1,9 @@
 #include <Albuquerque/Application.hpp>
 
+//Release mode can disable it
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_OFF
 #include <spdlog/spdlog.h>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -19,6 +22,8 @@
 
 void Application::Run()
 {
+
+
     FrameMarkStart("App Run");
     if (!Initialize())
     {
@@ -91,11 +96,12 @@ bool Application::Initialize()
 
     glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+
 
     const auto primaryMonitor = glfwGetPrimaryMonitor();
     const auto primaryMonitorVideoMode = glfwGetVideoMode(primaryMonitor);

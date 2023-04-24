@@ -19,6 +19,7 @@ protected:
     bool IsKeyRelease(int32_t key);
 
     bool IsMouseKeyPressed(int32_t key);
+    void GetMousePosition(double& mouseX, double& mouseY);
 
     virtual void AfterCreatedUiContext();
     virtual void BeforeDestroyUiContext();
@@ -32,7 +33,7 @@ protected:
     //I think this only called once in awhile so copy is fine. No ownership anyways
     void SetWindowTitle(const char* winTitle);
 
-    void GetMousePosition(double& mouseX, double& mouseY);
+
     void SetMouseCursorHidden(bool mouseHidden);
     void ToggleMouseCursorMode();
 
