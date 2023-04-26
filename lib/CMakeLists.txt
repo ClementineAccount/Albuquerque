@@ -117,7 +117,6 @@ FetchContent_MakeAvailable(fwog)
 
 
 
-
 #----------------------------------------------------------------------
 
 FetchContent_Declare(
@@ -135,5 +134,3 @@ if(NOT stb_image_POPULATED)
     add_library(stb_image INTERFACE ${stb_image_SOURCE_DIR}/stb_image.h)
     target_include_directories(stb_image INTERFACE ${stb_image_SOURCE_DIR})
 endif()
-
-

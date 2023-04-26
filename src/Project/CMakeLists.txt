@@ -23,6 +23,21 @@ add_library(lua54 STATIC IMPORTED)
 set_target_properties(lua54 PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/lua/lua54.lib)
 set_target_properties(lua54 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/lua/include)
 
+message("(Project) add_library BulletDynamics")
+add_library(BulletDynamics STATIC IMPORTED)
+set_target_properties(BulletDynamics PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/bullet/BulletDynamics.lib)
+set_target_properties(BulletDynamics PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/bullet/include)
+
+message("(Project) add_library BulletCollision")
+add_library(BulletCollision STATIC IMPORTED)
+set_target_properties(BulletCollision PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/bullet/BulletCollision.lib)
+set_target_properties(BulletCollision PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/bullet/include)
+
+message("(Project) add_library LinearMath (Bullet)")
+add_library(LinearMath STATIC IMPORTED)
+set_target_properties(LinearMath PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/bullet/LinearMath.lib)
+set_target_properties(LinearMath PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/bullet/include)
+
 
 
 set(sourceFiles
@@ -43,4 +58,4 @@ add_executable(Project ${sourceFiles} ${headerFiles})
 add_dependencies(Project copy_data)
 
 
-target_link_libraries(Project PRIVATE TracyClient lua54 freetype soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Albuquerque)
+target_link_libraries(Project PRIVATE TracyClient lua54 freetype soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog BulletDynamics BulletCollision LinearMath Albuquerque)

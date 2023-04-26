@@ -248,7 +248,7 @@ namespace Collision
    //}
 }
 
-class ProjectApplication final : public Application
+class ProjectApplication final : public Albuquerque::Application
 {
 public:
     static std::string LoadFile(std::string_view path);

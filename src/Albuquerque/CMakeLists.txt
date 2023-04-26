@@ -20,7 +20,6 @@ target_include_directories(glad PUBLIC include)
 target_include_directories(imgui PUBLIC include)
 target_include_directories(spdlog PUBLIC include)
 
-
 message("(Albuquerque.Library) add_library soloud")
 add_library(soloud STATIC IMPORTED)
 set_target_properties(soloud PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/soloud/soloud_static.lib)
