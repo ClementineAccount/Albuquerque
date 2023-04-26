@@ -39,6 +39,7 @@ set(headerFiles
     )
 
 add_executable(Project ${sourceFiles} ${headerFiles})
+
 add_dependencies(Project copy_data)
 
 

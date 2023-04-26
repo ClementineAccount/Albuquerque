@@ -224,26 +224,28 @@ namespace Collision
     }
 
 
-   static  bool RaycastCheck(glm::vec3 startPosition, glm::vec3 normalizedRay, AABB const& aabb, float stepDistance = 1.0f, size_t numSteps = 1000)
-    {
-        //Early rejection test. (Disregard AABBs that are are not in the direction of the ray)
-        glm::vec3 dir = aabb.center - startPosition;
-        if (glm::dot(dir, normalizedRay) < 0.0f)
-        {
-            return false;
-        }
-       
 
-        glm::vec3 currPosition = startPosition;
-        for (size_t i = 0; i < numSteps; ++i)
-        {
-            currPosition += (i * stepDistance) * normalizedRay;
-            if (CheckPointOnAABB(currPosition, aabb))
-                return true;
-        }
 
-        return false;
-    }
+   //static  bool RaycastCheck(glm::vec3 startPosition, glm::vec3 normalizedRay, AABB const& aabb, float stepDistance = 1.0f, size_t numSteps = 1000)
+   //{
+   //    //Early rejection test. (Disregard AABBs that are are not in the direction of the ray)
+   //    glm::vec3 dir = aabb.center - startPosition;
+   //    if (glm::dot(dir, normalizedRay) < 0.0f)
+   //    {
+   //        return false;
+   //    }
+
+
+   //    glm::vec3 currPosition = startPosition;
+   //    for (size_t i = 0; i < numSteps; ++i)
+   //    {
+   //        currPosition += (i * stepDistance) * normalizedRay;
+   //        if (CheckPointOnAABB(currPosition, aabb))
+   //            return true;
+   //    }
+
+   //    return false;
+   //}
 }
 
 class ProjectApplication final : public Application
@@ -306,6 +308,7 @@ private:
     //void ClearCheckpoints();
 
     static float lerp(float start, float end, float t);
+
 
 private:
 
@@ -628,6 +631,38 @@ private:
 
     std::optional<Fwog::Texture> mousePick_Texture;
     void MouseRaycast(camera const& cam);
+
+    //To Do: Rewrite this after fixing architecture to decouple collision, rendering and entity data
+
+    static buildingObject const* RaycastCheck(glm::vec3 startPosition, glm::vec3 normalizedRay, std::vector<buildingObject> const& aabb_list, float stepDistance = 1.0f, size_t numSteps = 1000)
+    {
+        //Reject all colliders that cannot possibly be hit
+        std::vector<buildingObject const*> non_rejected;
+        for (auto const& aabb : aabb_list)
+        {
+            glm::vec3 dir = aabb.building_collider.center - startPosition;
+            if (glm::dot(dir, normalizedRay) > 0.0f)
+            {
+                non_rejected.push_back(&aabb);
+            }
+        }
+
+        glm::vec3 currPosition = startPosition;
+        for (size_t i = 0; i < numSteps; ++i)
+        {
+            currPosition += (i * stepDistance) * normalizedRay;
+
+            //Check if there is a hit for every step. If there is simply return that and negate the rest
+            for (auto const& aabb : non_rejected)
+            {
+                if (CheckPointOnAABB(currPosition, aabb->building_collider))
+                    return aabb;
+            }
+        }
+
+        return nullptr;
+    }
+
 
 
 };
