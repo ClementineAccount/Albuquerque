@@ -1,10 +1,13 @@
 #pragma once
 #include <cstdint>
-
 struct GLFWwindow;
 
 namespace Albuquerque
 {
+
+
+
+
 
     class Application
     {

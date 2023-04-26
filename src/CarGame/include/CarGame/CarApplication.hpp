@@ -147,7 +147,7 @@ namespace Collision
 
 
 
-class CarApplication final : public Application
+class CarApplication final : public Albuquerque::Application
 {
 public:
     static std::string LoadFile(std::string_view path);

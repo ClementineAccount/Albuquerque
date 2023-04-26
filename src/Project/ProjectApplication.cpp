@@ -5,8 +5,13 @@
 #include <Fwog/Pipeline.h>
 #include <Fwog/Rendering.h>
 #include <Fwog/Shader.h>
-#include <GLFW/glfw3.h>
+
+
+//https://stackoverflow.com/questions/44345811/glad-h-giving-error-that-opengl-header-is-included
+#define GLFW_INCLUDE_NONE
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include <imgui.h>
 #include <soloud/soloud.h>
 #include <soloud/soloud_wav.h>
