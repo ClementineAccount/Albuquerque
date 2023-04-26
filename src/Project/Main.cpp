@@ -3,7 +3,7 @@
 int main(int argc, char* argv[])
 {
 
-    ProjectApplication application;
+    PlaneGame::ProjectApplication application;
     application.Run();
     return 0;
 }
