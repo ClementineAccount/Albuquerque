@@ -2,7 +2,6 @@
 
 int main(int argc, char* argv[])
 {
-
     PlaneGame::ProjectApplication application;
     application.Run();
     return 0;
