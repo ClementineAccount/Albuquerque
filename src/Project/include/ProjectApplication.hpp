@@ -40,7 +40,7 @@ static constexpr std::array<Vertex, 4> plane_vertices{
     {{0.5, 0.0, -0.5}, {0, 1, 0}, {1, 1}},
     {{-0.5, 0.0, -0.5}, {0, 1, 0}, {0, 1}}};
 
-static constexpr std::array<uint16_t, 6> plane_indices{0, 1, 2, 2, 3, 0};
+static constexpr std::array<uint32_t, 6> plane_indices{0, 1, 2, 2, 3, 0};
 
 // Took it from 02_deferred.cpp lol
 static constexpr std::array<Vertex, 24> cube_vertices{
@@ -103,7 +103,7 @@ static constexpr std::array<float, 3 * 6 * 6> skybox_vertices = {
     -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
     1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
 
-static constexpr std::array<uint16_t, 36> cube_indices{
+static constexpr std::array<uint32_t, 36> cube_indices{
     0,  1,  2,  2,  3,  0,
 
     4,  5,  6,  6,  7,  4,
@@ -200,6 +200,36 @@ static void SyncAABB(Collision::AABB& aabb, glm::vec3 pos) {
 //    return false;
 //}
 }  // namespace Collision
+
+
+
+class DrawCall
+{
+public:
+    
+    //DrawCall() = delete;
+    //DrawCall(Fwog::Buffer auto const& vertex_buffer, Fwog::Buffer auto const& index_buffer);
+
+
+    void SetBuffers(Fwog::Buffer const& vertex_buffer, Fwog::Buffer const& index_buffer);
+    void SetModelTransformation(glm::mat4 const& model);
+    void SetColor(glm::vec4 color);
+    void Draw(uint64_t stride, uint32_t index_buffer_index = 0, uint32_t object_buffer_index = 1) const;
+
+private:
+    struct ObjectUniforms {
+        glm::mat4 model{1.0f};
+        glm::vec4 color{1.0f, 0.0f, 0.0f, 1.0f};
+    };
+
+    ObjectUniforms uniform;
+    Fwog::TypedBuffer<ObjectUniforms> object_buffer{Fwog::BufferStorageFlag::DYNAMIC_STORAGE};
+
+    //To Do: Have this the keys to IDs of a buffer that are mapped by some resource manager
+    Fwog::Buffer const* vertex_buffer = nullptr;
+    Fwog::Buffer const* index_buffer = nullptr;
+};
+
 
 class ProjectApplication final : public Albuquerque::Application {
  public:
@@ -504,7 +534,9 @@ class ProjectApplication final : public Albuquerque::Application {
     glm::vec3 building_center{50.0f, 0.0f, 100.0f};
     glm::vec3 building_scale{10.0f, 100.0f, 10.0f};
     Collision::AABB building_collider{building_scale * 0.5f, building_center};
-    std::optional<Fwog::Buffer> object_buffer;
+
+    DrawCall drawcall;
+
     static std::optional<Fwog::Texture> buildingAlbedo;
   };
 
@@ -566,13 +598,13 @@ class ProjectApplication final : public Albuquerque::Application {
   // To Do: Rewrite this after fixing architecture to decouple collision,
   // rendering and entity data
 
-  static buildingObject const* RaycastCheck(
+  static buildingObject * RaycastCheck(
       glm::vec3 startPosition, glm::vec3 normalizedRay,
-      std::vector<buildingObject> const& aabb_list, float stepDistance = 1.0f,
+      std::vector<buildingObject> & aabb_list, float stepDistance = 1.0f,
       size_t numSteps = 1000) {
     // Reject all colliders that cannot possibly be hit
-    std::vector<buildingObject const*> non_rejected;
-    for (auto const& aabb : aabb_list) {
+    std::vector<buildingObject*> non_rejected;
+    for (auto& aabb : aabb_list) {
       glm::vec3 dir = aabb.building_collider.center - startPosition;
       if (glm::dot(dir, normalizedRay) > 0.0f) {
         non_rejected.push_back(&aabb);
@@ -585,7 +617,7 @@ class ProjectApplication final : public Albuquerque::Application {
 
       // Check if there is a hit for every step. If there is simply return that
       // and negate the rest
-      for (auto const& aabb : non_rejected) {
+      for (auto & aabb : non_rejected) {
         if (CheckPointOnAABB(currPosition, aabb->building_collider))
           return aabb;
       }

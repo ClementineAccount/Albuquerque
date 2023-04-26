@@ -286,6 +286,35 @@ static Fwog::GraphicsPipeline CreatePipelineColoredIndex() {
   }};
 }
 
+
+
+void DrawCall::SetBuffers(Fwog::Buffer const& vertex_buffer, Fwog::Buffer const& index_buffer)
+{
+    this->vertex_buffer = &vertex_buffer;
+    this->index_buffer = &index_buffer;
+}
+
+void DrawCall::SetModelTransformation(glm::mat4 const& model)
+{
+    uniform.model = model;
+    object_buffer.SubData(uniform, 0);
+}
+
+void DrawCall::SetColor(glm::vec4 color)
+{
+    uniform.color = color;
+    object_buffer.SubData(uniform, 0);
+}
+
+void DrawCall::Draw(uint64_t stride,uint32_t index_buffer_index, uint32_t object_buffer_index) const
+{
+    Fwog::Cmd::BindUniformBuffer(object_buffer_index, object_buffer);
+    Fwog::Cmd::BindVertexBuffer(index_buffer_index, *vertex_buffer, 0, stride);
+    Fwog::Cmd::BindIndexBuffer(*index_buffer, Fwog::IndexType::UNSIGNED_INT);
+    Fwog::Cmd::DrawIndexed(static_cast<uint32_t>(index_buffer->Size()) / sizeof(uint32_t) ,1, 0, 0, 0);
+}
+
+
 Fwog::GraphicsPipeline ProjectApplication::CreatePipelineSkybox() {
   static constexpr auto sceneInputBindingDescs =
       std::array{Fwog::VertexInputBindingDescription{
@@ -853,13 +882,9 @@ void ProjectApplication::LoadBuildings() {
     object.building_collider.center = object.building_center;
     object.building_collider.halfExtents = object.building_scale * 0.5f;
 
-    ObjectUniforms temp;
-    temp.model = model;
-    temp.color = glm::vec4(default_building_color, 1.0f);
-
-    object.object_buffer = Fwog::TypedBuffer<ObjectUniforms>(
-        Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-    object.object_buffer.value().SubData(temp, 0);
+    object.drawcall.SetModelTransformation(model);
+    object.drawcall.SetColor(glm::vec4{default_building_color, 1.0f});
+    object.drawcall.SetBuffers(building_vertex_buffer.value(), building_index_buffer.value());
 
     buildingObjectList.push_back(std::move(object));
   }
@@ -1568,18 +1593,23 @@ void ProjectApplication::MouseRaycast(camera const& cam) {
   //		return dist_lhs < dist_rhs;
   // });
 
-  buildingObject const* building_hit =
+  buildingObject* building_hit =
       RaycastCheck(cam.position, ray_world_vec3, buildingObjectList);
   if (building_hit == nullptr) return;
 
+
+  building_hit->drawcall.SetColor(glm::vec4(0.0f, 1.0f, 0.0f, 0));
+
   // Yea we should create a function for this
-  ObjectUniforms temp;
-  glm::mat4 model(1.0f);
-  model = glm::translate(model, building_hit->building_center);
-  model = glm::scale(model, building_hit->building_scale);
-  temp.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-  temp.model = model;
-  building_hit->object_buffer.value().SubData(temp, 0);
+  // 
+  // 
+  //ObjectUniforms temp;
+  //glm::mat4 model(1.0f);
+  //model = glm::translate(model, building_hit->building_center);
+  //model = glm::scale(model, building_hit->building_scale);
+  //temp.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+  //temp.model = model;
+  //building_hit->object_buffer.value().SubData(temp, 0);
 
   // AddDebugDrawLine(cam.position, cam.position + ray_world_vec3 *
   // debug_mouse_click_length, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -1620,7 +1650,7 @@ void ProjectApplication::RenderScene() {
     Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0,
                                 sizeof(Primitives::Vertex));
     Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(),
-                               Fwog::IndexType::UNSIGNED_SHORT);
+                               Fwog::IndexType::UNSIGNED_INT);
     Fwog::Cmd::DrawIndexed(
         static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
 
@@ -1631,7 +1661,7 @@ void ProjectApplication::RenderScene() {
       Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0,
                                   sizeof(Primitives::Vertex));
       Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(),
-                                 Fwog::IndexType::UNSIGNED_SHORT);
+                                 Fwog::IndexType::UNSIGNED_INT);
       Fwog::Cmd::DrawIndexed(
           static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
     }
@@ -1639,17 +1669,11 @@ void ProjectApplication::RenderScene() {
 
   // Drawing buildings
   {
+    static constexpr uint64_t stride = sizeof(Utility::Vertex);
     for (auto const& building : buildingObjectList) {
       Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
       Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-      Fwog::Cmd::BindUniformBuffer(1, building.object_buffer.value());
-      Fwog::Cmd::BindVertexBuffer(0, building_vertex_buffer.value(), 0,
-                                  sizeof(Primitives::Vertex));
-      Fwog::Cmd::BindIndexBuffer(building_index_buffer.value(),
-                                 Fwog::IndexType::UNSIGNED_SHORT);
-      Fwog::Cmd::DrawIndexed(
-          static_cast<uint32_t>(building_index_buffer.value().Size()), 1, 0, 0,
-          0);
+      building.drawcall.Draw(stride);
     }
   }
 
