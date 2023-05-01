@@ -27,6 +27,8 @@ namespace PlaneGame {
 
 // To Do: Refactor this
 namespace Primitives {
+
+//This is the exact same as the Utility one and should be deprecated
 struct Vertex {
   glm::vec3 position;
   glm::vec3 normal;

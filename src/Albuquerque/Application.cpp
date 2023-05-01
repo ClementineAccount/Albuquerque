@@ -1,7 +1,6 @@
 #include <Albuquerque/Application.hpp>
 
 //Release mode can disable it
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_OFF
 #include <spdlog/spdlog.h>
 
 #include <glad/glad.h>
