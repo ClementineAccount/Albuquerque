@@ -204,6 +204,22 @@ static void SyncAABB(Collision::AABB& aabb, glm::vec3 pos) {
 }  // namespace Collision
 
 
+class CameraController
+{
+public:
+
+    glm::vec3 position;
+    glm::vec3 target;
+    glm::vec3 up;
+
+    glm::vec3 forward;
+    glm::vec3 right;
+
+private:
+
+
+
+};
 
 class DrawCall
 {
@@ -231,6 +247,12 @@ private:
     Fwog::Buffer const* vertex_buffer = nullptr;
     Fwog::Buffer const* index_buffer = nullptr;
 };
+
+//class CameraController
+//{
+//
+//
+//};
 
 
 class ProjectApplication final : public Albuquerque::Application {
@@ -272,7 +294,11 @@ class ProjectApplication final : public Albuquerque::Application {
   void SetBackgroundMusic(SoLoud::Wav& bgm);
 
  private:
-  void LoadBuffers();
+  void LoadBuffersGame();
+
+  void LoadBuffersGeneric();
+
+
   void LoadGroundPlane();
 
   void LoadCollectables();
@@ -608,6 +634,9 @@ class ProjectApplication final : public Albuquerque::Application {
 
   std::optional<Fwog::Texture> mousePick_Texture;
   void MouseRaycast(camera const& cam);
+
+
+
 
   // To Do: Rewrite this after fixing architecture to decouple collision,
   // rendering and entity data

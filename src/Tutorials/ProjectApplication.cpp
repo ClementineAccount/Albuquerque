@@ -639,6 +639,8 @@ void ProjectApplication::LoadGroundPlane() {
        static_cast<uint32_t>(textureHeight)},
       Fwog::Format::R8G8B8A8_SRGB,
       uint32_t(1 + floor(log2(glm::max(textureWidth, textureHeight)))));
+  
+  
   Fwog::TextureUpdateInfo updateInfo{
       .dimension = Fwog::UploadDimension::TWO,
       .level = 0,
@@ -664,7 +666,66 @@ void ProjectApplication::LoadGroundPlane() {
   index_buffer_plane.emplace(Primitives::plane_indices);
 }
 
-void ProjectApplication::LoadBuffers() {
+void ProjectApplication::LoadBuffersGeneric()
+{
+    // Creating world axis stuff
+    {
+        glm::vec3 worldUpFinal = worldOrigin + (worldUp)*axisScale;
+        glm::vec3 worldForwardFinal = worldOrigin + (worldForward)*axisScale;
+        glm::vec3 worldRightFinal = worldOrigin + (worldRight)*axisScale;
+
+        std::array<glm::vec3, num_points_world_axis> axisPos{
+            worldOrigin,       worldUpFinal, worldOrigin,
+            worldForwardFinal, worldOrigin,  worldRightFinal};
+        std::array<glm::vec3, num_points_world_axis> axisColors{
+            worldUpColor,      worldUpColor,    worldForwardColor,
+            worldForwardColor, worldRightcolor, worldRightcolor};
+
+        vertex_buffer_pos_line = Fwog::TypedBuffer<glm::vec3>(axisPos);
+        vertex_buffer_color_line = Fwog::TypedBuffer<glm::vec3>(axisColors);
+    }
+
+    // Create collision line buffer
+    {
+        // Doesn't matter what the default initalization is since we only draw the
+        // valid points
+        std::array<glm::vec3, max_num_draw_points> linePts{};
+
+        vertex_buffer_draw_lines = Fwog::TypedBuffer<glm::vec3>(
+            max_num_draw_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+        vertex_buffer_draw_colors = Fwog::TypedBuffer<glm::vec3>(
+            max_num_draw_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+        vertex_buffer_draw_lines.value().SubData(linePts, 0);
+        vertex_buffer_draw_colors.value().SubData(linePts, 0);
+    }
+
+    // Camera Settings
+    {
+        static glm::vec3 camPos = glm::vec3(3.0f, 3.0f, 3.0f);
+        static glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
+        static glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+        static glm::mat4 view = glm::lookAt(camPos, origin, up);
+        static glm::mat4 proj =
+            glm::perspective(PI / 2.0f, 1.6f, nearPlane, farPlane);
+        static glm::mat4 viewProj = proj * view;
+
+
+        editorCamera.position = camPos;
+        editorCamera.up = up;
+
+        globalStruct.viewProj = viewProj;
+        globalStruct.eyePos = camPos;
+
+        globalUniformsBuffer = Fwog::TypedBuffer<GlobalUniforms>(
+            Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+        globalUniformsBuffer_skybox = Fwog::TypedBuffer<GlobalUniforms>(
+            Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+        globalUniformsBuffer.value().SubData(globalStruct, 0);
+        globalUniformsBuffer_skybox.value().SubData(globalStruct, 0);
+    }
+}
+
+void ProjectApplication::LoadBuffersGame() {
   // Creating world axis stuff
   {
     glm::vec3 worldUpFinal = worldOrigin + (worldUp)*axisScale;
@@ -708,6 +769,7 @@ void ProjectApplication::LoadBuffers() {
 
     globalStruct.viewProj = viewProj;
     globalStruct.eyePos = camPos;
+
 
     globalUniformsBuffer = Fwog::TypedBuffer<GlobalUniforms>(
         Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
@@ -765,7 +827,6 @@ void ProjectApplication::LoadBuffers() {
   // checkpoint_vertex_buffer.emplace(scene_checkpoint_ring.meshes[0].vertexBuffer);
   // checkpoint_index_buffer.emplace(scene_checkpoint_ring.meshes[0].indexBuffer);
 }
-
 void ProjectApplication::CreateGroundChunks() {
   // Makes the chunks surrounding relative to a center
   constexpr glm::vec3 center_position{0.0f, 0.0f, 0.0f};
@@ -934,12 +995,8 @@ void ProjectApplication::SetupGameplay()
 
     // Creating pipelines
 
-    pipeline_flat = CreatePipeline();
-    pipeline_lines = CreatePipelineLines();
-    pipeline_textured = CreatePipelineTextured();
-    pipeline_colored_indexed = CreatePipelineColoredIndex();
 
-    LoadBuffers();
+    LoadBuffersGame();
     CreateGroundChunks();
     CreateSkybox();
 
@@ -964,8 +1021,17 @@ void ProjectApplication::SetupGameplay()
 
 bool ProjectApplication::Load() {
 
+pipeline_flat = CreatePipeline();
+pipeline_lines = CreatePipelineLines();
+pipeline_textured = CreatePipelineTextured();
+pipeline_colored_indexed = CreatePipelineColoredIndex();
+
+
  SetWindowTitle("Tutorial Stuff");
  SetMouseCursorHidden(false);
+ LoadBuffersGeneric();
+ LoadGroundPlane();
+
   return true;
 }
 
@@ -1545,6 +1611,26 @@ void ProjectApplication::UpdateGameplay(double dt)
 
 void ProjectApplication::Update(double dt) {
     //UpdateGameplay(dt);
+
+    UpdateEditorCamera(dt);
+
+    // Camera logic stuff
+    ZoneScopedC(tracy::Color::Blue);
+
+    glm::mat4 view = glm::lookAt(editorCamera.position, editorCamera.target,
+        editorCamera.up);
+    glm::mat4 proj =
+        glm::perspective((base_fov_radians), 1.6f, nearPlane, farPlane);
+    glm::mat4 viewProj = proj * view;
+
+    globalStruct.viewProj = viewProj;
+    globalStruct.eyePos = editorCamera.position;
+
+    globalUniformsBuffer.value().SubData(globalStruct, 0);
+
+    glm::mat4 view_rot_only = glm::mat4(glm::mat3(view));
+    globalStruct.viewProj = proj * view_rot_only;
+    globalUniformsBuffer_skybox.value().SubData(globalStruct, 0);
 }
 
 void ProjectApplication::MouseRaycast(camera const& cam) {
@@ -1826,6 +1912,30 @@ void ProjectApplication::RenderScene() {
         1.0f},
         .depthLoadOp = Fwog::AttachmentLoadOp::CLEAR,
         .clearDepthValue = 1.0f});
+
+    // Drawing a ground plane
+    {
+        Fwog::SamplerState ss;
+        ss.minFilter = Fwog::Filter::LINEAR;
+        ss.magFilter = Fwog::Filter::LINEAR;
+        ss.mipmapFilter = Fwog::Filter::LINEAR;
+        ss.addressModeU = Fwog::AddressMode::REPEAT;
+        ss.addressModeV = Fwog::AddressMode::REPEAT;
+        ss.anisotropy = Fwog::SampleCount::SAMPLES_16;
+        auto nearestSampler = Fwog::Sampler(ss);
+
+        Fwog::Cmd::BindGraphicsPipeline(pipeline_textured.value());
+        Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+        Fwog::Cmd::BindUniformBuffer(1, objectBufferPlane.value());
+        Fwog::Cmd::BindSampledImage(0, groundAlbedo.value(), nearestSampler);
+        Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0,
+            sizeof(Primitives::Vertex));
+        Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(),
+            Fwog::IndexType::UNSIGNED_INT);
+        Fwog::Cmd::DrawIndexed(
+            static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
+    }
+
     Fwog::EndRendering();
 }
 
@@ -1884,8 +1994,9 @@ void ProjectApplication::RenderUI(double dt) {
     // This is needed or else there's a crash
     glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 
-    ImGui::Begin("Performance");
+    ImGui::Begin("Stuff");
     {
+        ImGui::Text("Camera Position: %.0f, %.0f, %.0f", editorCamera.position.x, editorCamera.position.y, editorCamera.position.z);
         ImGui::Text("Framerate: %.0f Hertz", 1 / dt);
         ImGui::End();
     }
