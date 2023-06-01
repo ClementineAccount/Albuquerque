@@ -3,7 +3,7 @@
 
 #include <string_view>
 #include <string>
-#include <map>
+#include <unordered_map>
 
 namespace PlaneGame {
 
@@ -14,7 +14,7 @@ namespace PlaneGame {
         void ParseConfigFile(std::string_view filePath);
 
     private:
-        std::map<std::string, std::string> variables_map;
+        std::unordered_map<std::string, std::string> variables_map;
     };
 }
 
