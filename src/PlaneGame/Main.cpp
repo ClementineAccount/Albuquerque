@@ -1,7 +1,11 @@
 #include <ProjectApplication.hpp>
+#include <TestRunner.h>
+
 
 int main(int argc, char* argv[])
 {
+    PlaneGame::Tests::RunTests();
+
     PlaneGame::ProjectApplication application;
     application.Run();
     return 0;

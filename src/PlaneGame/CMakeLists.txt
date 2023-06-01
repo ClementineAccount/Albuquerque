@@ -42,18 +42,20 @@ set_target_properties(LinearMath PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAK
 
 set(sourceFiles
     Main.cpp
+    ConfigReader.cpp
+    TestRunner.cpp
     SceneLoader.cpp
-    ImGuizmo.cpp
     ProjectApplication.cpp
 )
 
 set(headerFiles
     include/SceneLoader.h
-    include/ImGuizmo.h
+    include/ConfigReader.h
+    include/TestRunner.h
     include/ProjectApplication.hpp
     )
 
-add_executable(PlaneGame ${sourceFiles} ${headerFiles})
+add_executable(PlaneGame ${sourceFiles} ${headerFiles} "TestRunner.cpp")
 
 add_dependencies(PlaneGame copy_data)
 

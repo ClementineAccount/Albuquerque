@@ -238,17 +238,6 @@ class Aircraft
 };
 
 
-class ConfigReader
-{
-public:
-    void ParseConfigFile(std::string_view filePath);
-
-private:
-    std::map<std::string, std::string> variables_map;
-};
-
-
-
 class ProjectApplication final : public Albuquerque::Application {
  public:
   static std::string LoadFile(std::string_view path);
