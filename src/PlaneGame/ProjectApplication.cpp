@@ -1333,20 +1333,26 @@ void ProjectApplication::Update(double dt) {
           // aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix,
           // glm::radians(-aircraft_angle_turning_degrees) * dt_float,
           // aircraft_body.forward_vector);
+
           aircraft_body.rotMatrix = glm::rotate(
               aircraft_body.rotMatrix,
               glm::radians(-aircraft_angle_turning_degrees) * dt_float,
-              worldForward);
+              glm::vec3(0.0f, 0.0f, 1.0f));
         }
 
         if (IsKeyPressed(GLFW_KEY_UP)) {
           // aircraft_body.rotMatrix = glm::rotate(aircraft_body.rotMatrix,
           // glm::radians(aircraft_angle_turning_degrees) * dt_float,
           // aircraft_body.right_vector);
-          aircraft_body.rotMatrix = glm::rotate(
+          
+            
+            aircraft_body.rotMatrix = glm::rotate(
               aircraft_body.rotMatrix,
               glm::radians(aircraft_angle_turning_degrees) * dt_float,
               worldRight);
+
+
+
           // aircraft_body.aircraft_angles_degrees.x +=
           // aircraft_angle_turning_degrees * dt_float;
         }
