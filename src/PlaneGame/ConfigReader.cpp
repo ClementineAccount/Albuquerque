@@ -14,11 +14,23 @@ namespace PlaneGame
 		if (file.is_open())
 		{
 			std::string buffer;
-			while (file >> buffer)
+			while (std::getline(file, buffer))
 			{
-				//Check if it has the [category]
-
 				std::cout << buffer << std::endl;
+				size_t setter_pos = buffer.find_first_of("=");
+
+				//Ignore anything without that equal sign
+				if (setter_pos != std::string::npos)
+				{
+					//To Do: After we profile the speed of parsing, this is an area of
+					//optimization we can consider by not copying string values or something...
+					
+					//If we are comfortable with the spaces at the end
+					std::string variable_name = buffer.substr(0, setter_pos - 1);
+					std::string variable_value_string = buffer.substr(setter_pos + 1, buffer.size());
+
+					variables_map.emplace(std::move(variable_name), std::move(variable_value_string));
+				}
 			}
 		}
 	}

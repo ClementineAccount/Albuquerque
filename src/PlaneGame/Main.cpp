@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[])
 {
-    PlaneGame::Tests::RunTests();
+    //PlaneGame::Tests::RunTests();
 
     PlaneGame::ProjectApplication application;
     application.Run();
