@@ -914,6 +914,9 @@ bool ProjectApplication::Load() {
 
   // To Do: Like actually use the res properly
   SoLoud::result init = soloud.init();
+
+
+
   SoLoud::result res =
       sample.load("data/sounds/start.wav");  // Load a wave file
   sample.setVolume(0.75);

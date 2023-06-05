@@ -80,6 +80,23 @@ target_compile_definitions(glm INTERFACE GLM_FORCE_SILENT_WARNINGS)
 
 #----------------------------------------------------------------------
 
+
+#----------------------------------------------------------------------
+
+FetchContent_Declare(
+    soloud
+    GIT_REPOSITORY https://github.com/ClementineAccount/soloud-albuquerque
+    GIT_TAG        b80969b03c2a86fa0dff5bb03bfa28ce98ab894c
+    SOURCE_SUBDIR  contrib
+)
+
+message("Fetching soloud")
+FetchContent_MakeAvailable(soloud)
+
+#----------------------------------------------------------------------
+
+
+
 option(TINYGLTF_BUILD_LOADER_EXAMPLE "" OFF)
 FetchContent_Declare(
     tinygltf
