@@ -34,4 +34,20 @@ namespace PlaneGame
 			}
 		}
 	}
+
+	bool ConfigReader::GetDataString(std::string_view dataName, std::string& data_string)
+	{
+		//i dont even know if string view is used correctly here but im tired
+
+		//Check if the data u seek even exists here
+		if (variables_map.find(dataName.data()) == variables_map.end())
+		{
+			//if not i prob should output a proper message but just fail unintrusively
+			std::cout << dataName << " not found in config file\n";
+			return false;
+		}
+
+		data_string = variables_map.at(dataName.data());
+		return true;
+	}
 }

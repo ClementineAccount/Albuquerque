@@ -508,7 +508,7 @@ namespace Utility
     bool result;
     if (binary)
     {
-      result = loader.LoadBinaryFromFile(&model, &error, &warning, std::string(fileName));
+      result = loader.LoadBinaryFromFile(&model, &error, &warning, std::string(fileName ));
     }
     else
     {
