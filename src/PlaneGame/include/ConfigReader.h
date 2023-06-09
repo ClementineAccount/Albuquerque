@@ -11,7 +11,7 @@ namespace PlaneGame {
     class ConfigReader
     {
     public:
-        void ParseConfigFile(std::string_view filePath);
+        void ParseConfigFile(std::string_view filePath, bool outputContents = false);
 
 
         // To Do: probably make some template version that lets u get the data directly in correct type but for now I let the other classes 

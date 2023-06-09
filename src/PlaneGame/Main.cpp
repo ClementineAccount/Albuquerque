@@ -1,10 +1,15 @@
 #include <ProjectApplication.hpp>
 #include <TestRunner.h>
 
+//prob should change this to something else, argc variable or something?
+constexpr bool runTests = true;
 
 int main(int argc, char* argv[])
 {
-    //PlaneGame::Tests::RunTests();
+    if (runTests)
+    {
+        PlaneGame::Tests::RunTests();
+    }
 
     PlaneGame::ProjectApplication application;
     application.Run();

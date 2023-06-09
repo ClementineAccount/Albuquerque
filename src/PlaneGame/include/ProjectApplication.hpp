@@ -501,7 +501,7 @@ class ProjectApplication final : public Albuquerque::Application {
 
   SoLoud::Wav* curr_backgrond_music = nullptr;
 
-  bool is_background_music_muted = false;
+  bool is_background_music_muted = true;
 
   // Collision related stuff. Need to refactor
 
