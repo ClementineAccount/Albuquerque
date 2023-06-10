@@ -1,0 +1,8 @@
+[Screen Settings]
+width = 1600
+height = 900
+fullscreen = false
+
+[Window Settings]
+WindowTitle = Plane Game Real
+

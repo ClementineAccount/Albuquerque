@@ -908,9 +908,16 @@ void ProjectApplication::MuteBackgroundMusicToggle(bool set_muted) {
 }
 
 bool ProjectApplication::Load() {
-  SetWindowTitle("Plane Game");
+  
+    configInstance.ParseConfigFile("data/Config.txt");
+    std::string windowTitle;
+    if (!configInstance.GetDataString("WindowTitle", windowTitle))
+        windowTitle = "Missing Config File";
+    
+    SetWindowTitle(windowTitle.c_str());
 
   // Initialize SoLoud (automatic back-end selection)
+
 
   // To Do: Like actually use the res properly
   SoLoud::result init = soloud.init();

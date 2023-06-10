@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "SceneLoader.h"
+#include "ConfigReader.h"
 
 namespace PlaneGame {
 
@@ -304,6 +305,7 @@ class ProjectApplication final : public Albuquerque::Application {
   static float lerp(float start, float end, float t);
 
  private:
+
   enum class game_states : int32_t { playing, game_over, level_editor };
 
   game_states curr_game_state = game_states::playing;
@@ -322,6 +324,9 @@ class ProjectApplication final : public Albuquerque::Application {
 
   static constexpr float axisScale = 1000.0f;
   static constexpr float PI = 3.1415926f;
+
+
+  ConfigReader configInstance;
 
   // Some ideas of a score system
 
