@@ -913,8 +913,19 @@ bool ProjectApplication::Load() {
     std::string windowTitle;
     if (!configInstance.GetDataString("WindowTitle", windowTitle))
         windowTitle = "Missing Config File";
-    
+
     SetWindowTitle(windowTitle.c_str());
+
+    std::string buffer;
+    if (configInstance.GetDataString("MaxSpeed", buffer))
+    {
+        aircraft_max_speed = std::stof(buffer);
+    }
+    if (configInstance.GetDataString("MinSpeed", buffer))
+    {
+        aircraft_min_speed = std::stof(buffer);
+    }
+
 
   // Initialize SoLoud (automatic back-end selection)
 

@@ -424,8 +424,8 @@ class ProjectApplication final : public Albuquerque::Application {
     float propeller_angle_degrees = 0.0f;
   };
 
-  static constexpr float aircraft_max_speed = 300.0f;
-  static constexpr float aircraft_min_speed = 40.0f;
+  float aircraft_max_speed = 300.0f;
+  float aircraft_min_speed = 40.0f;
   static constexpr float aircraft_speed_increase_per_second = 30.0f;
   static constexpr float aircraft_speed_decrease_per_second = -30.0f;
 

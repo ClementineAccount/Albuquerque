@@ -6,3 +6,6 @@ fullscreen = false
 [Window Settings]
 WindowTitle = Plane Game Real
 
+[Plane Settings]
+MaxSpeed = 300.5
+
