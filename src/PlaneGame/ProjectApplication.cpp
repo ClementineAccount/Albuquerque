@@ -909,7 +909,7 @@ void ProjectApplication::MuteBackgroundMusicToggle(bool set_muted) {
 
 bool ProjectApplication::Load() {
   
-    configInstance.ParseConfigFile("data/Config.txt");
+    configInstance.ParseConfigFile("data/Config.ini");
     std::string windowTitle;
     if (!configInstance.GetDataString("WindowTitle", windowTitle))
         windowTitle = "Missing Config File";
@@ -1224,7 +1224,7 @@ void ProjectApplication::Update(double dt) {
   //Prototyping reloading the config data
   if (IsKeyPressed(GLFW_KEY_R))
   {
-      configInstance.ReloadConfigFile("data/Config.txt");
+      configInstance.ReloadConfigFile("data/Config.ini");
 
       std::string buffer;
       if (configInstance.GetDataString("MaxSpeed", buffer))
