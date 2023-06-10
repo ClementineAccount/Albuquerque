@@ -426,8 +426,9 @@ class ProjectApplication final : public Albuquerque::Application {
 
   float aircraft_max_speed = 300.0f;
   float aircraft_min_speed = 40.0f;
-  static constexpr float aircraft_speed_increase_per_second = 30.0f;
-  static constexpr float aircraft_speed_decrease_per_second = -30.0f;
+
+  float aircraft_speed_increase_per_second = 30.0f;
+  float aircraft_speed_decrease_per_second = -30.0f;
 
   static constexpr float max_zoom_level_scale = 1.3f;
   static constexpr float min_zoom_level_scale = 1.0f;

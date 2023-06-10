@@ -21,6 +21,9 @@ namespace PlaneGame {
 
        bool GetDataString(std::string_view dataName,  std::string& data_string);
 
+
+       void ReloadConfigFile(std::string_view filePath, bool outputContents = false);
+
     private:
         std::unordered_map<std::string, std::string> variables_map;
     };

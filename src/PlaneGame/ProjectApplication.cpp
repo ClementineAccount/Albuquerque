@@ -1221,6 +1221,32 @@ void ProjectApplication::Update(double dt) {
     Close();
   }
 
+  //Prototyping reloading the config data
+  if (IsKeyPressed(GLFW_KEY_R))
+  {
+      configInstance.ReloadConfigFile("data/Config.txt");
+
+      std::string buffer;
+      if (configInstance.GetDataString("MaxSpeed", buffer))
+      {
+          aircraft_max_speed = std::stof(buffer);
+      }
+      if (configInstance.GetDataString("MinSpeed", buffer))
+      {
+          aircraft_min_speed = std::stof(buffer);
+      }
+      if (configInstance.GetDataString("IncreaseSpeed", buffer))
+      {
+          aircraft_speed_increase_per_second = std::stof(buffer);
+      }
+
+      if (configInstance.GetDataString("DecreaseSpeed", buffer))
+      {
+          aircraft_speed_decrease_per_second = std::stof(buffer);
+      }
+
+  }
+
   static bool wasKeyPressed_Editor = false;
   if (!wasKeyPressed_Editor && IsKeyPressed(GLFW_KEY_1)) {
     wasKeyPressed_Editor = true;

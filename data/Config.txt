@@ -7,5 +7,7 @@ fullscreen = false
 WindowTitle = Plane Game Real
 
 [Plane Settings]
-MaxSpeed = 300.5
-
+MaxSpeed = 100.0
+MinSpeed = 0.0
+IncreaseSpeed = 200.0
+DecreaseSpeed = -30.0
