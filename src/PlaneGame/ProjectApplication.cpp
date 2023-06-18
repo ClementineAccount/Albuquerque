@@ -628,17 +628,22 @@ void ProjectApplication::CreateSkybox() {
 void ProjectApplication::LoadGroundPlane() {
   // to do: better texture loading systems. this can break so easily and its
   // jank as hell
-  int32_t textureWidth, textureHeight, textureChannels;
+  
+    int32_t textureWidth, textureHeight, textureChannels;
   constexpr int32_t expected_num_channels = 4;
+  
   unsigned char* textureData =
       stbi_load("data/textures/GroundForest003_Flat.png", &textureWidth,
                 &textureHeight, &textureChannels, expected_num_channels);
   assert(textureData);
+
+
   groundAlbedo = Fwog::CreateTexture2DMip(
       {static_cast<uint32_t>(textureWidth),
        static_cast<uint32_t>(textureHeight)},
       Fwog::Format::R8G8B8A8_SRGB,
       uint32_t(1 + floor(log2(glm::max(textureWidth, textureHeight)))));
+  
   Fwog::TextureUpdateInfo updateInfo{
       .dimension = Fwog::UploadDimension::TWO,
       .level = 0,
@@ -648,6 +653,7 @@ void ProjectApplication::LoadGroundPlane() {
       .format = Fwog::UploadFormat::RGBA,
       .type = Fwog::UploadType::UBYTE,
       .pixels = textureData};
+  
   groundAlbedo.value().SubImage(updateInfo);
   groundAlbedo.value().GenMipmaps();
   stbi_image_free(textureData);
