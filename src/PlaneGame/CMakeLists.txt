@@ -60,4 +60,4 @@ add_executable(PlaneGame ${sourceFiles} ${headerFiles} "TestRunner.cpp")
 add_dependencies(PlaneGame copy_data)
 
 
-target_link_libraries(PlaneGame PRIVATE TracyClient lua54 freetype soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog BulletDynamics BulletCollision LinearMath Albuquerque)
+target_link_libraries(PlaneGame PRIVATE TracyClient soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Albuquerque)
