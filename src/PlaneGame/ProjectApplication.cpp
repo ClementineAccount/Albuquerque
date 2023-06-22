@@ -40,6 +40,11 @@
 #include "SceneLoader.h"
 #include "stb_image.h"
 
+
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+#include <SDL3/SDL_mixer.h>
+
 namespace PlaneGame {
 
 static std::string Slurp(std::string_view path) {

@@ -134,7 +134,7 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
     GIT_TAG        release-2.6.3
 )
-message("Fetching SDL_Mixer")
+message("Fetching SDL_mixer")
 FetchContent_MakeAvailable(SDL_mixer)
 
 
