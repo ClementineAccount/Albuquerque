@@ -7,8 +7,8 @@ include(FetchContent)
 target_include_directories(imgui PUBLIC include)
 target_include_directories(spdlog PUBLIC include)
 target_include_directories(fwog PUBLIC include)
-#target_include_directories(SDL PUBLIC include)
-#target_include_directories(SDL_mixer PUBLIC include)
+#target_include_directories(SDL2 PUBLIC include)
+#target_include_directories(SDL2_mixer PUBLIC include)
 
 message("(Plane Game) add_library soloud")
 add_library(soloud STATIC IMPORTED)
@@ -60,6 +60,4 @@ set(headerFiles
 add_executable(PlaneGame ${sourceFiles} ${headerFiles} "TestRunner.cpp")
 
 add_dependencies(PlaneGame copy_data)
-
-
-target_link_libraries(PlaneGame PRIVATE TracyClient SDL SDL_mixer soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Albuquerque)
+target_link_libraries(PlaneGame PRIVATE TracyClient SDL2 SDL2_mixer soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Albuquerque)

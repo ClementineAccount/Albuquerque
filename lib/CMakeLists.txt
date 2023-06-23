@@ -126,7 +126,12 @@ FetchContent_Declare(
     GIT_TAG        release-2.26.5 
 )
 message("Fetching SDL")
-FetchContent_MakeAvailable(SDL)
+FetchContent_GetProperties(SDL)
+if(NOT SDL_POPULATED)
+  FetchContent_Populate(SDL)
+  add_subdirectory(${sdl_SOURCE_DIR} ${sdl_BINARY_DIR})
+endif()
+
 
 
 FetchContent_Declare(
@@ -135,7 +140,22 @@ FetchContent_Declare(
     GIT_TAG        release-2.6.3
 )
 message("Fetching SDL_mixer")
-FetchContent_MakeAvailable(SDL_mixer)
+FetchContent_GetProperties(SDL_mixer)
+if(NOT SDL_mixer_POPULATED)
+  option(SDL2MIXER_INSTALL "Enable SDL2mixer install target" OFF)
+  option(SDL2MIXER_DEPS_SHARED "Default value for loading dependencies dynamically" OFF)
+  option(SDL2MIXER_SAMPLES "Build the SDL2_mixer sample program(s)" OFF)
+  option(SDL2MIXER_CMD "Support an external music player" OFF)
+  option(SDL2MIXER_FLAC "Enable FLAC music" OFF)
+  option(SDL2MIXER_MOD "Support loading MOD music" OFF)
+  option(SDL2MIXER_MP3 "Enable MP3 music" OFF)
+  option(SDL2MIXER_MIDI "Enable MIDI music" OFF)
+  option(SDL2MIXER_OPUS "Enable Opus music" OFF)
+  FetchContent_Populate(SDL_mixer)
+  add_subdirectory(${sdl_mixer_SOURCE_DIR} ${sdl_mixer_BINARY_DIR})
+endif()
+
+
 
 
 
