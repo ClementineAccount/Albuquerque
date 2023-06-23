@@ -24,6 +24,7 @@
 #include "SceneLoader.h"
 #include "ConfigReader.h"
 
+
 namespace PlaneGame {
 
 // To Do: Refactor this
@@ -495,6 +496,7 @@ class ProjectApplication final : public Albuquerque::Application {
   std::optional<Fwog::TypedBuffer<ObjectUniforms>> object_buffer_propeller;
 
   std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferWheels;
+
 
   SoLoud::Soloud soloud;
   SoLoud::Wav sample;

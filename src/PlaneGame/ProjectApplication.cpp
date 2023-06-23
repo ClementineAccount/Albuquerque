@@ -44,6 +44,10 @@
 #include "miniaudio.h"
 
 namespace PlaneGame {
+    
+    
+    //Global for now but need to be not global in future
+    ma_engine miniAudioEngine;
 
 static std::string Slurp(std::string_view path) {
   std::ifstream file(path.data(), std::ios::ate);
@@ -935,6 +939,14 @@ bool ProjectApplication::Load() {
         aircraft_min_speed = std::stof(buffer);
     }
 
+    //iniitalize miniaudio
+    ma_result result;
+    result = ma_engine_init(NULL, &miniAudioEngine);
+    if (result != MA_SUCCESS) {
+        return -1;
+    }
+
+    ma_engine_play_sound(&miniAudioEngine, "data/sounds/start.wav", NULL);
 
   // Initialize SoLoud (automatic back-end selection)
 
@@ -1233,6 +1245,9 @@ void ProjectApplication::Update(double dt) {
   //Prototyping reloading the config data
   if (IsKeyPressed(GLFW_KEY_R))
   {
+
+      //ma_engine_uninit(&engine);
+
       configInstance.ReloadConfigFile("data/Config.ini");
 
       std::string buffer;
@@ -1904,6 +1919,8 @@ void ProjectApplication::RenderUI(double dt) {
 ProjectApplication::~ProjectApplication() {
   soloud.stopAll();
   soloud.deinit();
+
+  ma_engine_uninit(&miniAudioEngine);
 }
 
 }  // namespace PlaneGame
