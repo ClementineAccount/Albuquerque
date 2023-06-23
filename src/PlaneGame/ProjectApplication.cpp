@@ -40,9 +40,8 @@
 #include "SceneLoader.h"
 #include "stb_image.h"
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_main.h>
-#include <SDL_mixer.h>
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
 
 namespace PlaneGame {
 

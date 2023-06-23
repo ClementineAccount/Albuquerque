@@ -60,4 +60,4 @@ set(headerFiles
 add_executable(PlaneGame ${sourceFiles} ${headerFiles} "TestRunner.cpp")
 
 add_dependencies(PlaneGame copy_data)
-target_link_libraries(PlaneGame PRIVATE TracyClient SDL2 SDL2_mixer soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Albuquerque)
+target_link_libraries(PlaneGame PRIVATE TracyClient miniaudio soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Albuquerque)

@@ -118,43 +118,23 @@ FetchContent_Declare(
 message("Fetching fwog")
 FetchContent_MakeAvailable(fwog)
 
-#Is this really the way? Just getting SDL straight away? Well lets see...
-
-FetchContent_Declare(
-    SDL
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG        release-2.26.5 
-)
-message("Fetching SDL")
-FetchContent_GetProperties(SDL)
-if(NOT SDL_POPULATED)
-  FetchContent_Populate(SDL)
-  add_subdirectory(${sdl_SOURCE_DIR} ${sdl_BINARY_DIR})
-endif()
-
 
 
 FetchContent_Declare(
-    SDL_mixer
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
-    GIT_TAG        release-2.6.3
+    miniaudio
+    GIT_REPOSITORY  https://github.com/mackron/miniaudio.git
+    GIT_TAG         0.11.17
+    GIT_SHALLOW     TRUE
+    GIT_PROGRESS    TRUE
 )
-message("Fetching SDL_mixer")
-FetchContent_GetProperties(SDL_mixer)
-if(NOT SDL_mixer_POPULATED)
-  option(SDL2MIXER_INSTALL "Enable SDL2mixer install target" OFF)
-  option(SDL2MIXER_DEPS_SHARED "Default value for loading dependencies dynamically" OFF)
-  option(SDL2MIXER_SAMPLES "Build the SDL2_mixer sample program(s)" OFF)
-  option(SDL2MIXER_CMD "Support an external music player" OFF)
-  option(SDL2MIXER_FLAC "Enable FLAC music" OFF)
-  option(SDL2MIXER_MOD "Support loading MOD music" OFF)
-  option(SDL2MIXER_MP3 "Enable MP3 music" OFF)
-  option(SDL2MIXER_MIDI "Enable MIDI music" OFF)
-  option(SDL2MIXER_OPUS "Enable Opus music" OFF)
-  FetchContent_Populate(SDL_mixer)
-  add_subdirectory(${sdl_mixer_SOURCE_DIR} ${sdl_mixer_BINARY_DIR})
-endif()
+FetchContent_GetProperties(miniaudio)
+if(NOT miniaudio_POPULATED)
+    FetchContent_Populate(miniaudio)
+    message("Fetching miniaudio")
 
+    add_library(miniaudio INTERFACE ${miniaudio_SOURCE_DIR}/miniaudio.h)
+    target_include_directories(miniaudio INTERFACE ${miniaudio_SOURCE_DIR})
+endif()
 
 
 
