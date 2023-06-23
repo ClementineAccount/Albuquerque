@@ -118,24 +118,13 @@ FetchContent_Declare(
 message("Fetching fwog")
 FetchContent_MakeAvailable(fwog)
 
-#Is this really the way? Just getting SDL straight away? Well lets see...
-
 FetchContent_Declare(
-    SDL
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG        release-2.26.5 
+    portaudio_static
+    GIT_REPOSITORY https://github.com/PortAudio/portaudio.git
+    GIT_TAG        v19.7.0 
 )
-message("Fetching SDL")
-FetchContent_MakeAvailable(SDL)
-
-
-FetchContent_Declare(
-    SDL_mixer
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
-    GIT_TAG        release-2.6.3
-)
-message("Fetching SDL_Mixer")
-FetchContent_MakeAvailable(SDL_mixer)
+message("Fetching portaudio_static")
+FetchContent_MakeAvailable(portaudio_static)
 
 
 

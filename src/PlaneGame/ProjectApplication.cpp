@@ -40,6 +40,8 @@
 #include "SceneLoader.h"
 #include "stb_image.h"
 
+#include "portaudio.h"
+
 namespace PlaneGame {
 
 static std::string Slurp(std::string_view path) {

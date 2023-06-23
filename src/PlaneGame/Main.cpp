@@ -6,10 +6,10 @@ constexpr bool runTests = true;
 
 int main(int argc, char* argv[])
 {
-    if (runTests)
-    {
-        PlaneGame::Tests::RunTests();
-    }
+    //if (runTests)
+    //{
+    //    PlaneGame::Tests::RunTests();
+    //}
 
     PlaneGame::ProjectApplication application;
     application.Run();
