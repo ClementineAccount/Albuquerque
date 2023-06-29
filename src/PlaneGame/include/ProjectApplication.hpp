@@ -266,6 +266,7 @@ class ProjectApplication final : public Albuquerque::Application {
 
   void MuteBackgroundMusicToggle(bool set_muted);
   void SetBackgroundMusic(SoLoud::Wav& bgm);
+  void SetBackgroundMusic(ma_sound& bgm);
 
  private:
   void LoadBuffers();
@@ -502,14 +503,17 @@ class ProjectApplication final : public Albuquerque::Application {
   SoLoud::Soloud soloud;
   SoLoud::Wav sample;
   SoLoud::Wav plane_speedup_sfx;
-  SoLoud::Wav background_music;
-  SoLoud::Wav level_editor_music;
   SoLoud::Wav collectable_pickup_sfx;
   SoLoud::Wav* curr_backgrond_music = nullptr;
 
+
+
   //Don't worry we will refactor all of this
   ma_sound plane_flying_sfx_ma;
+  ma_sound background_music_ma;
+  ma_sound level_editor_music_ma;
 
+  ma_sound* curr_background_music_ptr = nullptr;
 
 
   bool is_background_music_muted = true;

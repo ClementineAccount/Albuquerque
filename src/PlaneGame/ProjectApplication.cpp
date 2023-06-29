@@ -910,12 +910,25 @@ void ProjectApplication::SetBackgroundMusic(SoLoud::Wav& bgm) {
   }
 }
 
+void ProjectApplication::SetBackgroundMusic(ma_sound& bgm)
+{
+    if (curr_background_music_ptr != nullptr)
+    {
+        ma_sound_stop(curr_background_music_ptr);
+    }
+
+    curr_background_music_ptr = &bgm;
+    if (!is_background_music_muted) {
+        ma_sound_start(curr_background_music_ptr);
+    }
+}
+
 void ProjectApplication::MuteBackgroundMusicToggle(bool set_muted) {
   is_background_music_muted = set_muted;
   if (curr_game_state == game_states::level_editor)
-    SetBackgroundMusic(level_editor_music);
+    SetBackgroundMusic(level_editor_music_ma);
   else {
-    SetBackgroundMusic(background_music);
+    SetBackgroundMusic(background_music_ma);
   }
 }
 
@@ -967,11 +980,20 @@ bool ProjectApplication::Load() {
   //res = plane_flying_sfx.load("data/sounds/planeFlying.wav");
   //plane_speedup_sfx.load("data/sounds/planeFlying.wav");
 
-  background_music.load("data/sounds/backgroundMusic.wav");
-  background_music.setVolume(0.30);
+  ma_res = ma_sound_init_from_file(&miniAudioEngine, "data/sounds/backgroundMusic.wav", 0, NULL, NULL, &background_music_ma);
+  if (ma_res != MA_SUCCESS) {
+      return ma_res;
+  }
+  ma_sound_set_volume(&background_music_ma, 0.30);
 
-  level_editor_music.load("data/sounds/levelEditorMusic.wav");
-  level_editor_music.setVolume(0.70);
+  //background_music.load("data/sounds/backgroundMusic.wav");
+  //background_music.setVolume(0.30);
+
+  ma_res = ma_sound_init_from_file(&miniAudioEngine, "data/sounds/levelEditorMusic.wav", 0, NULL, NULL, &level_editor_music_ma);
+  if (ma_res != MA_SUCCESS) {
+      return ma_res;
+  }
+  ma_sound_set_volume(&level_editor_music_ma, 0.70);
 
   collectable_pickup_sfx.load("data/sounds/collectablePlaceholderSound.wav");
 
@@ -994,7 +1016,7 @@ bool ProjectApplication::Load() {
   // Play sfx
 
 
-  SetBackgroundMusic(background_music);
+  SetBackgroundMusic(background_music_ma);
 
   // soloud.play(background_music);
 
@@ -1233,7 +1255,7 @@ void ProjectApplication::Update(double dt) {
       }
     } else if (curr_game_state == game_states::level_editor) {
       ma_sound_stop(&plane_flying_sfx_ma);
-      SetBackgroundMusic(level_editor_music);
+      SetBackgroundMusic(level_editor_music_ma);
 
       editorCamera = gameplayCamera;
 
@@ -1313,7 +1335,7 @@ void ProjectApplication::Update(double dt) {
     if (!wasKeyPressed_Editor && IsKeyPressed(GLFW_KEY_2)) {
       wasKeyPressed_Editor = true;
       curr_game_state = game_states::playing;
-      SetBackgroundMusic(background_music);
+      SetBackgroundMusic(background_music_ma);
 
       ma_sound_start(&plane_flying_sfx_ma);
 
