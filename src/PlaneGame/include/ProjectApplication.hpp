@@ -24,6 +24,7 @@
 #include "SceneLoader.h"
 #include "ConfigReader.h"
 
+#include "miniaudio.h"
 
 namespace PlaneGame {
 
@@ -315,9 +316,7 @@ class ProjectApplication final : public Albuquerque::Application {
   std::optional<Fwog::GraphicsPipeline> pipeline_lines;
   std::optional<Fwog::GraphicsPipeline> pipeline_textured;
   std::optional<Fwog::GraphicsPipeline> pipeline_flat;
-
   std::optional<Fwog::GraphicsPipeline> pipeline_colored_indexed;
-
   std::optional<Fwog::GraphicsPipeline> pipeline_skybox;
 
   // Draw with arrays and not indexed so we don't need indices
@@ -498,16 +497,20 @@ class ProjectApplication final : public Albuquerque::Application {
   std::optional<Fwog::TypedBuffer<ObjectUniforms>> objectBufferWheels;
 
 
+  ma_engine miniAudioEngine;
+
   SoLoud::Soloud soloud;
   SoLoud::Wav sample;
-  int plane_flying_sfx_handle;
-  SoLoud::Wav plane_flying_sfx;
   SoLoud::Wav plane_speedup_sfx;
   SoLoud::Wav background_music;
   SoLoud::Wav level_editor_music;
   SoLoud::Wav collectable_pickup_sfx;
-
   SoLoud::Wav* curr_backgrond_music = nullptr;
+
+  //Don't worry we will refactor all of this
+  ma_sound plane_flying_sfx_ma;
+
+
 
   bool is_background_music_muted = true;
 
