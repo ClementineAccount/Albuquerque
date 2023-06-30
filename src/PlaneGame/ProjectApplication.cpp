@@ -902,16 +902,9 @@ void ProjectApplication::LoadBuildings() {
   }
 }
 
-void ProjectApplication::SetBackgroundMusic(SoLoud::Wav& bgm) {
-  if (curr_backgrond_music != nullptr) curr_backgrond_music->stop();
-  curr_backgrond_music = &bgm;
-  if (!is_background_music_muted) {
-    soloud.play(bgm);
-  }
-}
-
 void ProjectApplication::SetBackgroundMusic(ma_sound& bgm)
 {
+    //I hate that this is a global lets fix it in the refactor
     if (curr_background_music_ptr != nullptr)
     {
         ma_sound_stop(curr_background_music_ptr);
@@ -963,11 +956,12 @@ bool ProjectApplication::Load() {
   // Initialize SoLoud (automatic back-end selection)
 
 
-  // To Do: Like actually use the res properly
-  SoLoud::result init = soloud.init();
-  SoLoud::result res =
-      sample.load("data/sounds/start.wav");  // Load a wave file
-  sample.setVolume(0.75);
+  ma_res = ma_sound_init_from_file(&miniAudioEngine, "data/sounds/start.wav", 0, NULL, NULL, &plane_crash_sfx_ma);
+  if (ma_res != MA_SUCCESS) {
+      return ma_res;
+  }
+  ma_sound_set_volume(&plane_crash_sfx_ma, 0.75);
+
   
   ma_res = ma_sound_init_from_file(&miniAudioEngine, "data/sounds/planeFlying.wav", 0, NULL, NULL, &plane_flying_sfx_ma);
   if (ma_res != MA_SUCCESS) {
@@ -995,9 +989,13 @@ bool ProjectApplication::Load() {
   }
   ma_sound_set_volume(&level_editor_music_ma, 0.70);
 
-  collectable_pickup_sfx.load("data/sounds/collectablePlaceholderSound.wav");
+  
+  ma_res = ma_sound_init_from_file(&miniAudioEngine, "data/sounds/collectablePlaceholderSound.wav", 0, NULL, NULL, &plane_collectable_pickup_sfx_ma);
+  if (ma_res != MA_SUCCESS) {
+      return ma_res;
+  }
 
-  soloud.setGlobalVolume(soloud_volume);
+  ma_sound_set_volume(&plane_crash_sfx_ma, 0.75);
 
   // Creating pipelines
 
@@ -1038,7 +1036,10 @@ void ProjectApplication::ResetLevel() {
 }
 
 void ProjectApplication::StartLevel() {
-  sample.stop();
+
+  //When a sound is stopped, it is not rewound to the start -> https://miniaud.io/docs/manual/index.html
+  ma_sound_seek_to_pcm_frame(&plane_crash_sfx_ma, 0);
+  ma_sound_stop(&plane_crash_sfx_ma);
   ma_sound_start(&plane_flying_sfx_ma);
 
   LoadBuildings();
@@ -1245,7 +1246,7 @@ void ProjectApplication::Update(double dt) {
   // Change of state
   if (prev_game_state != curr_game_state) {
     if (curr_game_state == game_states::game_over) {
-      soloud.play(sample);
+      ma_sound_start(&plane_crash_sfx_ma);
       ma_sound_stop(&plane_flying_sfx_ma);
 
       render_plane = false;
@@ -1569,7 +1570,9 @@ void ProjectApplication::Update(double dt) {
 
       if (Collision::sphereCollisionCheck(aircraft_sphere_collider,
                                           collectable.collider)) {
-        soloud.play(collectable_pickup_sfx);
+        
+        ma_sound_seek_to_pcm_frame(&plane_collectable_pickup_sfx_ma, 0);
+        ma_sound_start(&plane_collectable_pickup_sfx_ma);
         collectable.isCollected = true;
 
         // Because we use instancing. Decided to simply change the scale to set
@@ -1589,7 +1592,9 @@ void ProjectApplication::Update(double dt) {
       checkpointList[curr_active_checkpoint].color =
           checkpointObject::non_activated_color_linear;
       checkpointList[curr_active_checkpoint].activated = false;
-      soloud.play(collectable_pickup_sfx);
+
+      ma_sound_seek_to_pcm_frame(&plane_collectable_pickup_sfx_ma, 0);
+      ma_sound_start(&plane_collectable_pickup_sfx_ma);
 
       if (curr_active_checkpoint + 1 != checkpointList.size()) {
         curr_active_checkpoint += 1;
@@ -1950,9 +1955,6 @@ void ProjectApplication::RenderUI(double dt) {
 }
 
 ProjectApplication::~ProjectApplication() {
-  soloud.stopAll();
-  soloud.deinit();
-
   ma_engine_uninit(&miniAudioEngine);
 }
 

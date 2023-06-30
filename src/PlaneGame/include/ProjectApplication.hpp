@@ -265,7 +265,7 @@ class ProjectApplication final : public Albuquerque::Application {
   void UpdateEditorCamera(double dt);
 
   void MuteBackgroundMusicToggle(bool set_muted);
-  void SetBackgroundMusic(SoLoud::Wav& bgm);
+  //void SetBackgroundMusic(SoLoud::Wav& bgm);
   void SetBackgroundMusic(ma_sound& bgm);
 
  private:
@@ -500,16 +500,10 @@ class ProjectApplication final : public Albuquerque::Application {
 
   ma_engine miniAudioEngine;
 
-  SoLoud::Soloud soloud;
-  SoLoud::Wav sample;
-  SoLoud::Wav plane_speedup_sfx;
-  SoLoud::Wav collectable_pickup_sfx;
-  SoLoud::Wav* curr_backgrond_music = nullptr;
-
-
-
   //Don't worry we will refactor all of this
   ma_sound plane_flying_sfx_ma;
+  ma_sound plane_crash_sfx_ma;
+  ma_sound plane_collectable_pickup_sfx_ma;
   ma_sound background_music_ma;
   ma_sound level_editor_music_ma;
 
