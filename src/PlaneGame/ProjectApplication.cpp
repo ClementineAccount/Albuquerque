@@ -13,8 +13,6 @@
 #include <GLFW/glfw3.h>
 
 #include <imgui.h>
-#include <soloud/soloud.h>
-#include <soloud/soloud_wav.h>
 #include <spdlog/spdlog.h>
 
 #include <algorithm>

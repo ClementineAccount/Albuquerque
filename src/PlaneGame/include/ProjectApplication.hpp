@@ -5,8 +5,6 @@
 #include <Fwog/Rendering.h>
 #include <Fwog/Shader.h>
 #include <Fwog/Texture.h>
-#include <soloud/soloud.h>
-#include <soloud/soloud_wav.h>
 
 #include <Albuquerque/Application.hpp>
 #include <functional>
