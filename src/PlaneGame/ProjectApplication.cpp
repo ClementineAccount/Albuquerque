@@ -7,6 +7,13 @@
 #include <Fwog/Shader.h>
 
 
+//This must be included before GLFW or else you'd get https://stackoverflow.com/questions/3927810/how-to-prevent-macro-redefinition
+//https://web.archive.org/web/20230630052623/https://stackoverflow.com/questions/3927810/how-to-prevent-macro-redefinition
+
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
+
+
 //https://stackoverflow.com/questions/44345811/glad-h-giving-error-that-opengl-header-is-included
 #define GLFW_INCLUDE_NONE
 #include <glad/glad.h>
@@ -37,9 +44,6 @@
 
 #include "SceneLoader.h"
 #include "stb_image.h"
-
-#define MINIAUDIO_IMPLEMENTATION
-#include "miniaudio.h"
 
 namespace PlaneGame {
     
@@ -586,8 +590,7 @@ void ProjectApplication::CreateSkybox() {
       .format = Fwog::Format::R8G8B8A8_SRGB,
       .extent = {static_cast<uint32_t>(textureWidth),
                  static_cast<uint32_t>(textureHeight)},
-      .mipLevels =
-          uint32_t(1 + floor(log2(glm::max(textureWidth, textureHeight)))),
+      .mipLevels = uint32_t(1 + floor(log2(glm::max(textureWidth, textureHeight)))),
       .arrayLayers = 1,
       .sampleCount = SampleCount::SAMPLES_1,
   };
