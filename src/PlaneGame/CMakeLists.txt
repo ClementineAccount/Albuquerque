@@ -10,10 +10,10 @@ target_include_directories(fwog PUBLIC include)
 #target_include_directories(SDL2 PUBLIC include)
 #target_include_directories(SDL2_mixer PUBLIC include)
 
-message("(Plane Game) add_library soloud")
-add_library(soloud STATIC IMPORTED)
-set_target_properties(soloud PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/soloud/soloud_static.lib)
-set_target_properties(soloud PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/soloud/include)
+#message("(Plane Game) add_library soloud")
+#add_library(soloud STATIC IMPORTED)
+#set_target_properties(soloud PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/soloud/soloud_static.lib)
+#set_target_properties(soloud PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/soloud/include)
 
 #message("(Plane Game) add_library freetype")
 #add_library(freetype STATIC IMPORTED)
@@ -60,4 +60,4 @@ set(headerFiles
 add_executable(PlaneGame ${sourceFiles} ${headerFiles} "TestRunner.cpp")
 
 add_dependencies(PlaneGame copy_data)
-target_link_libraries(PlaneGame PRIVATE TracyClient miniaudio soloud glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Albuquerque)
+target_link_libraries(PlaneGame PRIVATE TracyClient miniaudio glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Albuquerque)
