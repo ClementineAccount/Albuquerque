@@ -358,6 +358,3 @@ build/
 # Clion
 cmake-build-debug/
 cmake-build-release/
-
-# Assets
-models/**
