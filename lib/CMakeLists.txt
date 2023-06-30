@@ -118,24 +118,24 @@ FetchContent_Declare(
 message("Fetching fwog")
 FetchContent_MakeAvailable(fwog)
 
-#Is this really the way? Just getting SDL straight away? Well lets see...
-
-FetchContent_Declare(
-    SDL
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG        release-2.26.5 
-)
-message("Fetching SDL")
-FetchContent_MakeAvailable(SDL)
 
 
 FetchContent_Declare(
-    SDL_mixer
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
-    GIT_TAG        release-2.6.3
+    miniaudio
+    GIT_REPOSITORY  https://github.com/mackron/miniaudio.git
+    GIT_TAG         0.11.17
+    GIT_SHALLOW     TRUE
+    GIT_PROGRESS    TRUE
 )
-message("Fetching SDL_Mixer")
-FetchContent_MakeAvailable(SDL_mixer)
+FetchContent_GetProperties(miniaudio)
+if(NOT miniaudio_POPULATED)
+    FetchContent_Populate(miniaudio)
+    message("Fetching miniaudio")
+
+    add_library(miniaudio INTERFACE ${miniaudio_SOURCE_DIR}/miniaudio.h)
+    target_include_directories(miniaudio INTERFACE ${miniaudio_SOURCE_DIR})
+endif()
+
 
 
 

@@ -13,8 +13,6 @@
 #include <GLFW/glfw3.h>
 
 #include <imgui.h>
-#include <soloud/soloud.h>
-#include <soloud/soloud_wav.h>
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
@@ -40,7 +38,13 @@
 #include "SceneLoader.h"
 #include "stb_image.h"
 
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
+
 namespace PlaneGame {
+    
+    
+
 
 static std::string Slurp(std::string_view path) {
   std::ifstream file(path.data(), std::ios::ate);
@@ -896,20 +900,26 @@ void ProjectApplication::LoadBuildings() {
   }
 }
 
-void ProjectApplication::SetBackgroundMusic(SoLoud::Wav& bgm) {
-  if (curr_backgrond_music != nullptr) curr_backgrond_music->stop();
-  curr_backgrond_music = &bgm;
-  if (!is_background_music_muted) {
-    soloud.play(bgm);
-  }
+void ProjectApplication::SetBackgroundMusic(ma_sound& bgm)
+{
+    //I hate that this is a global lets fix it in the refactor
+    if (curr_background_music_ptr != nullptr)
+    {
+        ma_sound_stop(curr_background_music_ptr);
+    }
+
+    curr_background_music_ptr = &bgm;
+    if (!is_background_music_muted) {
+        ma_sound_start(curr_background_music_ptr);
+    }
 }
 
 void ProjectApplication::MuteBackgroundMusicToggle(bool set_muted) {
   is_background_music_muted = set_muted;
   if (curr_game_state == game_states::level_editor)
-    SetBackgroundMusic(level_editor_music);
+    SetBackgroundMusic(level_editor_music_ma);
   else {
-    SetBackgroundMusic(background_music);
+    SetBackgroundMusic(background_music_ma);
   }
 }
 
@@ -932,27 +942,58 @@ bool ProjectApplication::Load() {
         aircraft_min_speed = std::stof(buffer);
     }
 
+    //iniitalize miniaudio
+    ma_result ma_res;
+    ma_res = ma_engine_init(NULL, &miniAudioEngine);
+    if (ma_res != MA_SUCCESS) {
+        return -1;
+    }
+
+    //ma_engine_play_sound(&miniAudioEngine, "data/sounds/start.wav", NULL);
 
   // Initialize SoLoud (automatic back-end selection)
 
 
-  // To Do: Like actually use the res properly
-  SoLoud::result init = soloud.init();
-  SoLoud::result res =
-      sample.load("data/sounds/start.wav");  // Load a wave file
-  sample.setVolume(0.75);
-  res = plane_flying_sfx.load("data/sounds/planeFlying.wav");
-  plane_speedup_sfx.load("data/sounds/planeFlying.wav");
+  ma_res = ma_sound_init_from_file(&miniAudioEngine, "data/sounds/start.wav", 0, NULL, NULL, &plane_crash_sfx_ma);
+  if (ma_res != MA_SUCCESS) {
+      return ma_res;
+  }
+  ma_sound_set_volume(&plane_crash_sfx_ma, 0.75);
 
-  background_music.load("data/sounds/backgroundMusic.wav");
-  background_music.setVolume(0.30);
+  
+  ma_res = ma_sound_init_from_file(&miniAudioEngine, "data/sounds/planeFlying.wav", 0, NULL, NULL, &plane_flying_sfx_ma);
+  if (ma_res != MA_SUCCESS) {
+      return ma_res;
+  }
+  ma_sound_set_volume(&plane_flying_sfx_ma, 0.40);
+  ma_sound_set_looping(&plane_flying_sfx_ma, true);
+  ma_sound_start(&plane_flying_sfx_ma);
 
-  level_editor_music.load("data/sounds/levelEditorMusic.wav");
-  level_editor_music.setVolume(0.70);
+  //res = plane_flying_sfx.load("data/sounds/planeFlying.wav");
+  //plane_speedup_sfx.load("data/sounds/planeFlying.wav");
 
-  collectable_pickup_sfx.load("data/sounds/collectablePlaceholderSound.wav");
+  ma_res = ma_sound_init_from_file(&miniAudioEngine, "data/sounds/backgroundMusic.wav", 0, NULL, NULL, &background_music_ma);
+  if (ma_res != MA_SUCCESS) {
+      return ma_res;
+  }
+  ma_sound_set_volume(&background_music_ma, 0.30);
 
-  soloud.setGlobalVolume(soloud_volume);
+  //background_music.load("data/sounds/backgroundMusic.wav");
+  //background_music.setVolume(0.30);
+
+  ma_res = ma_sound_init_from_file(&miniAudioEngine, "data/sounds/levelEditorMusic.wav", 0, NULL, NULL, &level_editor_music_ma);
+  if (ma_res != MA_SUCCESS) {
+      return ma_res;
+  }
+  ma_sound_set_volume(&level_editor_music_ma, 0.70);
+
+  
+  ma_res = ma_sound_init_from_file(&miniAudioEngine, "data/sounds/collectablePlaceholderSound.wav", 0, NULL, NULL, &plane_collectable_pickup_sfx_ma);
+  if (ma_res != MA_SUCCESS) {
+      return ma_res;
+  }
+
+  ma_sound_set_volume(&plane_crash_sfx_ma, 0.75);
 
   // Creating pipelines
 
@@ -969,10 +1010,9 @@ bool ProjectApplication::Load() {
   // LoadBuildings();
 
   // Play sfx
-  plane_flying_sfx.setLooping(true);
-  plane_flying_sfx.setVolume(0.40);
 
-  SetBackgroundMusic(background_music);
+
+  SetBackgroundMusic(background_music_ma);
 
   // soloud.play(background_music);
 
@@ -994,8 +1034,11 @@ void ProjectApplication::ResetLevel() {
 }
 
 void ProjectApplication::StartLevel() {
-  sample.stop();
-  plane_flying_sfx_handle = soloud.play(plane_flying_sfx);
+
+  //When a sound is stopped, it is not rewound to the start -> https://miniaud.io/docs/manual/index.html
+  ma_sound_seek_to_pcm_frame(&plane_crash_sfx_ma, 0);
+  ma_sound_stop(&plane_crash_sfx_ma);
+  ma_sound_start(&plane_flying_sfx_ma);
 
   LoadBuildings();
 
@@ -1201,16 +1244,17 @@ void ProjectApplication::Update(double dt) {
   // Change of state
   if (prev_game_state != curr_game_state) {
     if (curr_game_state == game_states::game_over) {
-      soloud.play(sample);
-      plane_flying_sfx.stop();
+      ma_sound_start(&plane_crash_sfx_ma);
+      ma_sound_stop(&plane_flying_sfx_ma);
+
       render_plane = false;
     } else if (curr_game_state == game_states::playing) {
       if (prev_game_state == game_states::game_over) {
         ResetLevel();
       }
     } else if (curr_game_state == game_states::level_editor) {
-      plane_flying_sfx.stop();
-      SetBackgroundMusic(level_editor_music);
+      ma_sound_stop(&plane_flying_sfx_ma);
+      SetBackgroundMusic(level_editor_music_ma);
 
       editorCamera = gameplayCamera;
 
@@ -1230,6 +1274,9 @@ void ProjectApplication::Update(double dt) {
   //Prototyping reloading the config data
   if (IsKeyPressed(GLFW_KEY_R))
   {
+
+      //ma_engine_uninit(&engine);
+
       configInstance.ReloadConfigFile("data/Config.ini");
 
       std::string buffer;
@@ -1287,9 +1334,10 @@ void ProjectApplication::Update(double dt) {
     if (!wasKeyPressed_Editor && IsKeyPressed(GLFW_KEY_2)) {
       wasKeyPressed_Editor = true;
       curr_game_state = game_states::playing;
-      SetBackgroundMusic(background_music);
+      SetBackgroundMusic(background_music_ma);
 
-      plane_flying_sfx_handle = soloud.play(plane_flying_sfx);
+      ma_sound_start(&plane_flying_sfx_ma);
+
 
       SetMouseCursorHidden(true);
     } else if (wasKeyPressed_Editor && IsKeyRelease(GLFW_KEY_2)) {
@@ -1339,15 +1387,17 @@ void ProjectApplication::Update(double dt) {
         aircraft_body.up_vector = glm::vec3(
             aircraft_body.rotMatrix * glm::vec4(aircraft_body.up_vector, 1.0f));
 
-        soloud.setVolume(
+
+        ma_sound_set_volume(&plane_flying_sfx_ma, 1 * (aircraft_body.current_speed / aircraft_max_speed));
+       /* soloud.setVolume(
             plane_flying_sfx_handle,
-            1.0 * (aircraft_body.current_speed / aircraft_max_speed));
+            1.0 * (aircraft_body.current_speed / aircraft_max_speed));*/
 
         if (IsKeyPressed(GLFW_KEY_SPACE)) {
           aircraft_current_speed_scale = aircraft_speedup_scale;
           zoom_speed_level = 1.02f;
 
-          soloud.setVolume(plane_flying_sfx_handle, 0.80);
+          //soloud.setVolume(plane_flying_sfx_handle, 0.80);
         }
 
         // Increase/Lower speed
@@ -1518,7 +1568,9 @@ void ProjectApplication::Update(double dt) {
 
       if (Collision::sphereCollisionCheck(aircraft_sphere_collider,
                                           collectable.collider)) {
-        soloud.play(collectable_pickup_sfx);
+        
+        ma_sound_seek_to_pcm_frame(&plane_collectable_pickup_sfx_ma, 0);
+        ma_sound_start(&plane_collectable_pickup_sfx_ma);
         collectable.isCollected = true;
 
         // Because we use instancing. Decided to simply change the scale to set
@@ -1538,7 +1590,9 @@ void ProjectApplication::Update(double dt) {
       checkpointList[curr_active_checkpoint].color =
           checkpointObject::non_activated_color_linear;
       checkpointList[curr_active_checkpoint].activated = false;
-      soloud.play(collectable_pickup_sfx);
+
+      ma_sound_seek_to_pcm_frame(&plane_collectable_pickup_sfx_ma, 0);
+      ma_sound_start(&plane_collectable_pickup_sfx_ma);
 
       if (curr_active_checkpoint + 1 != checkpointList.size()) {
         curr_active_checkpoint += 1;
@@ -1899,8 +1953,7 @@ void ProjectApplication::RenderUI(double dt) {
 }
 
 ProjectApplication::~ProjectApplication() {
-  soloud.stopAll();
-  soloud.deinit();
+  ma_engine_uninit(&miniAudioEngine);
 }
 
 }  // namespace PlaneGame
