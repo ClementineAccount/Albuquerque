@@ -6,6 +6,12 @@
 #include <Fwog/Rendering.h>
 #include <Fwog/Shader.h>
 
+//This must be included before GLFW or else you'd get https://stackoverflow.com/questions/3927810/how-to-prevent-macro-redefinition
+//https://web.archive.org/web/20230630052623/https://stackoverflow.com/questions/3927810/how-to-prevent-macro-redefinition
+
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
+
 
 //https://stackoverflow.com/questions/44345811/glad-h-giving-error-that-opengl-header-is-included
 #define GLFW_INCLUDE_NONE
