@@ -785,7 +785,7 @@ void ProjectApplication::LoadBuffersGame() {
   // Creating the aircraft
   {
     Utility::LoadModelFromFile(scene_aircraft,
-                               "data/models/AircraftPropeller.glb",
+                               "data/assets/AircraftPropeller.glb",
                                glm::mat4{1.0f}, true);
     ObjectUniforms aircraftUniform;
     aircraftUniform.model = glm::mat4(1.0f);
@@ -812,7 +812,7 @@ void ProjectApplication::LoadBuffersGame() {
 
   // Load the actual scene vertices here
   Utility::LoadModelFromFile(scene_collectable,
-                             "data/models/collectableSphere.glb",
+                             "data/assets/collectableSphere.glb",
                              glm::mat4{1.0f}, true);
   collectableObjectBuffers = Fwog::TypedBuffer<ObjectUniforms>(
       max_num_collectables, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
@@ -821,7 +821,7 @@ void ProjectApplication::LoadBuffersGame() {
   building_index_buffer.emplace(Primitives::cube_indices);
 
   Utility::LoadModelFromFile(scene_checkpoint_ring,
-                             "data/models/checkpointRing.glb", glm::mat4{1.0f},
+                             "data/assets/checkpointRing.glb", glm::mat4{1.0f},
                              true);
 
   // checkpoint_vertex_buffer.emplace(scene_checkpoint_ring.meshes[0].vertexBuffer);
