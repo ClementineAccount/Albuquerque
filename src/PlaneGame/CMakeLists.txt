@@ -55,7 +55,7 @@ set(headerFiles
     include/ConfigReader.h
     include/TestRunner.h
     include/ProjectApplication.hpp
-    )
+    include/Camera.h)
 
 add_executable(PlaneGame ${sourceFiles} ${headerFiles} "TestRunner.cpp")
 
