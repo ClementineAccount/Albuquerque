@@ -970,7 +970,7 @@ bool ProjectApplication::Load() {
   ma_sound_set_volume(&plane_crash_sfx_ma, 0.75);
 
   
-  ma_res = ma_sound_init_from_file(&miniAudioEngine, "data/sounds/planeFlying.wav", 0, NULL, NULL, &plane_flying_sfx_ma);
+  ma_res = ma_sound_init_from_file(&miniAudioEngine, "data/sounds/planeflying.wav", 0, NULL, NULL, &plane_flying_sfx_ma);
   if (ma_res != MA_SUCCESS) {
       return ma_res;
   }
