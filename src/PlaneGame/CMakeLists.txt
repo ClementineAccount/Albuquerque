@@ -43,6 +43,7 @@ target_include_directories(fwog PUBLIC include)
 
 
 set(sourceFiles
+    Camera.cpp
     Main.cpp
     ConfigReader.cpp
     TestRunner.cpp
@@ -57,7 +58,7 @@ set(headerFiles
     include/ProjectApplication.hpp
     include/Camera.h)
 
-add_executable(PlaneGame ${sourceFiles} ${headerFiles} "TestRunner.cpp")
+add_executable(PlaneGame ${sourceFiles} ${headerFiles})
 
 add_dependencies(PlaneGame copy_data)
 target_link_libraries(PlaneGame PRIVATE TracyClient miniaudio glad glfw imgui glm cgltf tinygltf stb_image spdlog fwog Albuquerque)

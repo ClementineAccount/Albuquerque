@@ -21,8 +21,10 @@
 
 #include "SceneLoader.h"
 #include "ConfigReader.h"
-
 #include "miniaudio.h"
+
+
+#include "Camera.h"
 
 namespace PlaneGame {
 
@@ -347,6 +349,11 @@ class ProjectApplication final : public Albuquerque::Application {
   // };
 
   // Camera Stuff
+
+
+  //To Do: have a factory create this after the initalization of GLFW + Fwog
+  std::optional<Camera> mainCamera;
+
   struct GlobalUniforms {
     glm::mat4 viewProj;
     glm::vec3 eyePos;

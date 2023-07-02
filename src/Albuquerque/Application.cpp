@@ -23,8 +23,6 @@ namespace Albuquerque
 
     void Application::Run()
     {
-
-
         FrameMarkStart("App Run");
         if (!Initialize())
         {
