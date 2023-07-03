@@ -23,8 +23,6 @@ namespace Albuquerque
 
     void Application::Run()
     {
-
-
         FrameMarkStart("App Run");
         if (!Initialize())
         {
@@ -174,7 +172,7 @@ namespace Albuquerque
         glEnable(GL_FRAMEBUFFER_SRGB);
 
 
-        RenderScene();
+        RenderScene(dt);
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -190,8 +188,9 @@ namespace Albuquerque
         glfwSwapBuffers(_windowHandle);
     }
 
-    void Application::RenderScene()
+    void Application::RenderScene(double dt)
     {
+
     }
 
     void Application::RenderUI(double dt)

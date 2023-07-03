@@ -19,6 +19,9 @@ namespace Albuquerque
         static constexpr int windowWidth = 1600;
         static constexpr int windowHeight = 900;
 
+        static constexpr int windowWidth_half = windowWidth / 2;
+        static constexpr int windowHeight_half = windowHeight / 2;
+
 
         void Close();
         bool IsKeyPressed(int32_t key);
@@ -32,7 +35,7 @@ namespace Albuquerque
         virtual bool Initialize();
         virtual bool Load();
         virtual void Unload();
-        virtual void RenderScene();
+        virtual void RenderScene(double dt);
         virtual void RenderUI(double dt);
         virtual void Update(double dt);
 
@@ -43,8 +46,10 @@ namespace Albuquerque
         void SetMouseCursorHidden(bool mouseHidden);
         void ToggleMouseCursorMode();
 
-    private:
         GLFWwindow* _windowHandle = nullptr;
+
+    private:
+
         void Render(double dt);
         bool cursor_hidden = false;
     };

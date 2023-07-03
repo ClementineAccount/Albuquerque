@@ -12,14 +12,6 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 
-
-//This must be included before GLFW or else you'd get https://stackoverflow.com/questions/3927810/how-to-prevent-macro-redefinition
-//https://web.archive.org/web/20230630052623/https://stackoverflow.com/questions/3927810/how-to-prevent-macro-redefinition
-
-#define MINIAUDIO_IMPLEMENTATION
-#include "miniaudio.h"
-
-
 //https://stackoverflow.com/questions/44345811/glad-h-giving-error-that-opengl-header-is-included
 #define GLFW_INCLUDE_NONE
 #include <glad/glad.h>
@@ -1004,6 +996,10 @@ bool ProjectApplication::Load() {
 
   ma_sound_set_volume(&plane_crash_sfx_ma, 0.75);
 
+  //Initalized camera
+
+  mainCamera = Camera();
+
   // Creating pipelines
 
   pipeline_flat = CreatePipeline();
@@ -1030,6 +1026,8 @@ bool ProjectApplication::Load() {
   medal_times.insert({gold_level_time, "Gold"});
   medal_times.insert({silver_level_time, "Silver"});
   medal_times.insert({bronze_level_time, "Bronze"});
+
+
 
   return true;
 }
@@ -1734,7 +1732,7 @@ void ProjectApplication::MouseRaycast(camera const& cam) {
   // debug_mouse_click_length, glm::vec3(0.0f, 0.0f, 1.0f));
 }
 
-void ProjectApplication::RenderScene() {
+void ProjectApplication::RenderScene(double dt) {
   // RenderMousePick();
 
   ZoneScopedC(tracy::Color::Red);
