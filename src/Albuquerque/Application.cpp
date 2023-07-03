@@ -179,10 +179,12 @@ namespace Albuquerque
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         {
+            glDisable(GL_FRAMEBUFFER_SRGB);
             RenderUI(dt);
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
             ImGui::EndFrame();
+            glEnable(GL_FRAMEBUFFER_SRGB);
         }
 
         glfwSwapBuffers(_windowHandle);
