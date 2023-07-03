@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(Project)
+project(Playground)
 
 add_custom_target(copy_playground_data ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data ${CMAKE_CURRENT_BINARY_DIR}/data)   
 
@@ -8,9 +8,9 @@ set(sourceFiles
     PlaygroundApplication.cpp
 )
 
-add_executable(Project ${sourceFiles})
-add_dependencies(Project copy_data)
+add_executable(Playground ${sourceFiles})
+add_dependencies(Playground copy_data)
 
-target_include_directories(Project PRIVATE include)
+target_include_directories(Playground PRIVATE include)
 
-target_link_libraries(Project PRIVATE fwog glad glfw imgui glm cgltf stb_image spdlog Albuquerque)
+target_link_libraries(Playground PRIVATE fwog glad glfw imgui glm cgltf stb_image spdlog Albuquerque)
