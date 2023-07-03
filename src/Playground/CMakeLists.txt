@@ -5,7 +5,7 @@ add_custom_target(copy_data ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMA
 
 set(sourceFiles
     Main.cpp
-    ProjectApplication.cpp
+    PlaygroundApplication.cpp
 )
 
 add_executable(Project ${sourceFiles})

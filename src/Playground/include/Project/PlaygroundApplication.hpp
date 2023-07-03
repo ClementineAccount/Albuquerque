@@ -182,7 +182,7 @@ struct GameObject
     DrawObject drawData;
 };
 
-class ProjectApplication final : public Albuquerque::Application
+class PlaygroundApplication final : public Albuquerque::Application
 {
 public:
 

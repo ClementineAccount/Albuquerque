@@ -1,8 +1,8 @@
-#include <Project/ProjectApplication.hpp>
+#include <Project/PlaygroundApplication.hpp>
 
 int main(int argc, char* argv[])
 {
-    ProjectApplication application;
+    PlaygroundApplication application;
     application.Run();
     return 0;
 }

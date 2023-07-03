@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include <Project/ProjectApplication.hpp>
+#include <Project/PlaygroundApplication.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -273,7 +273,7 @@ void GameObject::UpdateDraw()
     drawData.modelUniformBuffer.value().SubData(drawData.objectStruct, 0);
 }
 
-Fwog::GraphicsPipeline ProjectApplication::MakePipeline(std::string_view vertexShaderPath, std::string_view fragmentShaderPath)
+Fwog::GraphicsPipeline PlaygroundApplication::MakePipeline(std::string_view vertexShaderPath, std::string_view fragmentShaderPath)
 {
     auto LoadFile = [](std::string_view path)
     {
@@ -327,7 +327,7 @@ Fwog::GraphicsPipeline ProjectApplication::MakePipeline(std::string_view vertexS
 }
 
 
-Fwog::Texture ProjectApplication::MakeTexture(std::string_view texturePath, int32_t expectedChannels)
+Fwog::Texture PlaygroundApplication::MakeTexture(std::string_view texturePath, int32_t expectedChannels)
 {
     int32_t textureWidth, textureHeight, textureChannels;
     unsigned char* textureData =
@@ -361,17 +361,17 @@ Fwog::Texture ProjectApplication::MakeTexture(std::string_view texturePath, int3
 }
 
 
-void ProjectApplication::AfterCreatedUiContext()
+void PlaygroundApplication::AfterCreatedUiContext()
 {
 }
 
-void ProjectApplication::BeforeDestroyUiContext()
+void PlaygroundApplication::BeforeDestroyUiContext()
 {
 
 }
 
 
-bool ProjectApplication::Load()
+bool PlaygroundApplication::Load()
 {
     if (!Application::Load())
     {
@@ -406,7 +406,7 @@ bool ProjectApplication::Load()
     return true;
 }
 
-void ProjectApplication::Update(double dt)
+void PlaygroundApplication::Update(double dt)
 {
     if (IsKeyPressed(GLFW_KEY_ESCAPE))
     {
@@ -460,7 +460,7 @@ void ProjectApplication::Update(double dt)
     updateCameraArc(sceneCamera.value());
 }
 
-void ProjectApplication::RenderScene()
+void PlaygroundApplication::RenderScene()
 {
 
     static constexpr glm::vec4 backgroundColor = glm::vec4(0.1f, 0.3f, 0.2f, 1.0f);
@@ -519,7 +519,7 @@ void ProjectApplication::RenderScene()
 
 }
 
-void ProjectApplication::RenderUI(double dt)
+void PlaygroundApplication::RenderUI(double dt)
 {
     ImGui::Begin("Window");
     {
@@ -535,7 +535,7 @@ void ProjectApplication::RenderUI(double dt)
 
 
 
-//bool ProjectApplication::MakeShader(std::string_view vertexShaderFilePath, std::string_view fragmentShaderFilePath)
+//bool PlaygroundApplication::MakeShader(std::string_view vertexShaderFilePath, std::string_view fragmentShaderFilePath)
 //{
 //    int success = false;
 //    char log[1024] = {};
