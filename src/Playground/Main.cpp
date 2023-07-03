@@ -1,4 +1,4 @@
-#include <Project/PlaygroundApplication.hpp>
+#include <PlaygroundApplication.hpp>
 
 int main(int argc, char* argv[])
 {

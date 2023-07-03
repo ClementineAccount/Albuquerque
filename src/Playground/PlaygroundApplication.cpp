@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include <Project/PlaygroundApplication.hpp>
+#include <PlaygroundApplication.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -81,7 +81,6 @@ DrawObject DrawObject::Init(T1 const& vertexList, T2 const& indexList, size_t in
 
 void Camera::Update()
 {
-
     glm::mat4 view = glm::lookAt(camPos,  target,  up);
     glm::mat4 viewSky = glm::mat4(glm::mat3(view));
     glm::mat4 proj = glm::perspective(PI / 2.0f, 1.6f, nearPlane, farPlane);
