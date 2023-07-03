@@ -172,7 +172,7 @@ protected:
     void AfterCreatedUiContext() override;
     void BeforeDestroyUiContext() override;
     bool Load() override;
-    void RenderScene() override;
+    void RenderScene(double dt) override;
     void RenderUI(double dt) override;
     void Update(double dt) override;
 

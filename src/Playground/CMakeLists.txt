@@ -11,7 +11,7 @@ set(sourceFiles
 )
 
 add_executable(Playground ${sourceFiles})
-add_dependencies(Playground copy_data)
+add_dependencies(Playground copy_playground_data)
 
 target_include_directories(Playground PRIVATE include)
 

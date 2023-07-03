@@ -433,7 +433,7 @@ void PlaygroundApplication::Update(double dt)
     updateCameraArc(sceneCamera.value());
 }
 
-void PlaygroundApplication::RenderScene()
+void PlaygroundApplication::RenderScene(double dt)
 {
 
     static constexpr glm::vec4 backgroundColor = glm::vec4(0.1f, 0.3f, 0.2f, 1.0f);

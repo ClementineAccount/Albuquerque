@@ -256,7 +256,7 @@ class ProjectApplication final : public Albuquerque::Application {
   // For restarting and starting the game
   void StartLevel();
 
-  void RenderScene() override;
+  void RenderScene(double dt) override;
   void RenderMousePick();
 
   void RenderUI(double dt) override;

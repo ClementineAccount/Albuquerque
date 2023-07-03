@@ -1732,7 +1732,7 @@ void ProjectApplication::MouseRaycast(camera const& cam) {
   // debug_mouse_click_length, glm::vec3(0.0f, 0.0f, 1.0f));
 }
 
-void ProjectApplication::RenderScene() {
+void ProjectApplication::RenderScene(double dt) {
   // RenderMousePick();
 
   ZoneScopedC(tracy::Color::Red);
