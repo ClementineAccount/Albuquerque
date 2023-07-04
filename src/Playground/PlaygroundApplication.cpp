@@ -366,6 +366,8 @@ bool PlaygroundApplication::Load()
 
 void PlaygroundApplication::Update(double dt)
 {
+
+
     if (IsKeyPressed(GLFW_KEY_ESCAPE))
     {
         Close();
@@ -375,39 +377,40 @@ void PlaygroundApplication::Update(double dt)
     auto updateCameraArc = [&](Camera& currCamera)
     {
         bool isUpdate = false;
-        static float camSpeed = 2.0f;
+        static float camSpeedBase = 2.0f;
+        float camSpeed = camSpeedBase * static_cast<float>(dt);
         
         if (IsKeyPressed(GLFW_KEY_A))
         {
             isUpdate = true;
-            currCamera.camPos.x += camSpeed * dt;
+            currCamera.MoveArcball(Camera::directionalInput::moveLeft, camSpeed);
         }
         else if (IsKeyPressed(GLFW_KEY_D))
         {
             isUpdate = true;
-            currCamera.camPos.x -= camSpeed * dt;
+            currCamera.MoveArcball(Camera::directionalInput::moveRight, camSpeed);
         }
 
         if (IsKeyPressed(GLFW_KEY_Q))
         {
             isUpdate = true;
-            currCamera.camPos.z += camSpeed * dt;
+            currCamera.MoveArcball(Camera::directionalInput::moveUp, camSpeed);
         }
         else if (IsKeyPressed(GLFW_KEY_E))
         {
             isUpdate = true;
-            currCamera.camPos.z -= camSpeed * dt;
+            currCamera.MoveArcball(Camera::directionalInput::moveDown, camSpeed);
         }
 
         if (IsKeyPressed(GLFW_KEY_W))
         {
             isUpdate = true;
-            currCamera.camPos.y += camSpeed * dt;
+            currCamera.MoveArcball(Camera::directionalInput::moveForward, camSpeed);
         }
         else if (IsKeyPressed(GLFW_KEY_S))
         {
             isUpdate = true;
-            currCamera.camPos.y -= camSpeed * dt;
+            currCamera.MoveArcball(Camera::directionalInput::moveBack, camSpeed);
         }
 
         //we only need to recalculate the viewProj if camera data did change

@@ -15,4 +15,24 @@ public:
 
     float nearPlane = 0.01f;
     float farPlane = 5000.0f;
+
+
+    //Accounts for y-axis pointing down coordinate systems (such as for 2D cameras)
+    //To Do: Make this private and make user have to toggle vertical state via function
+    uint32_t flipVertical = 1;
+
+    //Camera controls. Could probably move to some other controller in the future but whatever
+    enum class directionalInput
+    {
+        moveUp,
+        moveDown,
+        moveLeft,
+        moveRight,
+        moveForward,
+        moveBack
+    };
+
+    //Maintains the current target that it previously had. The caller is expected to correct the speed for deltaTime
+    //prior to passsing it in.
+    void MoveArcball(directionalInput moveDirection, float speed = 1.0f);
 };
