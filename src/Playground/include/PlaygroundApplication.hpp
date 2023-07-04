@@ -160,6 +160,23 @@ struct GameObject
     DrawObject drawData;
 };
 
+struct ViewData
+{
+    ViewData();
+
+    struct ViewUniform {
+        glm::mat4 viewProj;
+        glm::vec3 eyePos;
+    };
+
+    std::optional<Fwog::TypedBuffer<ViewUniform>> viewBuffer;
+
+    //Skybox doesn't have translation
+    std::optional<Fwog::TypedBuffer<ViewUniform>> skyboxBuffer;
+
+    void Update(Albuquerque::Camera const& camera);
+};
+
 class PlaygroundApplication final : public Albuquerque::Application
 {
 public:
@@ -176,7 +193,7 @@ protected:
     void RenderUI(double dt) override;
     void Update(double dt) override;
 
-    void UpdateViewBuffers(Albuquerque::Camera const& camera);
+    //void UpdateViewBuffers(Albuquerque::Camera const& camera);
 
 private:
 
@@ -184,15 +201,7 @@ private:
     std::optional<Fwog::Texture> cubeTexture;
     Albuquerque::Camera sceneCamera;
 
-    //Decoupling the camera from Fwog... need to figure out where I want to store these kind of buffer data though
-    struct ViewUniform {
-        glm::mat4 viewProj;
-        glm::vec3 eyePos;
-    };
-    ViewUniform _viewUniform;
-
-    std::optional<Fwog::TypedBuffer<ViewUniform>> cameraUniformsBuffer;
-    std::optional<Fwog::TypedBuffer<ViewUniform>> cameraUniformsSkyboxBuffer;
+    std::optional<ViewData> _viewData;
 
     static constexpr size_t numCubes = 5;
     GameObject exampleCubes[numCubes];

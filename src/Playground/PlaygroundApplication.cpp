@@ -317,6 +317,29 @@ Fwog::Texture PlaygroundApplication::MakeTexture(std::string_view texturePath, i
 }
 
 
+ViewData::ViewData()
+{
+    viewBuffer = Fwog::TypedBuffer<ViewUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+    skyboxBuffer = Fwog::TypedBuffer<ViewUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+}
+
+void ViewData::Update(Albuquerque::Camera const& camera)
+{
+    static ViewUniform viewUniform;
+
+    glm::mat4 view = glm::lookAt(camera.camPos,  camera.target,  camera.up);
+    glm::mat4 viewSky = glm::mat4(glm::mat3(view));
+    glm::mat4 proj = glm::perspective(PI / 2.0f, 1.6f, camera.nearPlane, camera.farPlane);
+
+    viewUniform.viewProj = proj * view;
+    viewUniform.eyePos = camera.camPos;
+    viewBuffer.value().SubData(viewUniform, 0);
+
+    viewUniform.viewProj = proj * viewSky;
+
+    skyboxBuffer.value().SubData(viewUniform, 0);
+}
+
 void PlaygroundApplication::AfterCreatedUiContext()
 {
 }
@@ -354,10 +377,8 @@ bool PlaygroundApplication::Load()
 
     cubeTexture = MakeTexture("./data/textures/fwog_logo.png");
 
-    cameraUniformsBuffer = Fwog::TypedBuffer<ViewUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-    cameraUniformsSkyboxBuffer = Fwog::TypedBuffer<ViewUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-    
-    UpdateViewBuffers(sceneCamera);
+    _viewData = ViewData();
+    _viewData->Update(sceneCamera);
 
     skybox = Skybox();
 
@@ -417,7 +438,7 @@ void PlaygroundApplication::Update(double dt)
 
         //we only need to recalculate the viewProj if camera data did change
         if (isUpdate)
-           UpdateViewBuffers(currCamera);
+           _viewData->Update(currCamera);
     };
 
     updateCameraArc(sceneCamera);
@@ -451,7 +472,7 @@ void PlaygroundApplication::RenderScene(double dt)
     auto drawObject = [&](DrawObject const& object, Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler)
     {
         Fwog::Cmd::BindGraphicsPipeline(pipelineTextured.value());
-        Fwog::Cmd::BindUniformBuffer(0, cameraUniformsBuffer.value());
+        Fwog::Cmd::BindUniformBuffer(0, _viewData->viewBuffer.value());
         Fwog::Cmd::BindUniformBuffer(1, object.modelUniformBuffer.value());
 
         Fwog::Cmd::BindSampledImage(0, textureAlbedo, sampler);
@@ -468,7 +489,7 @@ void PlaygroundApplication::RenderScene(double dt)
     auto drawSkybox = [&](Skybox const& skybox, Fwog::Sampler const& sampler)
     {
         Fwog::Cmd::BindGraphicsPipeline(skybox.pipeline.value());
-        Fwog::Cmd::BindUniformBuffer(0, cameraUniformsSkyboxBuffer.value());
+        Fwog::Cmd::BindUniformBuffer(0, _viewData->skyboxBuffer.value());
 
         Fwog::Cmd::BindSampledImage(0, skybox.texture.value(), sampler);
         Fwog::Cmd::BindVertexBuffer(0, skybox.vertexBuffer.value(), 0, 3 * sizeof(float));
@@ -493,21 +514,6 @@ void PlaygroundApplication::RenderUI(double dt)
     }
 
     //ImGui::ShowDemoWindow();
-}
-
-void PlaygroundApplication::UpdateViewBuffers(Albuquerque::Camera const& camera)
-{
-    glm::mat4 view = glm::lookAt(camera.camPos,  camera.target,  camera.up);
-    glm::mat4 viewSky = glm::mat4(glm::mat3(view));
-    glm::mat4 proj = glm::perspective(PI / 2.0f, 1.6f, camera.nearPlane, camera.farPlane);
-
-    _viewUniform.viewProj = proj * view;
-    _viewUniform.eyePos = camera.camPos;
-    cameraUniformsBuffer.value().SubData(_viewUniform, 0);
-
-    _viewUniform.viewProj = proj * viewSky;
-
-    cameraUniformsSkyboxBuffer.value().SubData(_viewUniform, 0);
 }
 
 
