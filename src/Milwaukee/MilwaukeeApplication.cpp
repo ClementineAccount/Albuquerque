@@ -257,6 +257,10 @@ bool MilwaukeeApplication::Load()
         return false;
     }
 
+
+    SetWindowTitle("Milwaukee Renderer");
+
+
     if (!MakeShader("./data/shaders/Milwaukee.vs.glsl", "./data/shaders/Milwaukee.fs.glsl"))
     {
         return false;
@@ -1315,7 +1319,6 @@ bool MilwaukeeApplication::MakeShader(std::string_view vertexShaderFilePath, std
         file.read((char*)result.data(), result.size());
         return result;
     };
-
 
     int success = false;
     char log[1024] = {};

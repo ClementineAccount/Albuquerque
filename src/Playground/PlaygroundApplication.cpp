@@ -79,23 +79,6 @@ DrawObject DrawObject::Init(T1 const& vertexList, T2 const& indexList, size_t in
 }
 
 
-void Camera::Update()
-{
-    glm::mat4 view = glm::lookAt(camPos,  target,  up);
-    glm::mat4 viewSky = glm::mat4(glm::mat3(view));
-    glm::mat4 proj = glm::perspective(PI / 2.0f, 1.6f, nearPlane, farPlane);
-
-    cameraStruct.viewProj = proj * view;
-    cameraStruct.eyePos = camPos;
-    cameraUniformsBuffer.value().SubData(cameraStruct, 0);
-
-    cameraStruct.viewProj = proj * viewSky;
-
-    cameraUniformsSkyboxBuffer.value().SubData(cameraStruct, 0);
-}
-
-
-
 Skybox::Skybox()
 {
     pipeline = MakePipleine("./data/shaders/skybox.vs.glsl", "./data/shaders/skybox.fs.glsl");
@@ -371,8 +354,10 @@ bool PlaygroundApplication::Load()
 
     cubeTexture = MakeTexture("./data/textures/fwog_logo.png");
 
-    sceneCamera = Camera();
-
+    cameraUniformsBuffer = Fwog::TypedBuffer<ViewUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+    cameraUniformsSkyboxBuffer = Fwog::TypedBuffer<ViewUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+    
+    UpdateViewBuffers(sceneCamera);
 
     skybox = Skybox();
 
@@ -427,10 +412,10 @@ void PlaygroundApplication::Update(double dt)
 
         //we only need to recalculate the viewProj if camera data did change
         if (isUpdate)
-            currCamera.Update();
+           UpdateViewBuffers(currCamera);
     };
 
-    updateCameraArc(sceneCamera.value());
+    updateCameraArc(sceneCamera);
 }
 
 void PlaygroundApplication::RenderScene(double dt)
@@ -458,10 +443,10 @@ void PlaygroundApplication::RenderScene(double dt)
     static auto nearestSampler = Fwog::Sampler(ss);
 
     //Could refactor this to be a function of a class
-    auto drawObject = [&](DrawObject const& object, Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler, Camera const& camera)
+    auto drawObject = [&](DrawObject const& object, Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler)
     {
         Fwog::Cmd::BindGraphicsPipeline(pipelineTextured.value());
-        Fwog::Cmd::BindUniformBuffer(0, camera.cameraUniformsBuffer.value());
+        Fwog::Cmd::BindUniformBuffer(0, cameraUniformsBuffer.value());
         Fwog::Cmd::BindUniformBuffer(1, object.modelUniformBuffer.value());
 
         Fwog::Cmd::BindSampledImage(0, textureAlbedo, sampler);
@@ -472,13 +457,13 @@ void PlaygroundApplication::RenderScene(double dt)
 
     for (size_t i = 0; i < numCubes; ++i)
     {
-        drawObject(exampleCubes[i].drawData, cubeTexture.value(), nearestSampler, sceneCamera.value());
+        drawObject(exampleCubes[i].drawData, cubeTexture.value(), nearestSampler);
     }
 
-    auto drawSkybox = [&](Skybox const& skybox, Fwog::Sampler const& sampler, Camera const& camera)
+    auto drawSkybox = [&](Skybox const& skybox, Fwog::Sampler const& sampler)
     {
         Fwog::Cmd::BindGraphicsPipeline(skybox.pipeline.value());
-        Fwog::Cmd::BindUniformBuffer(0, camera.cameraUniformsSkyboxBuffer.value());
+        Fwog::Cmd::BindUniformBuffer(0, cameraUniformsSkyboxBuffer.value());
 
         Fwog::Cmd::BindSampledImage(0, skybox.texture.value(), sampler);
         Fwog::Cmd::BindVertexBuffer(0, skybox.vertexBuffer.value(), 0, 3 * sizeof(float));
@@ -486,7 +471,7 @@ void PlaygroundApplication::RenderScene(double dt)
     };
 
     if (_skyboxVisible)
-        drawSkybox(skybox.value(), nearestSampler, sceneCamera.value());
+        drawSkybox(skybox.value(), nearestSampler);
 
     Fwog::EndRendering();
 
@@ -505,6 +490,20 @@ void PlaygroundApplication::RenderUI(double dt)
     //ImGui::ShowDemoWindow();
 }
 
+void PlaygroundApplication::UpdateViewBuffers(Camera const& camera)
+{
+    glm::mat4 view = glm::lookAt(camera.camPos,  camera.target,  camera.up);
+    glm::mat4 viewSky = glm::mat4(glm::mat3(view));
+    glm::mat4 proj = glm::perspective(PI / 2.0f, 1.6f, camera.nearPlane, camera.farPlane);
+
+    _viewUniform.viewProj = proj * view;
+    _viewUniform.eyePos = camera.camPos;
+    cameraUniformsBuffer.value().SubData(_viewUniform, 0);
+
+    _viewUniform.viewProj = proj * viewSky;
+
+    cameraUniformsSkyboxBuffer.value().SubData(_viewUniform, 0);
+}
 
 
 

@@ -176,13 +176,23 @@ protected:
     void RenderUI(double dt) override;
     void Update(double dt) override;
 
+    void UpdateViewBuffers(Camera const& camera);
+
 private:
-    //uint32_t shaderProgram;
-    //bool MakeShader(std::string_view vertexShaderFilePath, std::string_view fragmentShaderFilePath);
 
     std::optional<Fwog::GraphicsPipeline> pipelineTextured;
     std::optional<Fwog::Texture> cubeTexture;
-    std::optional<Camera> sceneCamera;
+    Camera sceneCamera;
+
+    //Decoupling the camera from Fwog... need to figure out where I want to store these kind of buffer data though
+    struct ViewUniform {
+        glm::mat4 viewProj;
+        glm::vec3 eyePos;
+    };
+    ViewUniform _viewUniform;
+
+    std::optional<Fwog::TypedBuffer<ViewUniform>> cameraUniformsBuffer;
+    std::optional<Fwog::TypedBuffer<ViewUniform>> cameraUniformsSkyboxBuffer;
 
     static constexpr size_t numCubes = 5;
     GameObject exampleCubes[numCubes];
