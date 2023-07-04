@@ -11,6 +11,7 @@ set(sourceFiles
 set(headerFiles
     include/Albuquerque/Application.hpp
     include/Albuquerque/Camera.hpp
+    include/Albuquerque/DrawObject.hpp
 )
 
 add_library(Albuquerque ${sourceFiles} ${headerFiles})

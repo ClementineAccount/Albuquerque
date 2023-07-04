@@ -2,6 +2,7 @@
 
 #include <Albuquerque/Application.hpp>
 #include <Albuquerque/Camera.hpp>
+#include <Albuquerque/DrawObject.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
@@ -23,7 +24,6 @@
 #include <Fwog/Shader.h>
 #include <Fwog/Texture.h>
 
-#include <DrawObject.hpp>
 
 namespace Primitives
 {
@@ -138,7 +138,7 @@ struct GameObject
     //Transformation only expected along one axis so for example purpose this is ok for now.
     glm::vec3 eulerAngleDegrees = glm::vec3(0.0f, 0.0f, 0.0f);
 
-    DrawObject drawData;
+    Albuquerque::FwogHelpers::DrawObject drawData;
 };
 
 struct ViewData

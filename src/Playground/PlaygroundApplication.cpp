@@ -4,7 +4,6 @@
 #include <stb_image.h>
 
 #include <PlaygroundApplication.hpp>
-#include <DrawObject.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -350,7 +349,7 @@ bool PlaygroundApplication::Load()
     {
         //https://en.cppreference.com/w/cpp/language/class_template_argument_deduction 
         //because the containers which are the parameters are constexpr
-        exampleCubes_[i].drawData = DrawObject::Init(Primitives::cubeVertices, Primitives::cubeIndices, Primitives::cubeIndices.size());
+        exampleCubes_[i].drawData =  Albuquerque::FwogHelpers::DrawObject::Init(Primitives::cubeVertices, Primitives::cubeIndices, Primitives::cubeIndices.size());
 
         //Offset the transforms of the cube
 
@@ -454,7 +453,7 @@ void PlaygroundApplication::RenderScene(double dt)
     static auto nearestSampler = Fwog::Sampler(ss);
 
     //Could refactor this to be a function of a class
-    auto drawObject = [&](DrawObject const& object, Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler)
+    auto drawObject = [&](Albuquerque::FwogHelpers::DrawObject const& object, Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler)
     {
         Fwog::Cmd::BindGraphicsPipeline(pipelineTextured_.value());
         Fwog::Cmd::BindUniformBuffer(0, viewData_->viewBuffer.value());
