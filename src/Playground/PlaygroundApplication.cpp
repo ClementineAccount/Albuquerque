@@ -374,8 +374,10 @@ void PlaygroundApplication::Update(double dt)
     }
 
     //This is an arcball style update. Could move it maybe?
-    auto updateCameraArc = [&](Camera& currCamera)
+    auto updateCameraArc = [&](Albuquerque::Camera& currCamera)
     {
+        using namespace Albuquerque;
+
         bool isUpdate = false;
         static float camSpeedBase = 2.0f;
         float camSpeed = camSpeedBase * static_cast<float>(dt);
@@ -493,7 +495,7 @@ void PlaygroundApplication::RenderUI(double dt)
     //ImGui::ShowDemoWindow();
 }
 
-void PlaygroundApplication::UpdateViewBuffers(Camera const& camera)
+void PlaygroundApplication::UpdateViewBuffers(Albuquerque::Camera const& camera)
 {
     glm::mat4 view = glm::lookAt(camera.camPos,  camera.target,  camera.up);
     glm::mat4 viewSky = glm::mat4(glm::mat3(view));

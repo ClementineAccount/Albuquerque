@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Albuquerque/Application.hpp>
+#include <Albuquerque/Camera.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
@@ -13,7 +14,6 @@
 #include <array>
 #include <optional>
 
-#include <Camera.hpp>
 
 //Fwog Stuff
 #include <Fwog/BasicTypes.h>
@@ -176,13 +176,13 @@ protected:
     void RenderUI(double dt) override;
     void Update(double dt) override;
 
-    void UpdateViewBuffers(Camera const& camera);
+    void UpdateViewBuffers(Albuquerque::Camera const& camera);
 
 private:
 
     std::optional<Fwog::GraphicsPipeline> pipelineTextured;
     std::optional<Fwog::Texture> cubeTexture;
-    Camera sceneCamera;
+    Albuquerque::Camera sceneCamera;
 
     //Decoupling the camera from Fwog... need to figure out where I want to store these kind of buffer data though
     struct ViewUniform {
