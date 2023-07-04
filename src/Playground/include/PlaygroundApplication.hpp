@@ -197,16 +197,16 @@ protected:
 
 private:
 
-    std::optional<Fwog::GraphicsPipeline> pipelineTextured;
-    std::optional<Fwog::Texture> cubeTexture;
-    Albuquerque::Camera sceneCamera;
+    std::optional<Fwog::GraphicsPipeline> pipelineTextured_;
+    std::optional<Fwog::Texture> cubeTexture_;
+    Albuquerque::Camera sceneCamera_;
 
-    std::optional<ViewData> _viewData;
+    std::optional<ViewData> viewData_;
 
-    static constexpr size_t numCubes = 5;
-    GameObject exampleCubes[numCubes];
+    static constexpr size_t numCubes_ = 5;
+    GameObject exampleCubes_[numCubes_];
 
-    std::optional<Skybox> skybox;
+    std::optional<Skybox> skybox_;
 
-    bool _skyboxVisible = false;
+    bool skyboxVisible_ = false;
 };

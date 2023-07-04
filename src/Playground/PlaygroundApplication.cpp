@@ -358,29 +358,29 @@ bool PlaygroundApplication::Load()
         return false;
     }
 
-    pipelineTextured = MakePipeline("./data/shaders/main.vs.glsl", "./data/shaders/main.fs.glsl");
-    for (size_t i = 0; i < numCubes; ++i)
+    pipelineTextured_ = MakePipeline("./data/shaders/main.vs.glsl", "./data/shaders/main.fs.glsl");
+    for (size_t i = 0; i < numCubes_; ++i)
     {
         //https://en.cppreference.com/w/cpp/language/class_template_argument_deduction 
         //because the containers which are the parameters are constexpr
-        exampleCubes[i].drawData = DrawObject::Init(Primitives::cubeVertices, Primitives::cubeIndices, Primitives::cubeIndices.size());
+        exampleCubes_[i].drawData = DrawObject::Init(Primitives::cubeVertices, Primitives::cubeIndices, Primitives::cubeIndices.size());
 
         //Offset the transforms of the cube
 
         static constexpr float offsetForward = 10.0f;
-        exampleCubes[i].position.z -= i * offsetForward;
+        exampleCubes_[i].position.z -= i * offsetForward;
 
-        exampleCubes[i].scale *= (i + 1);
+        exampleCubes_[i].scale *= (i + 1);
 
-        exampleCubes[i].UpdateDraw();
+        exampleCubes_[i].UpdateDraw();
     }
 
-    cubeTexture = MakeTexture("./data/textures/fwog_logo.png");
+    cubeTexture_ = MakeTexture("./data/textures/fwog_logo.png");
 
-    _viewData = ViewData();
-    _viewData->Update(sceneCamera);
+    viewData_ = ViewData();
+    viewData_->Update(sceneCamera_);
 
-    skybox = Skybox();
+    skybox_ = Skybox();
 
     return true;
 }
@@ -438,10 +438,10 @@ void PlaygroundApplication::Update(double dt)
 
         //we only need to recalculate the viewProj if camera data did change
         if (isUpdate)
-           _viewData->Update(currCamera);
+           viewData_->Update(currCamera);
     };
 
-    updateCameraArc(sceneCamera);
+    updateCameraArc(sceneCamera_);
 }
 
 void PlaygroundApplication::RenderScene(double dt)
@@ -471,8 +471,8 @@ void PlaygroundApplication::RenderScene(double dt)
     //Could refactor this to be a function of a class
     auto drawObject = [&](DrawObject const& object, Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler)
     {
-        Fwog::Cmd::BindGraphicsPipeline(pipelineTextured.value());
-        Fwog::Cmd::BindUniformBuffer(0, _viewData->viewBuffer.value());
+        Fwog::Cmd::BindGraphicsPipeline(pipelineTextured_.value());
+        Fwog::Cmd::BindUniformBuffer(0, viewData_->viewBuffer.value());
         Fwog::Cmd::BindUniformBuffer(1, object.modelUniformBuffer.value());
 
         Fwog::Cmd::BindSampledImage(0, textureAlbedo, sampler);
@@ -481,23 +481,23 @@ void PlaygroundApplication::RenderScene(double dt)
         Fwog::Cmd::DrawIndexed(object.indexCount, 1, 0, 0, 0);
     };
 
-    for (size_t i = 0; i < numCubes; ++i)
+    for (size_t i = 0; i < numCubes_; ++i)
     {
-        drawObject(exampleCubes[i].drawData, cubeTexture.value(), nearestSampler);
+        drawObject(exampleCubes_[i].drawData, cubeTexture_.value(), nearestSampler);
     }
 
     auto drawSkybox = [&](Skybox const& skybox, Fwog::Sampler const& sampler)
     {
         Fwog::Cmd::BindGraphicsPipeline(skybox.pipeline.value());
-        Fwog::Cmd::BindUniformBuffer(0, _viewData->skyboxBuffer.value());
+        Fwog::Cmd::BindUniformBuffer(0, viewData_->skyboxBuffer.value());
 
         Fwog::Cmd::BindSampledImage(0, skybox.texture.value(), sampler);
         Fwog::Cmd::BindVertexBuffer(0, skybox.vertexBuffer.value(), 0, 3 * sizeof(float));
         Fwog::Cmd::Draw(Primitives::skyboxVertices.size() / 3, 1, 0, 0);
     };
 
-    if (_skyboxVisible)
-        drawSkybox(skybox.value(), nearestSampler);
+    if (skyboxVisible_)
+        drawSkybox(skybox_.value(), nearestSampler);
 
     Fwog::EndRendering();
 
@@ -509,7 +509,7 @@ void PlaygroundApplication::RenderUI(double dt)
     {
         ImGui::TextUnformatted("Hello Fwog!");
         ImGui::TextUnformatted("Use WASD and QE for Arcball Controls.");
-        ImGui::Checkbox("Skybox", &_skyboxVisible);
+        ImGui::Checkbox("Skybox", &skyboxVisible_);
         ImGui::End();
     }
 
