@@ -4,6 +4,7 @@
 #include <stb_image.h>
 
 #include <PlaygroundApplication.hpp>
+#include <DrawObject.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -22,6 +23,7 @@
 #include <vector>
 #include <queue>
 #include <set>
+
 
 static constexpr float PI = 3.1415926f;
 
@@ -62,21 +64,6 @@ static std::string FindTexturePath(const fs::path& basePath, const cgltf_image* 
     return texturePath;
 }
 
-
-template <typename T1, typename T2>
-DrawObject DrawObject::Init(T1 const& vertexList, T2 const& indexList, size_t indexCount)
-{
-    DrawObject object;
-    object.vertexBuffer.emplace(vertexList);
-    object.indexBuffer.emplace(indexList);
-    object.modelUniformBuffer =  Fwog::TypedBuffer<DrawObject::ObjectUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-    object.modelUniformBuffer.value().SubData(object.objectStruct, 0);
-
-    //Fwog takes in uint32_t for the indexCount but .size() on a container returns size_t. I'll just cast it here and hope its fine.
-    object.indexCount = static_cast<uint32_t>(indexCount);
-    
-    return object;
-}
 
 
 Skybox::Skybox()
@@ -369,9 +356,7 @@ bool PlaygroundApplication::Load()
 
         static constexpr float offsetForward = 10.0f;
         exampleCubes_[i].position.z -= i * offsetForward;
-
         exampleCubes_[i].scale *= (i + 1);
-
         exampleCubes_[i].UpdateDraw();
     }
 

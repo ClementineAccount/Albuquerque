@@ -23,7 +23,7 @@
 #include <Fwog/Shader.h>
 #include <Fwog/Texture.h>
 
-
+#include <DrawObject.hpp>
 
 namespace Primitives
 {
@@ -111,26 +111,7 @@ namespace Primitives
     };
 }
 
-struct DrawObject
-{
-    //T1 and T2 can be different container types. std::array or std::vector.
-    //Didn't want this to be a constructor because the actual DrawObject struct does not need to be templated.
-    template <typename T1, typename T2>
-    static DrawObject Init(T1 const& vertexList, T2 const& indexList, size_t indexCount);
 
-    std::optional<Fwog::Buffer> vertexBuffer;
-    std::optional<Fwog::Buffer> indexBuffer;
-
-    uint32_t indexCount;
-
-    struct ObjectUniform
-    {
-        glm::mat4 modelTransform = glm::mat4(1.0f);
-    };
-    ObjectUniform objectStruct;
-
-    std::optional<Fwog::TypedBuffer<ObjectUniform>> modelUniformBuffer;
-};
 
 struct Skybox
 {

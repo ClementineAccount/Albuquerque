@@ -6,6 +6,7 @@ add_custom_target(copy_playground_data ALL COMMAND ${CMAKE_COMMAND} -E copy_dire
 #Could also consider 'glob'-ing it here to prevent a FetchContent call
 set(sourceFiles
     Main.cpp
+    DrawObject.cpp
     PlaygroundApplication.cpp
 )
 
