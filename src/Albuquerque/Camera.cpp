@@ -13,9 +13,18 @@ namespace Albuquerque
         farPlane = 5000.0f;
 
         camPos = glm::vec3(3.0f, 3.0f, 3.0f);
-        target = glm::vec3(0.0f, 0.0f, 0.0f); //Target the origin
-        up = glm::vec3(0.0f, 1.0f, 0.0f);
+        camTarget = glm::vec3(0.0f, 0.0f, 0.0f); //Target the origin
+        
+        //What is even the point of having it initalized twice like this tho? You already have it as a default as member 
+        camUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+        //To Do: Move this const somewhere else
+        static constexpr glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+        //it actually points behind the camera's head because we live in a society
+        camForward = glm::normalize(camTarget - camPos);
+        camRight = glm::cross(camForward, worldUp);
+        camUp = glm::cross(camRight, camForward);
     }
 
     void Camera::MoveArcball(directionalInput moveDirection, float speed)
@@ -59,6 +68,41 @@ namespace Albuquerque
         //    break;
         //}
 
+    }
+
+    void Camera::MoveFly(directionalInput moveDirection, float speed)
+    {
+        //This moves both position and target
+        if (moveDirection == directionalInput::moveUp)
+        {
+            camPos += camUp * speed;
+            camTarget += camUp * speed;
+        }
+        else if (moveDirection == directionalInput::moveDown)
+        {
+            camPos -= camUp * speed;
+            camTarget -= camUp * speed;
+        }
+        else if (moveDirection == directionalInput::moveLeft)
+        {
+            camPos -= camRight * speed;
+            camTarget -= camRight * speed;
+        }
+        else if (moveDirection == directionalInput::moveRight)
+        {
+            camPos += camRight * speed;
+            camTarget += camRight * speed;
+        }
+        else if (moveDirection == directionalInput::moveForward)
+        {
+            camPos += camForward * speed;
+            camTarget += camForward * speed;
+        }
+        else if (moveDirection == directionalInput::moveBack)
+        {
+            camPos -= camForward * speed;
+            camTarget -= camForward * speed;
+        }
     }
 
 }

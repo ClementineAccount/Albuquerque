@@ -13,8 +13,11 @@ namespace Albuquerque
         Camera();
 
         glm::vec3 camPos = glm::vec3(3.0f, 3.0f, 3.0f);
-        glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f);
-        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+        glm::vec3 camTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+        glm::vec3 camRight = glm::vec3(1.0f, 0.0f, 0.0f);
+        glm::vec3 camForward = glm::vec3(0.0f, 0.0f, 1.0f);
 
         float nearPlane = 0.01f;
         float farPlane = 5000.0f;
@@ -38,5 +41,11 @@ namespace Albuquerque
         //Maintains the current target that it previously had. The caller is expected to correct the speed for deltaTime
         //prior to passsing it in.
         void MoveArcball(directionalInput moveDirection, float speed = 1.0f);
+
+        void MoveFly(directionalInput moveDirection, float speed = 1.0f);
+
+        //Allow rotation of camera using mouse or keyboard. Lets try prototyping keyboard version as I haven't done that before
+        void RotateFly(float yawDegrees, float pitchDegrees, float speed = 1.0f);
+
     };
 }

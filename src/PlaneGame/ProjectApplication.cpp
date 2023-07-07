@@ -1176,6 +1176,8 @@ void ProjectApplication::UpdateEditorCamera(double dt) {
 
     static bool firstMouseRotate = true;
 
+    //I actually do not 100% remember what bug this was fixing tbh. Like why infinity as the out of bounds
+    //and not the window limits I serously dont know. I'll probably hence remove this check to recreate the original bug
     if (!(mouseX == std::numeric_limits<double>::infinity() ||
           mouseX == -std::numeric_limits<double>::infinity() ||
           mouseY == std::numeric_limits<double>::infinity() ||

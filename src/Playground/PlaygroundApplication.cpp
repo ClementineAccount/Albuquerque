@@ -313,7 +313,7 @@ void ViewData::Update(Albuquerque::Camera const& camera)
 {
     static ViewUniform viewUniform;
 
-    glm::mat4 view = glm::lookAt(camera.camPos,  camera.target,  camera.up);
+    glm::mat4 view = glm::lookAt(camera.camPos,  camera.camTarget,  camera.camUp);
     glm::mat4 viewSky = glm::mat4(glm::mat3(view));
     glm::mat4 proj = glm::perspective(PI / 2.0f, 1.6f, camera.nearPlane, camera.farPlane);
 
@@ -343,6 +343,7 @@ bool PlaygroundApplication::Load()
         spdlog::error("App: Unable to load");
         return false;
     }
+    SetWindowTitle("Fwog Playground");
 
     pipelineTextured_ = MakePipeline("./data/shaders/main.vs.glsl", "./data/shaders/main.fs.glsl");
     for (size_t i = 0; i < numCubes_; ++i)
@@ -371,8 +372,6 @@ bool PlaygroundApplication::Load()
 
 void PlaygroundApplication::Update(double dt)
 {
-
-
     if (IsKeyPressed(GLFW_KEY_ESCAPE))
     {
         Close();
@@ -390,34 +389,34 @@ void PlaygroundApplication::Update(double dt)
         if (IsKeyPressed(GLFW_KEY_A))
         {
             isUpdate = true;
-            currCamera.MoveArcball(Camera::directionalInput::moveLeft, camSpeed);
+            currCamera.MoveFly(Camera::directionalInput::moveLeft, camSpeed);
         }
         else if (IsKeyPressed(GLFW_KEY_D))
         {
             isUpdate = true;
-            currCamera.MoveArcball(Camera::directionalInput::moveRight, camSpeed);
+            currCamera.MoveFly(Camera::directionalInput::moveRight, camSpeed);
         }
 
         if (IsKeyPressed(GLFW_KEY_Q))
         {
             isUpdate = true;
-            currCamera.MoveArcball(Camera::directionalInput::moveUp, camSpeed);
+            currCamera.MoveFly(Camera::directionalInput::moveUp, camSpeed);
         }
         else if (IsKeyPressed(GLFW_KEY_E))
         {
             isUpdate = true;
-            currCamera.MoveArcball(Camera::directionalInput::moveDown, camSpeed);
+            currCamera.MoveFly(Camera::directionalInput::moveDown, camSpeed);
         }
 
         if (IsKeyPressed(GLFW_KEY_W))
         {
             isUpdate = true;
-            currCamera.MoveArcball(Camera::directionalInput::moveForward, camSpeed);
+            currCamera.MoveFly(Camera::directionalInput::moveForward, camSpeed);
         }
         else if (IsKeyPressed(GLFW_KEY_S))
         {
             isUpdate = true;
-            currCamera.MoveArcball(Camera::directionalInput::moveBack, camSpeed);
+            currCamera.MoveFly(Camera::directionalInput::moveBack, camSpeed);
         }
 
         //we only need to recalculate the viewProj if camera data did change
