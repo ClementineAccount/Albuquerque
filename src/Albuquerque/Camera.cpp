@@ -18,11 +18,18 @@ namespace Albuquerque
         //What is even the point of having it initalized twice like this tho? You already have it as a default as member 
         camUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+        camForward = glm::normalize(camTarget - camPos);
+
+        CalibrateDirectional();
+    }
+
+    void Camera::CalibrateDirectional()
+    {
         //To Do: Move this const somewhere else
         static constexpr glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
         //it actually points behind the camera's head because we live in a society
-        camForward = glm::normalize(camTarget - camPos);
+        camForward = glm::normalize(camForward);
         camRight = glm::cross(camForward, worldUp);
         camUp = glm::cross(camRight, camForward);
     }
@@ -103,6 +110,31 @@ namespace Albuquerque
             camPos -= camForward * speed;
             camTarget -= camForward * speed;
         }
+    }
+
+    //There is no lerp for this at the moment
+    void Camera::RotateFly(float yawDegreesAdd, float pitchDegreesAdd)
+    {
+        this->yawDegrees += yawDegreesAdd;
+        this->pitchDegrees += pitchDegreesAdd;
+
+        if (this->pitchDegrees > 89.0f) this->pitchDegrees = 89.0f;
+        if (this->pitchDegrees < -89.0f) this->pitchDegrees = -89.0f;
+
+        //Actually there is another route... instead of setting the target directly I can calculate the euler angle rotation
+        //rotation relative to the forward of (1.0, 0.0, 0.0) I guess?
+        //Its not as good as doing quaterions or whatever but I can try it just to see if it works as an experiment
+
+        //Don't really know how to do this system if the forward is not implied to start at origin sadly. Would probably
+        //have to use quaterions instead or get better at this type of math
+        //I will just dump this here and use it to learn the proper math some other time: 
+        //https://www.youtube.com/watch?v=MZuYmG1GBFk
+        camForward.x = cos(glm::radians(this->yawDegrees)) * cos(glm::radians(this->pitchDegrees));
+        camForward.y = sin(glm::radians(this->pitchDegrees));
+        camForward.z = sin(glm::radians(this->yawDegrees)) * cos(glm::radians(this->pitchDegrees));
+
+        CalibrateDirectional();
+        camTarget = camPos + camForward;
     }
 
 }

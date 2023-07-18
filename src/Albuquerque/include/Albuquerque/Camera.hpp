@@ -19,6 +19,9 @@ namespace Albuquerque
         glm::vec3 camRight = glm::vec3(1.0f, 0.0f, 0.0f);
         glm::vec3 camForward = glm::vec3(0.0f, 0.0f, 1.0f);
 
+        float yawDegrees = -90.0f;
+        float pitchDegrees = 0.0f;
+
         float nearPlane = 0.01f;
         float farPlane = 5000.0f;
 
@@ -45,7 +48,10 @@ namespace Albuquerque
         void MoveFly(directionalInput moveDirection, float speed = 1.0f);
 
         //Allow rotation of camera using mouse or keyboard. Lets try prototyping keyboard version as I haven't done that before
-        void RotateFly(float yawDegrees, float pitchDegrees, float speed = 1.0f);
+        void RotateFly(float yawDegreesAdd, float pitchDegreesAdd);
+
+    private:
+        void CalibrateDirectional();
 
     };
 }

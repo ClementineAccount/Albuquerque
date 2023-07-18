@@ -419,6 +419,13 @@ void PlaygroundApplication::Update(double dt)
             currCamera.MoveFly(Camera::directionalInput::moveBack, camSpeed);
         }
 
+        //Testing if rotations are working ok
+        if (IsKeyPressed(GLFW_KEY_R))
+        {
+            isUpdate = true;
+            currCamera.RotateFly(camSpeed * 10.0f, 0.0f);
+        }
+
         //we only need to recalculate the viewProj if camera data did change
         if (isUpdate)
            viewData_->Update(currCamera);
