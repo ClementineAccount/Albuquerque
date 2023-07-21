@@ -20,7 +20,7 @@ namespace Albuquerque
                 object.vertexBuffer.emplace(vertexList);
                 object.indexBuffer.emplace(indexList);
                 object.modelUniformBuffer =  Fwog::TypedBuffer<DrawObject::ObjectUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-                object.modelUniformBuffer.value().SubData(object.objectStruct, 0);
+                object.modelUniformBuffer.value().UpdateData(object.objectStruct, 0);
 
                 //Fwog takes in uint32_t for the indexCount but .size() on a container returns size_t. I'll just cast it here and hope its fine.
                 object.indexCount = static_cast<uint32_t>(indexCount);

@@ -172,15 +172,13 @@ Fwog::Texture Skybox::MakeTexture()
     auto upload_face = [&](uint32_t curr_face,
         unsigned char* texture_pixel_data) {
             Fwog::TextureUpdateInfo updateInfo{
-                .dimension = Fwog::UploadDimension::THREE,
-                .level = 0,
-                .offset = {.depth = curr_face},
-                .size = {static_cast<uint32_t>(textureWidth),
-                static_cast<uint32_t>(textureHeight), 1},
-                .format = Fwog::UploadFormat::RGBA,
-                .type = Fwog::UploadType::UBYTE,
-                .pixels = texture_pixel_data};
-            texture.SubImage(updateInfo);
+                .offset = { .z = curr_face },
+                    .extent{static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight), 1},
+                    .format = Fwog::UploadFormat::RGBA,
+                    .type = Fwog::UploadType::UBYTE,
+                    .pixels = texture_pixel_data
+            };
+            texture.UpdateImage(updateInfo);
 
             stbi_image_free(texture_pixel_data);
     };
@@ -212,7 +210,7 @@ void GameObject::UpdateDraw()
     model = glm::rotate(model, glm::radians(eulerAngleDegrees.y), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::rotate(model, glm::radians(eulerAngleDegrees.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    drawData.modelUniformBuffer.value().SubData(drawData.objectStruct, 0);
+    drawData.modelUniformBuffer.value().UpdateData(drawData.objectStruct, 0);
 }
 
 Fwog::GraphicsPipeline PlaygroundApplication::MakePipeline(std::string_view vertexShaderPath, std::string_view fragmentShaderPath)
@@ -286,16 +284,13 @@ Fwog::Texture PlaygroundApplication::MakeTexture(std::string_view texturePath, i
         divideByHalfAmounts);
 
     Fwog::TextureUpdateInfo updateInfo{
-        .dimension = Fwog::UploadDimension::TWO,
-        .level = 0,
-        .offset = {},
-        .size = {static_cast<uint32_t>(textureWidth),
-        static_cast<uint32_t>(textureHeight), 1},
-        .format = Fwog::UploadFormat::RGBA,
-        .type = Fwog::UploadType::UBYTE,
-        .pixels = textureData};
+        .extent = { static_cast<uint32_t>(textureWidth),
+        static_cast<uint32_t>(textureHeight), 1 },
+            .format = Fwog::UploadFormat::RGBA,
+            .type = Fwog::UploadType::UBYTE,
+            .pixels = textureData};
 
-    createdTexture.SubImage(updateInfo);
+    createdTexture.UpdateImage(updateInfo);
     createdTexture.GenMipmaps();
     stbi_image_free(textureData);
 
@@ -319,11 +314,11 @@ void ViewData::Update(Albuquerque::Camera const& camera)
 
     viewUniform.viewProj = proj * view;
     viewUniform.eyePos = camera.camPos;
-    viewBuffer.value().SubData(viewUniform, 0);
+    viewBuffer.value().UpdateData(viewUniform, 0);
 
     viewUniform.viewProj = proj * viewSky;
 
-    skyboxBuffer.value().SubData(viewUniform, 0);
+    skyboxBuffer.value().UpdateData(viewUniform, 0);
 }
 
 void PlaygroundApplication::AfterCreatedUiContext()
@@ -436,19 +431,7 @@ void PlaygroundApplication::Update(double dt)
 
 void PlaygroundApplication::RenderScene(double dt)
 {
-
     static constexpr glm::vec4 backgroundColor = glm::vec4(0.1f, 0.3f, 0.2f, 1.0f);
-    Fwog::BeginSwapchainRendering(Fwog::SwapchainRenderInfo{
-        .viewport =
-        Fwog::Viewport{.drawRect{.offset = {0, 0},
-        .extent = {windowWidth, windowHeight}},
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f},
-        .colorLoadOp = Fwog::AttachmentLoadOp::CLEAR,
-        .clearColorValue = {backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a},
-        .depthLoadOp = Fwog::AttachmentLoadOp::CLEAR,
-        .clearDepthValue = 1.0f});
-
     Fwog::SamplerState ss;
     ss.minFilter = Fwog::Filter::LINEAR;
     ss.magFilter = Fwog::Filter::LINEAR;
@@ -471,10 +454,6 @@ void PlaygroundApplication::RenderScene(double dt)
         Fwog::Cmd::DrawIndexed(object.indexCount, 1, 0, 0, 0);
     };
 
-    for (size_t i = 0; i < numCubes_; ++i)
-    {
-        drawObject(exampleCubes_[i].drawData, cubeTexture_.value(), nearestSampler);
-    }
 
     auto drawSkybox = [&](Skybox const& skybox, Fwog::Sampler const& sampler)
     {
@@ -486,11 +465,29 @@ void PlaygroundApplication::RenderScene(double dt)
         Fwog::Cmd::Draw(Primitives::skyboxVertices.size() / 3, 1, 0, 0);
     };
 
-    if (skyboxVisible_)
-        drawSkybox(skybox_.value(), nearestSampler);
+    Fwog::RenderToSwapchain(
+        {
+        .viewport =
+        Fwog::Viewport{.drawRect{.offset = {0, 0},
+        .extent = {windowWidth, windowHeight}},
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f},
+        .colorLoadOp = Fwog::AttachmentLoadOp::CLEAR,
+        .clearColorValue = {backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a},
+        .depthLoadOp = Fwog::AttachmentLoadOp::CLEAR,
+        .clearDepthValue = 1.0f
+        },
+        [&]
+        {
+            for (size_t i = 0; i < numCubes_; ++i)
+            {
+                drawObject(exampleCubes_[i].drawData, cubeTexture_.value(), nearestSampler);
+            }
 
-    Fwog::EndRendering();
-
+            if (skyboxVisible_)
+                drawSkybox(skybox_.value(), nearestSampler);
+        }
+   );
 }
 
 void PlaygroundApplication::RenderUI(double dt)
