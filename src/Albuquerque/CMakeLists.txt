@@ -4,11 +4,14 @@ project(Albuquerque)
 add_subdirectory(lib)
 
 set(sourceFiles
+    Camera.cpp
     Application.cpp
 )
 
 set(headerFiles
     include/Albuquerque/Application.hpp
+    include/Albuquerque/Camera.hpp
+    include/Albuquerque/DrawObject.hpp
 )
 
 add_library(Albuquerque ${sourceFiles} ${headerFiles})

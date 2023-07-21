@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Albuquerque/Application.hpp>
+#include <Albuquerque/Camera.hpp>
+#include <Albuquerque/DrawObject.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
@@ -13,7 +15,6 @@
 #include <array>
 #include <optional>
 
-#include <Camera.hpp>
 
 //Fwog Stuff
 #include <Fwog/BasicTypes.h>
@@ -22,7 +23,6 @@
 #include <Fwog/Rendering.h>
 #include <Fwog/Shader.h>
 #include <Fwog/Texture.h>
-
 
 
 namespace Primitives
@@ -111,26 +111,7 @@ namespace Primitives
     };
 }
 
-struct DrawObject
-{
-    //T1 and T2 can be different container types. std::array or std::vector.
-    //Didn't want this to be a constructor because the actual DrawObject struct does not need to be templated.
-    template <typename T1, typename T2>
-    static DrawObject Init(T1 const& vertexList, T2 const& indexList, size_t indexCount);
 
-    std::optional<Fwog::Buffer> vertexBuffer;
-    std::optional<Fwog::Buffer> indexBuffer;
-
-    uint32_t indexCount;
-
-    struct ObjectUniform
-    {
-        glm::mat4 modelTransform = glm::mat4(1.0f);
-    };
-    ObjectUniform objectStruct;
-
-    std::optional<Fwog::TypedBuffer<ObjectUniform>> modelUniformBuffer;
-};
 
 struct Skybox
 {
@@ -157,7 +138,24 @@ struct GameObject
     //Transformation only expected along one axis so for example purpose this is ok for now.
     glm::vec3 eulerAngleDegrees = glm::vec3(0.0f, 0.0f, 0.0f);
 
-    DrawObject drawData;
+    Albuquerque::FwogHelpers::DrawObject drawData;
+};
+
+struct ViewData
+{
+    ViewData();
+
+    struct ViewUniform {
+        glm::mat4 viewProj;
+        glm::vec3 eyePos;
+    };
+
+    std::optional<Fwog::TypedBuffer<ViewUniform>> viewBuffer;
+
+    //Skybox doesn't have translation
+    std::optional<Fwog::TypedBuffer<ViewUniform>> skyboxBuffer;
+
+    void Update(Albuquerque::Camera const& camera);
 };
 
 class PlaygroundApplication final : public Albuquerque::Application
@@ -176,18 +174,20 @@ protected:
     void RenderUI(double dt) override;
     void Update(double dt) override;
 
+    //void UpdateViewBuffers(Albuquerque::Camera const& camera);
+
 private:
-    //uint32_t shaderProgram;
-    //bool MakeShader(std::string_view vertexShaderFilePath, std::string_view fragmentShaderFilePath);
 
-    std::optional<Fwog::GraphicsPipeline> pipelineTextured;
-    std::optional<Fwog::Texture> cubeTexture;
-    std::optional<Camera> sceneCamera;
+    std::optional<Fwog::GraphicsPipeline> pipelineTextured_;
+    std::optional<Fwog::Texture> cubeTexture_;
+    Albuquerque::Camera sceneCamera_;
 
-    static constexpr size_t numCubes = 5;
-    GameObject exampleCubes[numCubes];
+    std::optional<ViewData> viewData_;
 
-    std::optional<Skybox> skybox;
+    static constexpr size_t numCubes_ = 5;
+    GameObject exampleCubes_[numCubes_];
 
-    bool _skyboxVisible = false;
+    std::optional<Skybox> skybox_;
+
+    bool skyboxVisible_ = false;
 };

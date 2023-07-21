@@ -23,6 +23,7 @@
 #include <queue>
 #include <set>
 
+
 static constexpr float PI = 3.1415926f;
 
 static std::string Slurp(std::string_view path)
@@ -60,38 +61,6 @@ static std::string FindTexturePath(const fs::path& basePath, const cgltf_image* 
         texturePath = (basePath / image->uri).generic_string();
     }
     return texturePath;
-}
-
-
-template <typename T1, typename T2>
-DrawObject DrawObject::Init(T1 const& vertexList, T2 const& indexList, size_t indexCount)
-{
-    DrawObject object;
-    object.vertexBuffer.emplace(vertexList);
-    object.indexBuffer.emplace(indexList);
-    object.modelUniformBuffer =  Fwog::TypedBuffer<DrawObject::ObjectUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-    object.modelUniformBuffer.value().SubData(object.objectStruct, 0);
-
-    //Fwog takes in uint32_t for the indexCount but .size() on a container returns size_t. I'll just cast it here and hope its fine.
-    object.indexCount = static_cast<uint32_t>(indexCount);
-    
-    return object;
-}
-
-
-void Camera::Update()
-{
-    glm::mat4 view = glm::lookAt(camPos,  target,  up);
-    glm::mat4 viewSky = glm::mat4(glm::mat3(view));
-    glm::mat4 proj = glm::perspective(PI / 2.0f, 1.6f, nearPlane, farPlane);
-
-    cameraStruct.viewProj = proj * view;
-    cameraStruct.eyePos = camPos;
-    cameraUniformsBuffer.value().SubData(cameraStruct, 0);
-
-    cameraStruct.viewProj = proj * viewSky;
-
-    cameraUniformsSkyboxBuffer.value().SubData(cameraStruct, 0);
 }
 
 
@@ -334,6 +303,29 @@ Fwog::Texture PlaygroundApplication::MakeTexture(std::string_view texturePath, i
 }
 
 
+ViewData::ViewData()
+{
+    viewBuffer = Fwog::TypedBuffer<ViewUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+    skyboxBuffer = Fwog::TypedBuffer<ViewUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+}
+
+void ViewData::Update(Albuquerque::Camera const& camera)
+{
+    static ViewUniform viewUniform;
+
+    glm::mat4 view = glm::lookAt(camera.camPos,  camera.camTarget,  camera.camUp);
+    glm::mat4 viewSky = glm::mat4(glm::mat3(view));
+    glm::mat4 proj = glm::perspective(PI / 2.0f, 1.6f, camera.nearPlane, camera.farPlane);
+
+    viewUniform.viewProj = proj * view;
+    viewUniform.eyePos = camera.camPos;
+    viewBuffer.value().SubData(viewUniform, 0);
+
+    viewUniform.viewProj = proj * viewSky;
+
+    skyboxBuffer.value().SubData(viewUniform, 0);
+}
+
 void PlaygroundApplication::AfterCreatedUiContext()
 {
 }
@@ -351,30 +343,29 @@ bool PlaygroundApplication::Load()
         spdlog::error("App: Unable to load");
         return false;
     }
+    SetWindowTitle("Fwog Playground");
 
-    pipelineTextured = MakePipeline("./data/shaders/main.vs.glsl", "./data/shaders/main.fs.glsl");
-    for (size_t i = 0; i < numCubes; ++i)
+    pipelineTextured_ = MakePipeline("./data/shaders/main.vs.glsl", "./data/shaders/main.fs.glsl");
+    for (size_t i = 0; i < numCubes_; ++i)
     {
         //https://en.cppreference.com/w/cpp/language/class_template_argument_deduction 
         //because the containers which are the parameters are constexpr
-        exampleCubes[i].drawData = DrawObject::Init(Primitives::cubeVertices, Primitives::cubeIndices, Primitives::cubeIndices.size());
+        exampleCubes_[i].drawData =  Albuquerque::FwogHelpers::DrawObject::Init(Primitives::cubeVertices, Primitives::cubeIndices, Primitives::cubeIndices.size());
 
         //Offset the transforms of the cube
 
         static constexpr float offsetForward = 10.0f;
-        exampleCubes[i].position.z -= i * offsetForward;
-
-        exampleCubes[i].scale *= (i + 1);
-
-        exampleCubes[i].UpdateDraw();
+        exampleCubes_[i].position.z -= i * offsetForward;
+        exampleCubes_[i].scale *= (i + 1);
+        exampleCubes_[i].UpdateDraw();
     }
 
-    cubeTexture = MakeTexture("./data/textures/fwog_logo.png");
+    cubeTexture_ = MakeTexture("./data/textures/fwog_logo.png");
 
-    sceneCamera = Camera();
+    viewData_ = ViewData();
+    viewData_->Update(sceneCamera_);
 
-
-    skybox = Skybox();
+    skybox_ = Skybox();
 
     return true;
 }
@@ -387,50 +378,60 @@ void PlaygroundApplication::Update(double dt)
     }
 
     //This is an arcball style update. Could move it maybe?
-    auto updateCameraArc = [&](Camera& currCamera)
+    auto updateCameraArc = [&](Albuquerque::Camera& currCamera)
     {
+        using namespace Albuquerque;
+
         bool isUpdate = false;
-        static float camSpeed = 2.0f;
+        static float camSpeedBase = 2.0f;
+        float camSpeed = camSpeedBase * static_cast<float>(dt);
         
         if (IsKeyPressed(GLFW_KEY_A))
         {
             isUpdate = true;
-            currCamera.camPos.x += camSpeed * dt;
+            currCamera.MoveFly(Camera::directionalInput::moveLeft, camSpeed);
         }
         else if (IsKeyPressed(GLFW_KEY_D))
         {
             isUpdate = true;
-            currCamera.camPos.x -= camSpeed * dt;
+            currCamera.MoveFly(Camera::directionalInput::moveRight, camSpeed);
         }
 
         if (IsKeyPressed(GLFW_KEY_Q))
         {
             isUpdate = true;
-            currCamera.camPos.z += camSpeed * dt;
+            currCamera.MoveFly(Camera::directionalInput::moveUp, camSpeed);
         }
         else if (IsKeyPressed(GLFW_KEY_E))
         {
             isUpdate = true;
-            currCamera.camPos.z -= camSpeed * dt;
+            currCamera.MoveFly(Camera::directionalInput::moveDown, camSpeed);
         }
 
         if (IsKeyPressed(GLFW_KEY_W))
         {
             isUpdate = true;
-            currCamera.camPos.y += camSpeed * dt;
+            currCamera.MoveFly(Camera::directionalInput::moveForward, camSpeed);
         }
         else if (IsKeyPressed(GLFW_KEY_S))
         {
             isUpdate = true;
-            currCamera.camPos.y -= camSpeed * dt;
+            currCamera.MoveFly(Camera::directionalInput::moveBack, camSpeed);
+        }
+
+        //Testing if rotations are working ok
+        if (IsKeyPressed(GLFW_KEY_R))
+        {
+            isUpdate = true;
+            currCamera.RotateFly(camSpeed * 10.0f, 0.0f);
         }
 
         //we only need to recalculate the viewProj if camera data did change
         if (isUpdate)
-            currCamera.Update();
+           viewData_->Update(currCamera);
     };
 
-    updateCameraArc(sceneCamera.value());
+    updateCameraArc(sceneCamera_);
 }
 
 void PlaygroundApplication::RenderScene(double dt)
@@ -458,10 +459,10 @@ void PlaygroundApplication::RenderScene(double dt)
     static auto nearestSampler = Fwog::Sampler(ss);
 
     //Could refactor this to be a function of a class
-    auto drawObject = [&](DrawObject const& object, Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler, Camera const& camera)
+    auto drawObject = [&](Albuquerque::FwogHelpers::DrawObject const& object, Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler)
     {
-        Fwog::Cmd::BindGraphicsPipeline(pipelineTextured.value());
-        Fwog::Cmd::BindUniformBuffer(0, camera.cameraUniformsBuffer.value());
+        Fwog::Cmd::BindGraphicsPipeline(pipelineTextured_.value());
+        Fwog::Cmd::BindUniformBuffer(0, viewData_->viewBuffer.value());
         Fwog::Cmd::BindUniformBuffer(1, object.modelUniformBuffer.value());
 
         Fwog::Cmd::BindSampledImage(0, textureAlbedo, sampler);
@@ -470,23 +471,23 @@ void PlaygroundApplication::RenderScene(double dt)
         Fwog::Cmd::DrawIndexed(object.indexCount, 1, 0, 0, 0);
     };
 
-    for (size_t i = 0; i < numCubes; ++i)
+    for (size_t i = 0; i < numCubes_; ++i)
     {
-        drawObject(exampleCubes[i].drawData, cubeTexture.value(), nearestSampler, sceneCamera.value());
+        drawObject(exampleCubes_[i].drawData, cubeTexture_.value(), nearestSampler);
     }
 
-    auto drawSkybox = [&](Skybox const& skybox, Fwog::Sampler const& sampler, Camera const& camera)
+    auto drawSkybox = [&](Skybox const& skybox, Fwog::Sampler const& sampler)
     {
         Fwog::Cmd::BindGraphicsPipeline(skybox.pipeline.value());
-        Fwog::Cmd::BindUniformBuffer(0, camera.cameraUniformsSkyboxBuffer.value());
+        Fwog::Cmd::BindUniformBuffer(0, viewData_->skyboxBuffer.value());
 
         Fwog::Cmd::BindSampledImage(0, skybox.texture.value(), sampler);
         Fwog::Cmd::BindVertexBuffer(0, skybox.vertexBuffer.value(), 0, 3 * sizeof(float));
         Fwog::Cmd::Draw(Primitives::skyboxVertices.size() / 3, 1, 0, 0);
     };
 
-    if (_skyboxVisible)
-        drawSkybox(skybox.value(), nearestSampler, sceneCamera.value());
+    if (skyboxVisible_)
+        drawSkybox(skybox_.value(), nearestSampler);
 
     Fwog::EndRendering();
 
@@ -498,13 +499,12 @@ void PlaygroundApplication::RenderUI(double dt)
     {
         ImGui::TextUnformatted("Hello Fwog!");
         ImGui::TextUnformatted("Use WASD and QE for Arcball Controls.");
-        ImGui::Checkbox("Skybox", &_skyboxVisible);
+        ImGui::Checkbox("Skybox", &skyboxVisible_);
         ImGui::End();
     }
 
     //ImGui::ShowDemoWindow();
 }
-
 
 
 
