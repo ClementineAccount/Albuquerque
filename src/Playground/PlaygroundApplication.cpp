@@ -422,7 +422,7 @@ void PlaygroundApplication::Update(double dt)
     updateCameraArc(sceneCamera_);
 }
 
-void PlaygroundApplication::RenderScene(double dt)
+void PlaygroundApplication::RenderFwog(double dt)
 {
     static constexpr glm::vec4 backgroundColor = glm::vec4(0.1f, 0.3f, 0.2f, 1.0f);
     Fwog::SamplerState ss;
@@ -480,8 +480,16 @@ void PlaygroundApplication::RenderScene(double dt)
             if (skyboxVisible_)
                 drawSkybox(skybox_.value(), nearestSampler);
         }
-   );
+        );
 }
+
+void PlaygroundApplication::RenderScene(double dt)
+{
+    RenderFwog(dt);
+
+}
+
+
 
 void PlaygroundApplication::RenderUI(double dt)
 {

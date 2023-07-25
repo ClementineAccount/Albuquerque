@@ -91,6 +91,8 @@ protected:
 
 private:
 
+    void RenderFwog(double dt);
+
     std::optional<Fwog::GraphicsPipeline> pipelineTextured_;
     std::optional<Fwog::Texture> cubeTexture_;
     Albuquerque::Camera sceneCamera_;
