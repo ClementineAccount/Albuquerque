@@ -89,9 +89,18 @@ protected:
 
     //void UpdateViewBuffers(Albuquerque::Camera const& camera);
 
-private:
 
+protected:
+
+    //Fwog related stuff (need to refactor further into their own classes in the future)
+
+    bool LoadFwog();
     void RenderFwog(double dt);
+    void UpdateFwog(double dt);
+
+
+private:
+   
 
     std::optional<Fwog::GraphicsPipeline> pipelineTextured_;
     std::optional<Fwog::Texture> cubeTexture_;
@@ -105,4 +114,6 @@ private:
     std::optional<Skybox> skybox_;
 
     bool skyboxVisible_ = false;
+
+    bool fwogScene_ = true;
 };

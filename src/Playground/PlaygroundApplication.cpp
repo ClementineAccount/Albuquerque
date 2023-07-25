@@ -320,16 +320,8 @@ void PlaygroundApplication::BeforeDestroyUiContext()
 
 }
 
-
-bool PlaygroundApplication::Load()
+bool PlaygroundApplication::LoadFwog()
 {
-    if (!Application::Load())
-    {
-        spdlog::error("App: Unable to load");
-        return false;
-    }
-    SetWindowTitle("Fwog Playground");
-
     pipelineTextured_ = MakePipeline("./data/shaders/main.vs.glsl", "./data/shaders/main.fs.glsl");
     for (size_t i = 0; i < numCubes_; ++i)
     {
@@ -337,8 +329,8 @@ bool PlaygroundApplication::Load()
 
         //https://en.cppreference.com/w/cpp/language/class_template_argument_deduction 
         //because the containers which are the parameters are constexpr
-        
-        exampleCubes_[i].drawData =  Albuquerque::FwogHelpers::DrawObject::Init(Primitives::cubeVertices, Primitives::cubeIndices, Primitives::cubeIndices.size());
+
+        exampleCubes_[i].drawData = Albuquerque::FwogHelpers::DrawObject::Init(Primitives::cubeVertices, Primitives::cubeIndices, Primitives::cubeIndices.size());
 
         //Offset the transforms of the cube
 
@@ -358,12 +350,20 @@ bool PlaygroundApplication::Load()
     return true;
 }
 
-void PlaygroundApplication::Update(double dt)
+bool PlaygroundApplication::Load()
 {
-    if (IsKeyPressed(GLFW_KEY_ESCAPE))
+    if (!Application::Load())
     {
-        Close();
+        spdlog::error("App: Unable to load");
+        return false;
     }
+    SetWindowTitle("Playground");
+
+    return LoadFwog();
+}
+
+void PlaygroundApplication::UpdateFwog(double dt)
+{
 
     //This is an arcball style update. Could move it maybe?
     auto updateCameraArc = [&](Albuquerque::Camera& currCamera)
@@ -373,7 +373,7 @@ void PlaygroundApplication::Update(double dt)
         bool isUpdate = false;
         static float camSpeedBase = 2.0f;
         float camSpeed = camSpeedBase * static_cast<float>(dt);
-        
+
         if (IsKeyPressed(GLFW_KEY_A))
         {
             isUpdate = true;
@@ -416,10 +416,21 @@ void PlaygroundApplication::Update(double dt)
 
         //we only need to recalculate the viewProj if camera data did change
         if (isUpdate)
-           viewData_->Update(currCamera);
+            viewData_->Update(currCamera);
     };
 
     updateCameraArc(sceneCamera_);
+}
+
+void PlaygroundApplication::Update(double dt)
+{
+    if (IsKeyPressed(GLFW_KEY_ESCAPE))
+    {
+        Close();
+    }
+
+    if (fwogScene_)
+        UpdateFwog(dt);
 }
 
 void PlaygroundApplication::RenderFwog(double dt)
@@ -472,13 +483,16 @@ void PlaygroundApplication::RenderFwog(double dt)
         },
         [&]
         {
-            for (size_t i = 0; i < numCubes_; ++i)
+            if (fwogScene_)
             {
-                drawObject(exampleCubes_[i].drawData, cubeTexture_.value(), nearestSampler);
-            }
+                for (size_t i = 0; i < numCubes_; ++i)
+                {
+                    drawObject(exampleCubes_[i].drawData, cubeTexture_.value(), nearestSampler);
+                }
 
-            if (skyboxVisible_)
-                drawSkybox(skybox_.value(), nearestSampler);
+                if (skyboxVisible_)
+                    drawSkybox(skybox_.value(), nearestSampler);
+            }
         }
         );
 }
@@ -495,9 +509,14 @@ void PlaygroundApplication::RenderUI(double dt)
 {
     ImGui::Begin("Window");
     {
-        ImGui::TextUnformatted("Hello Fwog!");
-        ImGui::TextUnformatted("Use WASD and QE for Arcball Controls.");
-        ImGui::Checkbox("Skybox", &skyboxVisible_);
+        ImGui::TextUnformatted("Hello World!");
+        ImGui::Checkbox("Show Fwog Scene", &fwogScene_);
+        if (fwogScene_)
+        {
+            ImGui::TextUnformatted("Use WASD and QE for Arcball Controls.");
+            ImGui::Checkbox("Skybox", &skyboxVisible_);
+        }
+
         ImGui::End();
     }
 
