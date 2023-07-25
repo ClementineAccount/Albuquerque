@@ -27,18 +27,7 @@
 
 static constexpr float PI = 3.1415926f;
 
-static std::string Slurp(std::string_view path)
-{
-    std::ifstream file(path.data(), std::ios::ate);
-    std::string result(file.tellg(), '\0');
-    file.seekg(0);
-    file.read((char*)result.data(), result.size());
-    return result;
-}
-
-namespace fs = std::filesystem;
-
-static std::string FindTexturePath(const fs::path& basePath, const cgltf_image* image)
+static std::string FindTexturePath(const std::filesystem::path& basePath, const cgltf_image* image)
 {
     std::string texturePath;
     if (!image->uri)
