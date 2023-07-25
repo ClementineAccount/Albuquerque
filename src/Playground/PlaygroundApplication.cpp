@@ -1,7 +1,3 @@
-#define CGLTF_IMPLEMENTATION
-#include <cgltf.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 
 #include <PlaygroundApplication.hpp>
 
@@ -25,34 +21,9 @@
 
 #include <Albuquerque/Primitives.hpp>
 
+#include <stb_image.h>
+
 static constexpr float PI = 3.1415926f;
-
-static std::string FindTexturePath(const std::filesystem::path& basePath, const cgltf_image* image)
-{
-    std::string texturePath;
-    if (!image->uri)
-    {
-        auto newPath = basePath / image->name;
-        if (!newPath.has_extension())
-        {
-            if (std::strcmp(image->mime_type, "image/png") == 0)
-            {
-                newPath.replace_extension("png");
-            }
-            else if (std::strcmp(image->mime_type, "image/jpg") == 0)
-            {
-                newPath.replace_extension("jpg");
-            }
-        }
-        texturePath = newPath.generic_string();
-    }
-    else
-    {
-        texturePath = (basePath / image->uri).generic_string();
-    }
-    return texturePath;
-}
-
 
 
 Skybox::Skybox()
@@ -259,10 +230,12 @@ Fwog::GraphicsPipeline PlaygroundApplication::MakePipeline(std::string_view vert
 
 Fwog::Texture PlaygroundApplication::MakeTexture(std::string_view texturePath, int32_t expectedChannels)
 {
+    stbi_set_flip_vertically_on_load(true);
     int32_t textureWidth, textureHeight, textureChannels;
     unsigned char* textureData =
         stbi_load(texturePath.data(), &textureWidth, &textureHeight, &textureChannels, expectedChannels);
     assert(textureData);
+    stbi_set_flip_vertically_on_load(false);
 
     //How many times can this texture be divided evenly by half?
     uint32_t divideByHalfAmounts =  uint32_t(1 + floor(log2(glm::max(textureWidth, textureHeight))));
@@ -502,8 +475,6 @@ void PlaygroundApplication::RenderScene(double dt)
     RenderFwog(dt);
 
 }
-
-
 
 void PlaygroundApplication::RenderUI(double dt)
 {
