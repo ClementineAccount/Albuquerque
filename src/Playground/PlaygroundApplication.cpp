@@ -284,11 +284,48 @@ void ViewData::Update(Albuquerque::Camera const& camera)
     skyboxBuffer.value().UpdateData(viewUniform, 0);
 }
 
-VoxelStuff::Grid::Grid()
+
+VoxelStuff::Voxel::Voxel(Transform transform)
 {
     //Create the drawData based off a cube (..for now...)
+    using namespace Albuquerque;
+    gameObject.drawData = Albuquerque::FwogHelpers::DrawObject::Init(Primitives::cubeVertices, Primitives::cubeIndices, Primitives::cubeIndices.size());
+    
+    gameObject.position = transform.position;
+    gameObject.scale = transform.scale;
+    gameObject.UpdateDraw();
+}
 
+void VoxelStuff::Voxel::Draw() const
+{
+    Fwog::Cmd::BindUniformBuffer(1, gameObject.drawData.modelUniformBuffer.value());
+    Fwog::Cmd::BindVertexBuffer(0, gameObject.drawData.vertexBuffer.value(), 0, sizeof(Albuquerque::Primitives::Vertex));
+    Fwog::Cmd::BindIndexBuffer(gameObject.drawData.indexBuffer.value(), Fwog::IndexType::UNSIGNED_INT);
+    Fwog::Cmd::DrawIndexed(gameObject.drawData.indexCount, 1, 0, 0, 0);
+}
 
+VoxelStuff::Grid::Grid()
+{
+    //Create a row of voxels with an offset
+    float distanceOffset = 1.0f;
+
+    glm::vec3 startPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 currPos = startPosition;
+  
+    for (size_t i = 0; i < numVoxelMax; ++i)
+    {
+        voxelGrid.emplace_back(VoxelStuff::Voxel(Transform(currPos)));
+        currPos.x += distanceOffset;
+    }
+
+}
+
+void VoxelStuff::Grid::Draw()
+{
+    for (auto const& voxel : voxelGrid)
+    {
+        voxel.Draw();
+    }
 }
 
 

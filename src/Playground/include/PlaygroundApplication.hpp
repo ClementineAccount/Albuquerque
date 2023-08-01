@@ -74,8 +74,8 @@ struct ViewData
 
 struct Transform
 {
-    glm::vec3 position;
-    glm::vec3 scale;
+    glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
 };
 
 namespace VoxelStuff
@@ -84,13 +84,15 @@ namespace VoxelStuff
     //which I predict will have tons of performance issues very quickly, but we gonna avoid premature optimization
     struct Voxel
     {
-        Voxel(); //Imagine making a default constructor (cant be me)
-        Transform transform;
+        Voxel(Transform transform = Transform()); //Imagine making a default constructor (cant be me)
+        GameObject gameObject;
         
-        //Actually i dont know why why this would be here it should be passed in by the grid (for now)
+        //Transform transform;
+        
+        //This is here because each voxel has its own model matrix (need to change that later)
         //Albuquerque::FwogHelpers::DrawObject drawData;
 
-        void Draw(Albuquerque::FwogHelpers::DrawObject const& drawData);
+        void Draw() const;
     };
 
     struct Grid
@@ -100,10 +102,12 @@ namespace VoxelStuff
         // Lets try just an array of Voxels first
         // except I am going to make it a vector because of really good reasons:
         // (1): the big lazy
+
+        static size_t constexpr numVoxelMax = 10;
         std::vector<Voxel> voxelGrid;
 
-        //Voxel draw data called inside Draw
-        Albuquerque::FwogHelpers::DrawObject drawDataVoxel;
+        //Voxel draw data called inside Draw (Not anymore)
+        //Albuquerque::FwogHelpers::DrawObject drawDataVoxel;
         void Draw();
     };
 
