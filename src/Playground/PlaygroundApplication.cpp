@@ -284,6 +284,10 @@ void ViewData::Update(Albuquerque::Camera const& camera)
     skyboxBuffer.value().UpdateData(viewUniform, 0);
 }
 
+
+void 
+
+
 void PlaygroundApplication::AfterCreatedUiContext()
 {
 }
@@ -310,6 +314,7 @@ bool PlaygroundApplication::LoadFwog()
         static constexpr float offsetForward = 10.0f;
         exampleCubes_[i].position.z -= i * offsetForward;
         exampleCubes_[i].scale *= (i + 1);
+        exampleCubes_[i].eulerAngleDegrees.x = 25.0f;
         exampleCubes_[i].UpdateDraw();
     }
 
@@ -419,10 +424,10 @@ void PlaygroundApplication::RenderFwog(double dt)
     static auto nearestSampler = Fwog::Sampler(ss);
 
     //Could refactor this to be a function of a class
-    auto drawObject = [&](Albuquerque::FwogHelpers::DrawObject const& object, Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler)
+    auto drawObject = [&](Albuquerque::FwogHelpers::DrawObject const& object, Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler, ViewData const& viewData)
     {
         Fwog::Cmd::BindGraphicsPipeline(pipelineTextured_.value());
-        Fwog::Cmd::BindUniformBuffer(0, viewData_->viewBuffer.value());
+        Fwog::Cmd::BindUniformBuffer(0, viewData.viewBuffer.value());
         Fwog::Cmd::BindUniformBuffer(1, object.modelUniformBuffer.value());
 
         Fwog::Cmd::BindSampledImage(0, textureAlbedo, sampler);
@@ -460,7 +465,7 @@ void PlaygroundApplication::RenderFwog(double dt)
             {
                 for (size_t i = 0; i < numCubes_; ++i)
                 {
-                    drawObject(exampleCubes_[i].drawData, cubeTexture_.value(), nearestSampler);
+                    drawObject(exampleCubes_[i].drawData, cubeTexture_.value(), nearestSampler, viewData_.value());
                 }
 
                 if (skyboxVisible_)
