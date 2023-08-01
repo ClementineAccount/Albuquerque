@@ -71,6 +71,47 @@ struct ViewData
     void Update(Albuquerque::Camera const& camera);
 };
 
+
+struct Transform
+{
+    glm::vec3 position;
+    glm::vec3 scale;
+};
+
+namespace VoxelStuff
+{
+    //So this is like one voxel object. Right now it naively uses one draw call per voxel
+    //which I predict will have tons of performance issues very quickly, but we gonna avoid premature optimization
+    struct Voxel
+    {
+        Voxel(); //Imagine making a default constructor (cant be me)
+        Transform transform;
+        
+        //Actually i dont know why why this would be here it should be passed in by the grid (for now)
+        //Albuquerque::FwogHelpers::DrawObject drawData;
+
+        void Draw(Albuquerque::FwogHelpers::DrawObject const& drawData);
+    };
+
+    struct Grid
+    {
+        Grid();
+
+        // Lets try just an array of Voxels first
+        // except I am going to make it a vector because of really good reasons:
+        // (1): the big lazy
+        std::vector<Voxel> voxelGrid;
+
+        //Voxel draw data called inside Draw
+        Albuquerque::FwogHelpers::DrawObject drawDataVoxel;
+        void Draw();
+    };
+
+}
+
+
+
+
 class PlaygroundApplication final : public Albuquerque::Application
 {
 public:

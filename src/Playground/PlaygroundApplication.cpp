@@ -30,7 +30,7 @@ Skybox::Skybox()
 {
     pipeline = MakePipleine("./data/shaders/skybox.vs.glsl", "./data/shaders/skybox.fs.glsl");
     texture = MakeTexture();
-    vertexBuffer.emplace(Alberquerque::Primitives::skyboxVertices);
+    vertexBuffer.emplace(Albuquerque::Primitives::skyboxVertices);
 }
 
 Fwog::GraphicsPipeline Skybox::MakePipleine(std::string_view vertexShaderPath, std::string_view fragmentShaderPath)
@@ -194,21 +194,21 @@ Fwog::GraphicsPipeline PlaygroundApplication::MakePipeline(std::string_view vert
             .location = 0,
             .binding = 0,
             .format = Fwog::Format::R32G32B32_FLOAT,
-            .offset = offsetof(Alberquerque::Primitives::Vertex, position),
+            .offset = offsetof(Albuquerque::Primitives::Vertex, position),
     },
     Fwog::VertexInputBindingDescription{
             // normal
             .location = 1,
             .binding = 0,
             .format = Fwog::Format::R32G32B32_FLOAT,
-            .offset = offsetof(Alberquerque::Primitives::Vertex, normal),
+            .offset = offsetof(Albuquerque::Primitives::Vertex, normal),
     },
     Fwog::VertexInputBindingDescription{
             // texcoord
             .location = 2,
             .binding = 0,
             .format = Fwog::Format::R32G32_FLOAT,
-            .offset = offsetof(Alberquerque::Primitives::Vertex, uv),
+            .offset = offsetof(Albuquerque::Primitives::Vertex, uv),
     },
     };
 
@@ -284,8 +284,12 @@ void ViewData::Update(Albuquerque::Camera const& camera)
     skyboxBuffer.value().UpdateData(viewUniform, 0);
 }
 
+VoxelStuff::Grid::Grid()
+{
+    //Create the drawData based off a cube (..for now...)
 
-void 
+
+}
 
 
 void PlaygroundApplication::AfterCreatedUiContext()
@@ -302,7 +306,7 @@ bool PlaygroundApplication::LoadFwog()
     pipelineTextured_ = MakePipeline("./data/shaders/main.vs.glsl", "./data/shaders/main.fs.glsl");
     for (size_t i = 0; i < numCubes_; ++i)
     {
-        using namespace Alberquerque;
+        using namespace Albuquerque;
 
         //https://en.cppreference.com/w/cpp/language/class_template_argument_deduction 
         //because the containers which are the parameters are constexpr
@@ -431,7 +435,7 @@ void PlaygroundApplication::RenderFwog(double dt)
         Fwog::Cmd::BindUniformBuffer(1, object.modelUniformBuffer.value());
 
         Fwog::Cmd::BindSampledImage(0, textureAlbedo, sampler);
-        Fwog::Cmd::BindVertexBuffer(0, object.vertexBuffer.value(), 0, sizeof(Alberquerque::Primitives::Vertex));
+        Fwog::Cmd::BindVertexBuffer(0, object.vertexBuffer.value(), 0, sizeof(Albuquerque::Primitives::Vertex));
         Fwog::Cmd::BindIndexBuffer(object.indexBuffer.value(), Fwog::IndexType::UNSIGNED_INT);
         Fwog::Cmd::DrawIndexed(object.indexCount, 1, 0, 0, 0);
     };
@@ -444,7 +448,7 @@ void PlaygroundApplication::RenderFwog(double dt)
 
         Fwog::Cmd::BindSampledImage(0, skybox.texture.value(), sampler);
         Fwog::Cmd::BindVertexBuffer(0, skybox.vertexBuffer.value(), 0, 3 * sizeof(float));
-        Fwog::Cmd::Draw(Alberquerque::Primitives::skyboxVertices.size() / 3, 1, 0, 0);
+        Fwog::Cmd::Draw(Albuquerque::Primitives::skyboxVertices.size() / 3, 1, 0, 0);
     };
 
     Fwog::RenderToSwapchain(
