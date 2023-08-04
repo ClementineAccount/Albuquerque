@@ -367,7 +367,7 @@ VoxelStuff::Grid::Grid()
     };
 
     //createGrid2D(10, 2);
-    createGrid3D(10,10, 10);
+    createGrid3D(25,25, 25);
 
 }
 
