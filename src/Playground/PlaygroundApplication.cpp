@@ -330,11 +330,33 @@ VoxelStuff::Grid::Grid()
                 currPos.x += distanceOffset;
             }
             currPos.x = 0;
-            currPos.y += distanceOffset;
+            currPos.y -= distanceOffset;
         }
     };
 
-    createGrid2D(10, 10);
+
+    auto createGrid3D = [&](size_t numCol, size_t numRows, size_t numStacks)
+    {
+        for (size_t s = 0; s < numStacks; ++s)
+        {
+            for (size_t r = 0; r < numRows; ++r)
+            {
+                for (size_t c = 0; c < numCol; ++c)
+                {
+                    voxelGrid.emplace_back(VoxelStuff::Voxel(Transform(currPos)));
+                    currPos.x += distanceOffset;
+                }
+                currPos.x = 0;
+                currPos.y -= distanceOffset;
+            }
+            currPos.x = 0;
+            currPos.y = 0;
+            currPos.z -= distanceOffset;
+        }
+    };
+
+    //createGrid2D(10, 2);
+    createGrid3D(3, 3, 3);
 
 }
 
@@ -580,8 +602,19 @@ void PlaygroundApplication::RenderUI(double dt)
             ImGui::Checkbox("Skybox", &skyboxVisible_);
         }
 
+
         ImGui::End();
     }
+
+    ImGui::Begin("Performance");
+    {
+        ImGui::Text("Framerate: %.0f Hertz", 1 / dt);
+        ImGui::End();
+    }
+
+
+
+
 
     //ImGui::ShowDemoWindow();
 }
