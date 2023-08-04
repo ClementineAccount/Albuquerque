@@ -314,11 +314,27 @@ VoxelStuff::Grid::Grid()
     glm::vec3 startPosition = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 currPos = startPosition;
   
-    for (size_t i = 0; i < numVoxelMax; ++i)
+    //for (size_t i = 0; i < numVoxelMax; ++i)
+    //{
+    //    voxelGrid.emplace_back(VoxelStuff::Voxel(Transform(currPos)));
+    //    currPos.x += distanceOffset;
+    //}
+
+    auto createGrid2D = [&](size_t numCol, size_t numRows)
     {
-        voxelGrid.emplace_back(VoxelStuff::Voxel(Transform(currPos)));
-        currPos.x += distanceOffset;
-    }
+        for (size_t r = 0; r < numRows; ++r)
+        {
+            for (size_t c = 0; c < numCol; ++c)
+            {
+                voxelGrid.emplace_back(VoxelStuff::Voxel(Transform(currPos)));
+                currPos.x += distanceOffset;
+            }
+            currPos.x = 0;
+            currPos.y += distanceOffset;
+        }
+    };
+
+    createGrid2D(10, 10);
 
 }
 
