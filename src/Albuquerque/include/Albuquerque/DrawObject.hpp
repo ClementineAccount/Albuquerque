@@ -4,10 +4,42 @@
 #include <glm/mat4x4.hpp>
 #include <optional>
 
+#include <unordered_map>
+#include <string>
+
 namespace Albuquerque
 {
     namespace FwogHelpers
     {
+        class MeshBuffer
+        {
+        public:
+            MeshBuffer() = delete;
+
+            template <typename T1, typename T2>
+            static MeshBuffer Init(T1 const& vertexList, T2 const& indexList, size_t indexCount)
+            {
+                MeshBuffer buffer;
+                buffer.vertexBuffer.emplace(vertexList);
+                buffer.indexBuffer.emplace(indexList);
+                
+                //Fwog takes in uint32_t for the indexCount but .size() on a container returns size_t. I'll just cast it here and hope its fine.
+                buffer.indexCount = static_cast<uint32_t>(indexCount);
+
+                return buffer;
+            }
+        private:
+            Fwog::Buffer vertexBuffer;
+            Fwog::Buffer indexBuffer;
+            uint32_t indexCount;
+        };
+
+        //To Do: Get this to set key to be some hash ID rather than string comparsion
+        std::unordered_map<std::string, MeshBuffer> meshBufferMap;
+
+
+
+
         //I wonder if I can even decouple this from the renderer?
         struct DrawObject
         {
@@ -28,10 +60,14 @@ namespace Albuquerque
                 return object;
             };
 
-            std::optional<Fwog::Buffer> vertexBuffer;
-            std::optional<Fwog::Buffer> indexBuffer;
+            //To Do: Set this to be a reference rather than value. Retrieve it from a mesh database
+            //std::optional<Fwog::Buffer> vertexBuffer;
+            //std::optional<Fwog::Buffer> indexBuffer;
 
-            uint32_t indexCount;
+            //uint32_t indexCount;
+
+            //Non owning pointer to meshBuffer to be retrieved from meshBufferMap
+            MeshBuffer* meshBufferRef = nullptr;
 
             struct ObjectUniform
             {

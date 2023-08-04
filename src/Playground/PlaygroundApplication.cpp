@@ -309,7 +309,7 @@ void VoxelStuff::Voxel::Draw() const
 VoxelStuff::Grid::Grid()
 {
     //Create a row of voxels with an offset
-    float distanceOffset = 1.25f;
+    float distanceOffset = 1.05f;
 
     glm::vec3 startPosition = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 currPos = startPosition;
@@ -356,7 +356,7 @@ VoxelStuff::Grid::Grid()
     };
 
     //createGrid2D(10, 2);
-    createGrid3D(3, 3, 3);
+    createGrid3D(10,10, 10);
 
 }
 
