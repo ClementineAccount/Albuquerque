@@ -103,8 +103,11 @@ namespace VoxelStuff
         // except I am going to make it a vector because of really good reasons:
         // (1): the big lazy
 
-        static size_t constexpr numVoxelMax = 10;
+        //To Do: Do a 2D grid displacement
+        static size_t constexpr numVoxelMax = 100;
         std::vector<Voxel> voxelGrid;
+
+        void Update();
 
         //Voxel draw data called inside Draw (Not anymore)
         //Albuquerque::FwogHelpers::DrawObject drawDataVoxel;
@@ -153,7 +156,7 @@ private:
 
     std::optional<ViewData> viewData_;
 
-    static constexpr size_t numCubes_ = 5;
+    static constexpr size_t numCubes_ = 10;
     GameObject exampleCubes_[numCubes_];
 
     std::optional<Skybox> skybox_;
@@ -161,4 +164,7 @@ private:
     bool skyboxVisible_ = false;
 
     bool fwogScene_ = true;
+
+
+    std::optional<VoxelStuff::Grid> voxelGrid_;
 };

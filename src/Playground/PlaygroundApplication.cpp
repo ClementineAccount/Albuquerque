@@ -19,6 +19,8 @@
 #include <queue>
 #include <set>
 
+#include <iostream>
+
 #include <Albuquerque/Primitives.hpp>
 
 #include <stb_image.h>
@@ -307,7 +309,7 @@ void VoxelStuff::Voxel::Draw() const
 VoxelStuff::Grid::Grid()
 {
     //Create a row of voxels with an offset
-    float distanceOffset = 1.0f;
+    float distanceOffset = 1.25f;
 
     glm::vec3 startPosition = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 currPos = startPosition;
@@ -365,6 +367,11 @@ bool PlaygroundApplication::LoadFwog()
     viewData_->Update(sceneCamera_);
 
     skybox_ = Skybox();
+
+    voxelGrid_ = VoxelStuff::Grid();
+
+    //It does not
+    //std::cout << "Does this go to spdlog?\n";
 
     return true;
 }
@@ -506,11 +513,17 @@ void PlaygroundApplication::RenderFwog(double dt)
             {
                 for (size_t i = 0; i < numCubes_; ++i)
                 {
-                    drawObject(exampleCubes_[i].drawData, cubeTexture_.value(), nearestSampler, viewData_.value());
+                    //drawObject(exampleCubes_[i].drawData, cubeTexture_.value(), nearestSampler, viewData_.value());
                 }
 
                 if (skyboxVisible_)
                     drawSkybox(skybox_.value(), nearestSampler);
+
+                //Draw the grid (gonna give it the frog texture)
+                Fwog::Cmd::BindGraphicsPipeline(pipelineTextured_.value());
+                Fwog::Cmd::BindUniformBuffer(0, viewData_.value().viewBuffer.value());
+                Fwog::Cmd::BindSampledImage(0, cubeTexture_.value(), nearestSampler);
+                voxelGrid_->Draw();
             }
         }
         );
