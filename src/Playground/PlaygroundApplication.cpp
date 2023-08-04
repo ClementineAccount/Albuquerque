@@ -391,8 +391,7 @@ bool PlaygroundApplication::Load()
 void PlaygroundApplication::UpdateFwog(double dt)
 {
 
-    //This is an arcball style update. Could move it maybe?
-    auto updateCameraArc = [&](Albuquerque::Camera& currCamera)
+    auto updateCamera = [&](Albuquerque::Camera& currCamera)
     {
         using namespace Albuquerque;
 
@@ -434,10 +433,28 @@ void PlaygroundApplication::UpdateFwog(double dt)
         }
 
         //Testing if rotations are working ok
-        if (IsKeyPressed(GLFW_KEY_R))
+
+        //Left and Right
+        if (IsKeyPressed(GLFW_KEY_H))
         {
             isUpdate = true;
             currCamera.RotateFly(camSpeed * 10.0f, 0.0f);
+        }
+        else if (IsKeyPressed(GLFW_KEY_F))
+        {
+            isUpdate = true;
+            currCamera.RotateFly(-camSpeed * 10.0f, 0.0f);
+        }
+
+        if (IsKeyPressed(GLFW_KEY_T))
+        {
+            isUpdate = true;
+            currCamera.RotateFly(0.0f, camSpeed * 10.0f);
+        }
+        else if (IsKeyPressed(GLFW_KEY_G))
+        {
+            isUpdate = true;
+            currCamera.RotateFly(0.0f, -camSpeed * 10.0f);
         }
 
         //we only need to recalculate the viewProj if camera data did change
@@ -445,7 +462,7 @@ void PlaygroundApplication::UpdateFwog(double dt)
             viewData_->Update(currCamera);
     };
 
-    updateCameraArc(sceneCamera_);
+    updateCamera(sceneCamera_);
 }
 
 void PlaygroundApplication::Update(double dt)
