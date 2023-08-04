@@ -415,7 +415,7 @@ bool PlaygroundApplication::LoadFwog()
         exampleCubes_[i].UpdateDraw();
     }
 
-    cubeTexture_ = MakeTexture("./data/textures/fwog_logo.png");
+    cubeTexture_ = MakeTexture("./data/textures/whiteFace.png");
 
     viewData_ = ViewData();
     viewData_->Update(sceneCamera_);

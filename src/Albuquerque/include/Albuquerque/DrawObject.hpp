@@ -39,7 +39,6 @@ namespace Albuquerque
             static std::unordered_map<std::string, MeshBuffer> meshBufferMap;
 
         public:
-
             static std::unordered_map<std::string, MeshBuffer>& GetMap() { return meshBufferMap; };
 
         };
