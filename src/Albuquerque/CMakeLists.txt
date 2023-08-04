@@ -4,6 +4,7 @@ project(Albuquerque)
 add_subdirectory(lib)
 
 set(sourceFiles
+    DrawObject.cpp
     Camera.cpp
     Application.cpp
 )

@@ -291,7 +291,7 @@ VoxelStuff::Voxel::Voxel(Transform transform)
 {
     //Create the drawData based off a cube (..for now...)
     using namespace Albuquerque;
-    gameObject.drawData = Albuquerque::FwogHelpers::DrawObject::Init(Primitives::cubeVertices, Primitives::cubeIndices, Primitives::cubeIndices.size());
+    gameObject.drawData = Albuquerque::FwogHelpers::DrawObject::Init("cube");
     
     gameObject.position = transform.position;
     gameObject.scale = transform.scale;
@@ -301,9 +301,20 @@ VoxelStuff::Voxel::Voxel(Transform transform)
 void VoxelStuff::Voxel::Draw() const
 {
     Fwog::Cmd::BindUniformBuffer(1, gameObject.drawData.modelUniformBuffer.value());
-    Fwog::Cmd::BindVertexBuffer(0, gameObject.drawData.vertexBuffer.value(), 0, sizeof(Albuquerque::Primitives::Vertex));
+
+    //To Do: Add some 'draw mesh buffer'
+    auto drawMeshBuffer = [&](Albuquerque::FwogHelpers::MeshBuffer const& meshBuffer)
+    {
+        Fwog::Cmd::BindVertexBuffer(0, *meshBuffer.vertexBuffer, 0, sizeof(Albuquerque::Primitives::Vertex));
+        Fwog::Cmd::BindIndexBuffer(*meshBuffer.indexBuffer, Fwog::IndexType::UNSIGNED_INT);
+        Fwog::Cmd::DrawIndexed(meshBuffer.indexCount, 1, 0, 0, 0);
+    };
+
+    drawMeshBuffer(*gameObject.drawData.meshBufferRef);
+
+   /* Fwog::Cmd::BindVertexBuffer(0, gameObject.drawData.vertexBuffer.value(), 0, sizeof(Albuquerque::Primitives::Vertex));
     Fwog::Cmd::BindIndexBuffer(gameObject.drawData.indexBuffer.value(), Fwog::IndexType::UNSIGNED_INT);
-    Fwog::Cmd::DrawIndexed(gameObject.drawData.indexCount, 1, 0, 0, 0);
+    Fwog::Cmd::DrawIndexed(gameObject.drawData.indexCount, 1, 0, 0, 0);*/
 }
 
 VoxelStuff::Grid::Grid()
@@ -380,6 +391,11 @@ void PlaygroundApplication::BeforeDestroyUiContext()
 
 bool PlaygroundApplication::LoadFwog()
 {
+    using namespace Albuquerque;
+    //Create the meshBuffer
+    Albuquerque::FwogHelpers::MeshBuffer::GetMap().emplace(std::make_pair("cube", Albuquerque::FwogHelpers::MeshBuffer::Init(Primitives::cubeVertices, Primitives::cubeIndices, Primitives::cubeIndices.size())));
+
+
     pipelineTextured_ = MakePipeline("./data/shaders/main.vs.glsl", "./data/shaders/main.fs.glsl");
     for (size_t i = 0; i < numCubes_; ++i)
     {
@@ -388,7 +404,7 @@ bool PlaygroundApplication::LoadFwog()
         //https://en.cppreference.com/w/cpp/language/class_template_argument_deduction 
         //because the containers which are the parameters are constexpr
 
-        exampleCubes_[i].drawData = Albuquerque::FwogHelpers::DrawObject::Init(Primitives::cubeVertices, Primitives::cubeIndices, Primitives::cubeIndices.size());
+        exampleCubes_[i].drawData = Albuquerque::FwogHelpers::DrawObject::Init("cube");
 
         //Offset the transforms of the cube
 
@@ -428,7 +444,6 @@ bool PlaygroundApplication::Load()
 
 void PlaygroundApplication::UpdateFwog(double dt)
 {
-
     auto updateCamera = [&](Albuquerque::Camera& currCamera)
     {
         using namespace Albuquerque;
@@ -534,9 +549,20 @@ void PlaygroundApplication::RenderFwog(double dt)
         Fwog::Cmd::BindUniformBuffer(1, object.modelUniformBuffer.value());
 
         Fwog::Cmd::BindSampledImage(0, textureAlbedo, sampler);
-        Fwog::Cmd::BindVertexBuffer(0, object.vertexBuffer.value(), 0, sizeof(Albuquerque::Primitives::Vertex));
-        Fwog::Cmd::BindIndexBuffer(object.indexBuffer.value(), Fwog::IndexType::UNSIGNED_INT);
-        Fwog::Cmd::DrawIndexed(object.indexCount, 1, 0, 0, 0);
+
+        //To Do: Add some 'draw mesh buffer'
+        auto drawMeshBuffer = [&](Albuquerque::FwogHelpers::MeshBuffer const& meshBuffer)
+        {
+            Fwog::Cmd::BindVertexBuffer(0, *meshBuffer.vertexBuffer, 0, sizeof(Albuquerque::Primitives::Vertex));
+            Fwog::Cmd::BindIndexBuffer(*meshBuffer.indexBuffer, Fwog::IndexType::UNSIGNED_INT);
+            Fwog::Cmd::DrawIndexed(meshBuffer.indexCount, 1, 0, 0, 0);
+        };
+
+        drawMeshBuffer(*object.meshBufferRef);
+
+        //Fwog::Cmd::BindVertexBuffer(0, object.vertexBuffer.value(), 0, sizeof(Albuquerque::Primitives::Vertex));
+        //Fwog::Cmd::BindIndexBuffer(object.indexBuffer.value(), Fwog::IndexType::UNSIGNED_INT);
+        //Fwog::Cmd::DrawIndexed(object.indexCount, 1, 0, 0, 0);
     };
 
 

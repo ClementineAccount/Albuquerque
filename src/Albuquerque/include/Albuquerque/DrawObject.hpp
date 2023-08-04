@@ -14,7 +14,7 @@ namespace Albuquerque
         class MeshBuffer
         {
         public:
-            MeshBuffer() = delete;
+            MeshBuffer() = default;
 
             template <typename T1, typename T2>
             static MeshBuffer Init(T1 const& vertexList, T2 const& indexList, size_t indexCount)
@@ -28,14 +28,24 @@ namespace Albuquerque
 
                 return buffer;
             }
-        private:
-            Fwog::Buffer vertexBuffer;
-            Fwog::Buffer indexBuffer;
+        public:
+
+            //To Do: This doesn't need to be an std::optional. I need to make a proper constructor instead
+            std::optional<Fwog::Buffer> vertexBuffer;
+            std::optional<Fwog::Buffer> indexBuffer;
             uint32_t indexCount;
+
+        private:
+            static std::unordered_map<std::string, MeshBuffer> meshBufferMap;
+
+        public:
+
+            static std::unordered_map<std::string, MeshBuffer>& GetMap() { return meshBufferMap; };
+
         };
 
         //To Do: Get this to set key to be some hash ID rather than string comparsion
-        std::unordered_map<std::string, MeshBuffer> meshBufferMap;
+
 
 
 
@@ -45,20 +55,34 @@ namespace Albuquerque
         {
             //T1 and T2 can be different container types. std::array or std::vector.
             //Didn't want this to be a constructor because the actual DrawObject struct does not need to be templated.
-            template <typename T1, typename T2>
-            static DrawObject Init(T1 const& vertexList, T2 const& indexList, size_t indexCount)
+            //template <typename T1, typename T2>
+            //static DrawObject Init(T1 const& vertexList, T2 const& indexList, size_t indexCount)
+            //{
+            //    DrawObject object;
+            //    object.vertexBuffer.emplace(vertexList);
+            //    object.indexBuffer.emplace(indexList);
+            //    object.modelUniformBuffer =  Fwog::TypedBuffer<DrawObject::ObjectUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+            //    object.modelUniformBuffer.value().UpdateData(object.objectStruct, 0);
+
+            //    //Fwog takes in uint32_t for the indexCount but .size() on a container returns size_t. I'll just cast it here and hope its fine.
+            //    object.indexCount = static_cast<uint32_t>(indexCount);
+
+            //    return object;
+            //};
+
+            static DrawObject Init(std::string_view meshBufferName)
             {
+
                 DrawObject object;
-                object.vertexBuffer.emplace(vertexList);
-                object.indexBuffer.emplace(indexList);
-                object.modelUniformBuffer =  Fwog::TypedBuffer<DrawObject::ObjectUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+
+                //To Do: Have some kind of exception handling for if meshBufferName not existing
+                object.meshBufferRef = &Albuquerque::FwogHelpers::MeshBuffer::GetMap()[meshBufferName.data()];
+                
+                object.modelUniformBuffer = Fwog::TypedBuffer<DrawObject::ObjectUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
                 object.modelUniformBuffer.value().UpdateData(object.objectStruct, 0);
 
-                //Fwog takes in uint32_t for the indexCount but .size() on a container returns size_t. I'll just cast it here and hope its fine.
-                object.indexCount = static_cast<uint32_t>(indexCount);
-
                 return object;
-            };
+            }
 
             //To Do: Set this to be a reference rather than value. Retrieve it from a mesh database
             //std::optional<Fwog::Buffer> vertexBuffer;
