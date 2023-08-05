@@ -85,14 +85,19 @@ namespace VoxelStuff
     struct Voxel
     {
         Voxel(Transform transform = Transform()); //Imagine making a default constructor (cant be me)
-        GameObject gameObject;
-        
-        //Transform transform;
-        
-        //This is here because each voxel has its own model matrix (need to change that later)
-        //Albuquerque::FwogHelpers::DrawObject drawData;
 
-        void Draw() const;
+        //bool isRendering;
+
+        //Maybe I might as well build that modelTransform in place anyways?
+        Transform transform;
+
+        //Fwog example for 02_deferred
+        struct ObjectUniform
+        {
+            glm::mat4 modelTransform;
+        };
+        ObjectUniform objectUniform;
+
     };
 
     struct Grid
@@ -107,10 +112,15 @@ namespace VoxelStuff
         static size_t constexpr numVoxelMax = 100;
         std::vector<Voxel> voxelGrid;
 
+        
+        std::vector<ObjectUniform> objectUniforms;
+        std::optional<Fwog::Buffer> objectBuffer;
+
+        //non owning pointer to the mesh buffer
+        Albuquerque::FwogHelpers::MeshBuffer* voxelMeshBufferRef;
+
         void Update();
 
-        //Voxel draw data called inside Draw (Not anymore)
-        //Albuquerque::FwogHelpers::DrawObject drawDataVoxel;
         void Draw();
     };
 

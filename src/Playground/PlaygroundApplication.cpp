@@ -290,12 +290,23 @@ void ViewData::Update(Albuquerque::Camera const& camera)
 VoxelStuff::Voxel::Voxel(Transform transform)
 {
     //Create the drawData based off a cube (..for now...)
-    using namespace Albuquerque;
-    gameObject.drawData = Albuquerque::FwogHelpers::DrawObject::Init("cube");
+    //using namespace Albuquerque;
+    //gameObject.drawData = Albuquerque::FwogHelpers::DrawObject::Init("cube");
     
-    gameObject.position = transform.position;
-    gameObject.scale = transform.scale;
-    gameObject.UpdateDraw();
+    transform.position = transform.position;
+    transform.scale = transform.scale;
+
+    //its like midnight and i dont remember if its row-order or column-order in glm so imma just do it the glm way
+    //To Do: Just set the values in the matrix directly instead of calling the function
+    glm::mat4 model(1.0f);
+
+    //I keep forgetting that glm's TSR is reversed. So it really is T -> R - > S
+    model = glm::translate(model, transform.position);
+    model = glm::scale(model, transform.scale);
+
+    objectUniform.modelTransform = model;
+
+    //gameObject.UpdateDraw();
 }
 
 void VoxelStuff::Voxel::Draw() const
@@ -319,6 +330,10 @@ void VoxelStuff::Voxel::Draw() const
 
 VoxelStuff::Grid::Grid()
 {
+    //Get the voxel mesh and bind it
+    constexpr char meshName[] = "cube";
+    voxelMeshBufferRef = &Albuquerque::FwogHelpers::MeshBuffer::GetMap()[meshName];
+
     //Create a row of voxels with an offset
     float distanceOffset = 1.05f;
 
@@ -338,6 +353,7 @@ VoxelStuff::Grid::Grid()
             for (size_t c = 0; c < numCol; ++c)
             {
                 voxelGrid.emplace_back(VoxelStuff::Voxel(Transform(currPos)));
+                objectUniforms.emplace_back(voxelGrid.back().objectUniform);
                 currPos.x += distanceOffset;
             }
             currPos.x = 0;
@@ -355,6 +371,8 @@ VoxelStuff::Grid::Grid()
                 for (size_t c = 0; c < numCol; ++c)
                 {
                     voxelGrid.emplace_back(VoxelStuff::Voxel(Transform(currPos)));
+                    //Consideration: If we do removal whether we could remove in place then push back the coordinate
+                    objectUniforms.emplace_back(voxelGrid.back().objectUniform);
                     currPos.x += distanceOffset;
                 }
                 currPos.x = 0;
@@ -367,16 +385,24 @@ VoxelStuff::Grid::Grid()
     };
 
     //createGrid2D(10, 2);
-    createGrid3D(25,25, 25);
+    createGrid3D(25, 25, 25);
+
+    objectBuffer.emplace(std::span(objectUniforms), Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 
 }
 
 void VoxelStuff::Grid::Draw()
 {
-    for (auto const& voxel : voxelGrid)
-    {
-        voxel.Draw();
-    }
+    //for (auto const& voxel : voxelGrid)
+    //{
+    //    voxel.Draw();
+    //}
+
+    //To Do: Bind pipeline here
+    
+    //To Do: Bind the buffers (vertex, index, model)
+    //To Do: DrawInstancing with the instance number being the number of voxels which is the same as voxelGrid.size()
+
 }
 
 
