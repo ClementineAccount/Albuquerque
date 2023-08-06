@@ -18,7 +18,7 @@
 #include <vector>
 #include <queue>
 #include <set>
-
+#include <span>
 #include <iostream>
 
 #include <Albuquerque/Primitives.hpp>
@@ -309,27 +309,16 @@ VoxelStuff::Voxel::Voxel(Transform transform)
     //gameObject.UpdateDraw();
 }
 
-void VoxelStuff::Voxel::Draw() const
-{
-    Fwog::Cmd::BindUniformBuffer(1, gameObject.drawData.modelUniformBuffer.value());
-
-    //To Do: Add some 'draw mesh buffer'
-    auto drawMeshBuffer = [&](Albuquerque::FwogHelpers::MeshBuffer const& meshBuffer)
-    {
-        Fwog::Cmd::BindVertexBuffer(0, *meshBuffer.vertexBuffer, 0, sizeof(Albuquerque::Primitives::Vertex));
-        Fwog::Cmd::BindIndexBuffer(*meshBuffer.indexBuffer, Fwog::IndexType::UNSIGNED_INT);
-        Fwog::Cmd::DrawIndexed(meshBuffer.indexCount, 1, 0, 0, 0);
-    };
-
-    drawMeshBuffer(*gameObject.drawData.meshBufferRef);
-
-   /* Fwog::Cmd::BindVertexBuffer(0, gameObject.drawData.vertexBuffer.value(), 0, sizeof(Albuquerque::Primitives::Vertex));
-    Fwog::Cmd::BindIndexBuffer(gameObject.drawData.indexBuffer.value(), Fwog::IndexType::UNSIGNED_INT);
-    Fwog::Cmd::DrawIndexed(gameObject.drawData.indexCount, 1, 0, 0, 0);*/
-}
-
 VoxelStuff::Grid::Grid()
 {
+    //Make the pipeline
+    constexpr char vertexShaderPath[] = "";
+    constexpr char fragmentShaderPath[] = "";
+
+    //To Do: Move the PlaygroundApplication thing to its own file
+    pipeline = PlaygroundApplication::MakePipeline("./data/shaders/voxel.vs.glsl", "./data/shaders/voxel.fs.glsl");
+
+
     //Get the voxel mesh and bind it
     constexpr char meshName[] = "cube";
     voxelMeshBufferRef = &Albuquerque::FwogHelpers::MeshBuffer::GetMap()[meshName];
@@ -346,20 +335,20 @@ VoxelStuff::Grid::Grid()
     //    currPos.x += distanceOffset;
     //}
 
-    auto createGrid2D = [&](size_t numCol, size_t numRows)
-    {
-        for (size_t r = 0; r < numRows; ++r)
-        {
-            for (size_t c = 0; c < numCol; ++c)
-            {
-                voxelGrid.emplace_back(VoxelStuff::Voxel(Transform(currPos)));
-                objectUniforms.emplace_back(voxelGrid.back().objectUniform);
-                currPos.x += distanceOffset;
-            }
-            currPos.x = 0;
-            currPos.y -= distanceOffset;
-        }
-    };
+    //auto createGrid2D = [&](size_t numCol, size_t numRows)
+    //{
+    //    for (size_t r = 0; r < numRows; ++r)
+    //    {
+    //        for (size_t c = 0; c < numCol; ++c)
+    //        {
+    //            voxelGrid.emplace_back(VoxelStuff::Voxel(Transform(currPos)));
+    //            objectUniforms.emplace_back(voxelGrid.back().objectUniform);
+    //            currPos.x += distanceOffset;
+    //        }
+    //        currPos.x = 0;
+    //        currPos.y -= distanceOffset;
+    //    }
+    //};
 
 
     auto createGrid3D = [&](size_t numCol, size_t numRows, size_t numStacks)
@@ -387,11 +376,11 @@ VoxelStuff::Grid::Grid()
     //createGrid2D(10, 2);
     createGrid3D(25, 25, 25);
 
-    objectBuffer.emplace(std::span(objectUniforms), Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+    //objectBuffer.emplace(std::span(objectUniforms), Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 
 }
 
-void VoxelStuff::Grid::Draw()
+void VoxelStuff::Grid::Draw(Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler, ViewData const& viewData)
 {
     //for (auto const& voxel : voxelGrid)
     //{
@@ -399,10 +388,17 @@ void VoxelStuff::Grid::Draw()
     //}
 
     //To Do: Bind pipeline here
-    
-    //To Do: Bind the buffers (vertex, index, model)
-    //To Do: DrawInstancing with the instance number being the number of voxels which is the same as voxelGrid.size()
 
+    Fwog::Cmd::BindGraphicsPipeline(pipeline.value());
+    Fwog::Cmd::BindUniformBuffer(0, viewData.viewBuffer.value());
+    Fwog::Cmd::BindStorageBuffer(1, *objectBuffer);
+
+    Fwog::Cmd::BindSampledImage(0, textureAlbedo, sampler);
+
+
+    Fwog::Cmd::BindVertexBuffer(0, *voxelMeshBufferRef->vertexBuffer, 0, sizeof(Albuquerque::Primitives::Vertex));
+    Fwog::Cmd::BindIndexBuffer(*voxelMeshBufferRef->indexBuffer, Fwog::IndexType::UNSIGNED_INT);
+    Fwog::Cmd::DrawIndexed(voxelMeshBufferRef->indexCount, voxelGrid.size(), 0, 0, 0);
 }
 
 
@@ -630,7 +626,7 @@ void PlaygroundApplication::RenderFwog(double dt)
                 Fwog::Cmd::BindGraphicsPipeline(pipelineTextured_.value());
                 Fwog::Cmd::BindUniformBuffer(0, viewData_.value().viewBuffer.value());
                 Fwog::Cmd::BindSampledImage(0, cubeTexture_.value(), nearestSampler);
-                voxelGrid_->Draw();
+                //voxelGrid_->Draw();
             }
         }
         );

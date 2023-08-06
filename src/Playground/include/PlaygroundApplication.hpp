@@ -80,6 +80,12 @@ struct Transform
 
 namespace VoxelStuff
 {
+    struct ObjectUniform
+    {
+        glm::mat4 modelTransform;
+    };
+
+
     //So this is like one voxel object. Right now it naively uses one draw call per voxel
     //which I predict will have tons of performance issues very quickly, but we gonna avoid premature optimization
     struct Voxel
@@ -92,10 +98,6 @@ namespace VoxelStuff
         Transform transform;
 
         //Fwog example for 02_deferred
-        struct ObjectUniform
-        {
-            glm::mat4 modelTransform;
-        };
         ObjectUniform objectUniform;
 
     };
@@ -112,16 +114,19 @@ namespace VoxelStuff
         static size_t constexpr numVoxelMax = 100;
         std::vector<Voxel> voxelGrid;
 
-        
+        //Fwog example for 02_deferred
+
         std::vector<ObjectUniform> objectUniforms;
         std::optional<Fwog::Buffer> objectBuffer;
 
         //non owning pointer to the mesh buffer
         Albuquerque::FwogHelpers::MeshBuffer* voxelMeshBufferRef;
 
+        std::optional<Fwog::GraphicsPipeline> pipeline;
+
         void Update();
 
-        void Draw();
+        void Draw(Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler, ViewData const& viewData);
     };
 
 }
