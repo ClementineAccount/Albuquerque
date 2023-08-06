@@ -365,18 +365,18 @@ VoxelStuff::Grid::Grid()
                     currPos.x += distanceOffset;
                 }
                 currPos.x = 0;
-                currPos.y -= distanceOffset;
+                currPos.z -= distanceOffset;
             }
             currPos.x = 0;
-            currPos.y = 0;
-            currPos.z -= distanceOffset;
+            currPos.z = 0;
+            currPos.y -= distanceOffset;
         }
     };
 
     //createGrid2D(10, 2);
-    createGrid3D(25, 25, 25);
+    createGrid3D(300, 300, 5);
 
-    //objectBuffer.emplace(std::span(objectUniforms), Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+    objectBuffer.emplace(std::span(objectUniforms), Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 
 }
 
@@ -622,11 +622,11 @@ void PlaygroundApplication::RenderFwog(double dt)
                 if (skyboxVisible_)
                     drawSkybox(skybox_.value(), nearestSampler);
 
-                //Draw the grid (gonna give it the frog texture)
-                Fwog::Cmd::BindGraphicsPipeline(pipelineTextured_.value());
-                Fwog::Cmd::BindUniformBuffer(0, viewData_.value().viewBuffer.value());
-                Fwog::Cmd::BindSampledImage(0, cubeTexture_.value(), nearestSampler);
-                //voxelGrid_->Draw();
+                ////Draw the grid (gonna give it the frog texture)
+                //Fwog::Cmd::BindGraphicsPipeline(pipelineTextured_.value());
+                //Fwog::Cmd::BindUniformBuffer(0, viewData_.value().viewBuffer.value());
+                //Fwog::Cmd::BindSampledImage(0, cubeTexture_.value(), nearestSampler);
+                voxelGrid_->Draw(cubeTexture_.value(), nearestSampler, viewData_.value());
             }
         }
         );

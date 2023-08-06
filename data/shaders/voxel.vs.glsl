@@ -12,6 +12,7 @@ layout(location = 4) out vec3 v_position;
 layout(binding = 0, std140) uniform UBO0
 {
   mat4 viewProj;
+  vec3 eyePos;
 };
 
 struct ObjectUniforms
@@ -29,10 +30,10 @@ void main()
   int i = gl_InstanceID + gl_BaseInstance;
 
   v_position =  (objects[i].model * vec4(a_pos, 1.0)).xyz;
-  gl_Position =  viewProj * model * vec4(a_pos, 1.0);
+  gl_Position =  viewProj * objects[i].model * vec4(a_pos, 1.0);
   v_uv = a_uv;
 
-  mat3 normalMatrix = inverse(transpose(mat3(model)));
+  mat3 normalMatrix = inverse(transpose(mat3(objects[i].model)));
   v_normal = normalize(normalMatrix * a_normal);
 
   v_eye = eyePos;
