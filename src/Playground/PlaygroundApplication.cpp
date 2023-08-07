@@ -576,6 +576,16 @@ void PlaygroundApplication::UpdateFwog(double dt)
             isUpdate = true;
             currCamera.RotateFly(0.0f, -camSpeed * 10.0f);
         }
+        static double x = 0;
+        static double y = 0;
+        UpdateMouseOffset(dt, x, y);
+
+        if (x != 0 || y != 0)
+        {
+            isUpdate = true;
+            currCamera.RotateFly(camSpeed * x, camSpeed * y);
+        }
+
 
         //we only need to recalculate the viewProj if camera data did change
         if (isUpdate)
@@ -584,9 +594,6 @@ void PlaygroundApplication::UpdateFwog(double dt)
 
     updateCamera(sceneCamera_);
 
-    static double x = 0;
-    static double y = 0;
-    UpdateMouseOffset(dt, x, y);
 
 
 }
