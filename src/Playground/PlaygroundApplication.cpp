@@ -475,6 +475,8 @@ void PlaygroundApplication::UpdateMouseOffset(double dt, double& xOffset, double
     {
         //Set mouse center using hidden as recommended by GLFW https://www.glfw.org/docs/3.3/input_guide.html#cursor_set
         SetMouseCursorDisabled(true);
+        if (glfwRawMouseMotionSupported())
+            glfwSetInputMode(_windowHandle, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
         //spdlog::info("Right click down");
         if (isFirstPressed)
@@ -506,6 +508,8 @@ void PlaygroundApplication::UpdateMouseOffset(double dt, double& xOffset, double
         yOffset = 0;
 
         SetMouseCursorDisabled(false);
+        if (glfwRawMouseMotionSupported())
+            glfwSetInputMode(_windowHandle, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
     }
 }
 
