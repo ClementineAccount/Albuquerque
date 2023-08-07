@@ -484,7 +484,7 @@ void PlaygroundApplication::UpdateMouseOffset(double dt, double& xOffset, double
             yOffset = 0;
 
             glfwGetCursorPos(_windowHandle, &xOrigin, &yOrigin);
-            spdlog::info("xOrigin: {:03.2f}, yOrigin: {:03.2f}", xOrigin, yOrigin);
+            //spdlog::info("xOrigin: {:03.2f}, yOrigin: {:03.2f}", xOrigin, yOrigin);
         }
         else
         {
@@ -494,7 +494,7 @@ void PlaygroundApplication::UpdateMouseOffset(double dt, double& xOffset, double
             xOffset = xpos - xOrigin;
             yOffset = ypos - yOrigin;
 
-            spdlog::info("xoffset: {:03.2f}, yOffset: {:03.2f}", xOffset, yOffset);
+            //spdlog::info("xoffset: {:03.2f}, yOffset: {:03.2f}", xOffset, yOffset);
         }
     }
     else
@@ -517,7 +517,9 @@ void PlaygroundApplication::UpdateFwog(double dt)
 
         bool isUpdate = false;
         static float camSpeedBase = 2.0f;
+        static float camSpeedMouseBase = 0.5f;
         float camSpeed = camSpeedBase * static_cast<float>(dt);
+        float camSpeedMouse = camSpeedMouseBase * static_cast<float>(dt);
 
         if (IsKeyPressed(GLFW_KEY_A))
         {
@@ -583,7 +585,7 @@ void PlaygroundApplication::UpdateFwog(double dt)
         if (x != 0 || y != 0)
         {
             isUpdate = true;
-            currCamera.RotateFly(camSpeed * x, camSpeed * y);
+            currCamera.RotateFly(camSpeedMouse * x, -camSpeedMouse * y);
         }
 
 
