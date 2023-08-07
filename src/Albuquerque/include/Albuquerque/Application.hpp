@@ -43,7 +43,7 @@ namespace Albuquerque
         void SetWindowTitle(const char* winTitle);
 
 
-        void SetMouseCursorHidden(bool mouseHidden);
+        void SetMouseCursorDisabled(bool mouseHidden);
         void ToggleMouseCursorMode();
 
         GLFWwindow* _windowHandle = nullptr;

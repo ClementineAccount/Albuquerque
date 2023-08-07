@@ -154,7 +154,7 @@ protected:
 
 
     //Testing out the concept of right click mouse movement
-    void UpdateMouseOffset(double dt, int& xOffset, int& yOffset);
+    void UpdateMouseOffset(double dt, double& xOffset, double& yOffset);
 
 
 protected:

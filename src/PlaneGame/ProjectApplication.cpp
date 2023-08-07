@@ -1074,7 +1074,7 @@ void ProjectApplication::StartLevel() {
   aircraftUniform.color = aircraftColor;
   objectBufferaircraft.value().SubData(aircraftUniform, 0);
 
-  SetMouseCursorHidden(true);
+  SetMouseCursorDisabled(true);
   current_player_level_time = 0.0f;
 }
 
@@ -1184,7 +1184,7 @@ void ProjectApplication::UpdateEditorCamera(double dt) {
           mouseY == -std::numeric_limits<double>::infinity())) {
       if (IsMouseKeyPressed(GLFW_MOUSE_BUTTON_2))  // Right click
       {
-        SetMouseCursorHidden(true);
+        SetMouseCursorDisabled(true);
 
         // Prototype from
         // https://learnopengl.com/code_viewer_gh.php?code=src/1.getting_started/7.3.camera_mouse_zoom/camera_mouse_zoom.cpp
@@ -1227,7 +1227,7 @@ void ProjectApplication::UpdateEditorCamera(double dt) {
 
         editorCamera.target = editorCamera.position + editorCamera.forward;
       } else {
-        SetMouseCursorHidden(false);
+        SetMouseCursorDisabled(false);
         firstMouseRotate = true;
       }
     }
@@ -1313,7 +1313,7 @@ void ProjectApplication::Update(double dt) {
   if (!wasKeyPressed_Editor && IsKeyPressed(GLFW_KEY_1)) {
     wasKeyPressed_Editor = true;
     curr_game_state = game_states::level_editor;
-    SetMouseCursorHidden(false);
+    SetMouseCursorDisabled(false);
   } else if (wasKeyPressed_Editor && IsKeyRelease(GLFW_KEY_1)) {
     wasKeyPressed_Editor = false;
   }
@@ -1348,7 +1348,7 @@ void ProjectApplication::Update(double dt) {
       ma_sound_start(&plane_flying_sfx_ma);
 
 
-      SetMouseCursorHidden(true);
+      SetMouseCursorDisabled(true);
     } else if (wasKeyPressed_Editor && IsKeyRelease(GLFW_KEY_2)) {
       wasKeyPressed_Editor = false;
     }

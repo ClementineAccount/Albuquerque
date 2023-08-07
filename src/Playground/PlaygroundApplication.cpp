@@ -464,24 +464,49 @@ bool PlaygroundApplication::Load()
     return LoadFwog();
 }
 
-void PlaygroundApplication::UpdateMouseOffset(double dt, int& xOffset, int& yOffset)
+void PlaygroundApplication::UpdateMouseOffset(double dt, double& xOffset, double& yOffset)
 {
+    static bool isFirstPressed = true;
+    static double xOrigin = 0;
+    static double yOrigin = 0;
+
     //To Do: Decouple the mouse input check
     if (IsMouseKeyPressed(GLFW_MOUSE_BUTTON_2))
     {
+        //Set mouse center using hidden as recommended by GLFW https://www.glfw.org/docs/3.3/input_guide.html#cursor_set
+        SetMouseCursorDisabled(true);
+
         //spdlog::info("Right click down");
+        if (isFirstPressed)
+        {
+            isFirstPressed = false;
+            xOffset = 0;
+            yOffset = 0;
+
+            glfwGetCursorPos(_windowHandle, &xOrigin, &yOrigin);
+            spdlog::info("xOrigin: {:03.2f}, yOrigin: {:03.2f}", xOrigin, yOrigin);
+        }
+        else
+        {
+            //Track the offset by getting mouse position and calculating it from the origin
+            double xpos, ypos;
+            glfwGetCursorPos(_windowHandle, &xpos, &ypos);
+            xOffset = xpos - xOrigin;
+            yOffset = ypos - yOrigin;
+
+            spdlog::info("xoffset: {:03.2f}, yOffset: {:03.2f}", xOffset, yOffset);
+        }
     }
+    else
+    {
+        isFirstPressed = true;
+        xOrigin = 0;
+        yOrigin = 0;
+        xOffset = 0;
+        yOffset = 0;
 
-    //Mouse onto the center of the screen
-    //static bool isFirstPressed = false;
-
-    ////To Do: Find another way of feeding this data?
-
-    //if (!isFirstPressed)
-    //{
-    //    xOffset = 0;
-    //    yOffset = 0;
-    //}
+        SetMouseCursorDisabled(false);
+    }
 }
 
 void PlaygroundApplication::UpdateFwog(double dt)
@@ -559,9 +584,11 @@ void PlaygroundApplication::UpdateFwog(double dt)
 
     updateCamera(sceneCamera_);
 
-    static int x = 0;
-    static int y = 0;
+    static double x = 0;
+    static double y = 0;
     UpdateMouseOffset(dt, x, y);
+
+
 }
 
 void PlaygroundApplication::Update(double dt)

@@ -217,7 +217,7 @@ namespace Albuquerque
 
     }
 
-    void Application::SetMouseCursorHidden(bool mouseHidden)
+    void Application::SetMouseCursorDisabled(bool mouseHidden)
     {
         if (cursor_hidden == mouseHidden)
             return;
@@ -235,7 +235,7 @@ namespace Albuquerque
 
     void Application::ToggleMouseCursorMode()
     {
-        SetMouseCursorHidden(!cursor_hidden);
+        SetMouseCursorDisabled(!cursor_hidden);
     }
 
 }
