@@ -153,6 +153,10 @@ protected:
     //void UpdateViewBuffers(Albuquerque::Camera const& camera);
 
 
+    //Testing out the concept of right click mouse movement
+    void UpdateMouseOffset(double dt, int& xOffset, int& yOffset);
+
+
 protected:
 
     //Fwog related stuff (need to refactor further into their own classes in the future)

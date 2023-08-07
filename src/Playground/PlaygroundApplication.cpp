@@ -464,6 +464,26 @@ bool PlaygroundApplication::Load()
     return LoadFwog();
 }
 
+void PlaygroundApplication::UpdateMouseOffset(double dt, int& xOffset, int& yOffset)
+{
+    //To Do: Decouple the mouse input check
+    if (IsMouseKeyPressed(GLFW_MOUSE_BUTTON_2))
+    {
+        //spdlog::info("Right click down");
+    }
+
+    //Mouse onto the center of the screen
+    //static bool isFirstPressed = false;
+
+    ////To Do: Find another way of feeding this data?
+
+    //if (!isFirstPressed)
+    //{
+    //    xOffset = 0;
+    //    yOffset = 0;
+    //}
+}
+
 void PlaygroundApplication::UpdateFwog(double dt)
 {
     auto updateCamera = [&](Albuquerque::Camera& currCamera)
@@ -538,6 +558,10 @@ void PlaygroundApplication::UpdateFwog(double dt)
     };
 
     updateCamera(sceneCamera_);
+
+    static int x = 0;
+    static int y = 0;
+    UpdateMouseOffset(dt, x, y);
 }
 
 void PlaygroundApplication::Update(double dt)
