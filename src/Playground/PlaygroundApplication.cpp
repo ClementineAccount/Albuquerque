@@ -1,5 +1,6 @@
 
 #include <PlaygroundApplication.hpp>
+#include <Voxel.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -286,120 +287,6 @@ void ViewData::Update(Albuquerque::Camera const& camera)
     skyboxBuffer.value().UpdateData(viewUniform, 0);
 }
 
-
-VoxelStuff::Voxel::Voxel(Transform transform)
-{
-    //Create the drawData based off a cube (..for now...)
-    //using namespace Albuquerque;
-    //gameObject.drawData = Albuquerque::FwogHelpers::DrawObject::Init("cube");
-    
-    transform.position = transform.position;
-    transform.scale = transform.scale;
-
-    //its like midnight and i dont remember if its row-order or column-order in glm so imma just do it the glm way
-    //To Do: Just set the values in the matrix directly instead of calling the function
-    glm::mat4 model(1.0f);
-
-    //I keep forgetting that glm's TSR is reversed. So it really is T -> R - > S
-    model = glm::translate(model, transform.position);
-    model = glm::scale(model, transform.scale);
-
-    objectUniform.modelTransform = model;
-
-    //gameObject.UpdateDraw();
-}
-
-VoxelStuff::Grid::Grid()
-{
-    //Make the pipeline
-    constexpr char vertexShaderPath[] = "";
-    constexpr char fragmentShaderPath[] = "";
-
-    //To Do: Move the PlaygroundApplication thing to its own file
-    pipeline = PlaygroundApplication::MakePipeline("./data/shaders/voxel.vs.glsl", "./data/shaders/voxel.fs.glsl");
-
-
-    //Get the voxel mesh and bind it
-    constexpr char meshName[] = "cube";
-    voxelMeshBufferRef = &Albuquerque::FwogHelpers::MeshBuffer::GetMap()[meshName];
-
-    //Create a row of voxels with an offset
-    float distanceOffset = 1.05f;
-
-    glm::vec3 startPosition = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 currPos = startPosition;
-  
-    //for (size_t i = 0; i < numVoxelMax; ++i)
-    //{
-    //    voxelGrid.emplace_back(VoxelStuff::Voxel(Transform(currPos)));
-    //    currPos.x += distanceOffset;
-    //}
-
-    //auto createGrid2D = [&](size_t numCol, size_t numRows)
-    //{
-    //    for (size_t r = 0; r < numRows; ++r)
-    //    {
-    //        for (size_t c = 0; c < numCol; ++c)
-    //        {
-    //            voxelGrid.emplace_back(VoxelStuff::Voxel(Transform(currPos)));
-    //            objectUniforms.emplace_back(voxelGrid.back().objectUniform);
-    //            currPos.x += distanceOffset;
-    //        }
-    //        currPos.x = 0;
-    //        currPos.y -= distanceOffset;
-    //    }
-    //};
-
-
-    auto createGrid3D = [&](size_t numCol, size_t numRows, size_t numStacks)
-    {
-        for (size_t s = 0; s < numStacks; ++s)
-        {
-            for (size_t r = 0; r < numRows; ++r)
-            {
-                for (size_t c = 0; c < numCol; ++c)
-                {
-                    voxelGrid.emplace_back(VoxelStuff::Voxel(Transform(currPos)));
-                    //Consideration: If we do removal whether we could remove in place then push back the coordinate
-                    objectUniforms.emplace_back(voxelGrid.back().objectUniform);
-                    currPos.x += distanceOffset;
-                }
-                currPos.x = 0;
-                currPos.z -= distanceOffset;
-            }
-            currPos.x = 0;
-            currPos.z = 0;
-            currPos.y -= distanceOffset;
-        }
-    };
-
-    //createGrid2D(10, 2);
-    createGrid3D(300, 300, 5);
-
-    objectBuffer.emplace(std::span(objectUniforms), Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-
-}
-
-void VoxelStuff::Grid::Draw(Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler, ViewData const& viewData)
-{
-    //for (auto const& voxel : voxelGrid)
-    //{
-    //    voxel.Draw();
-    //}
-
-    //To Do: Bind pipeline here
-
-    Fwog::Cmd::BindGraphicsPipeline(pipeline.value());
-    Fwog::Cmd::BindUniformBuffer(0, viewData.viewBuffer.value());
-    Fwog::Cmd::BindStorageBuffer(1, *objectBuffer);
-
-    Fwog::Cmd::BindSampledImage(0, textureAlbedo, sampler);
-
-
-    Fwog::Cmd::BindVertexBuffer(0, *voxelMeshBufferRef->vertexBuffer, 0, sizeof(Albuquerque::Primitives::Vertex));
-    Fwog::Cmd::BindIndexBuffer(*voxelMeshBufferRef->indexBuffer, Fwog::IndexType::UNSIGNED_INT);
-    Fwog::Cmd::DrawIndexed(voxelMeshBufferRef->indexCount, voxelGrid.size(), 0, 0, 0);
-}
 
 
 void PlaygroundApplication::AfterCreatedUiContext()
@@ -699,7 +586,6 @@ void PlaygroundApplication::RenderFwog(double dt)
 void PlaygroundApplication::RenderScene(double dt)
 {
     RenderFwog(dt);
-
 }
 
 void PlaygroundApplication::RenderUI(double dt)
@@ -723,10 +609,45 @@ void PlaygroundApplication::RenderUI(double dt)
         ImGui::Text("Framerate: %.0f Hertz", 1 / dt);
         ImGui::End();
     }
-
-
-
-
-
     //ImGui::ShowDemoWindow();
+}
+
+
+LineRenderer::LineRenderer()
+{
+    ////To Do: Have this passed in as parameters
+    //constexpr char vertexShaderPath[] = ".../data/lines.vs.glsl";
+    //constexpr char fragmentShaderPath[] = ".../data/lines.fs.glsl";
+
+    ////Create pipeline 
+    //auto LoadFile = [](std::string_view path)
+    //{
+    //    std::ifstream file{ path.data() };
+    //    std::string returnString { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
+    //    return returnString;
+    //};
+
+    //auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile(vertexShaderPath));
+    //auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, LoadFile(fragmentShaderPath));
+
+    //static constexpr auto sceneInputBindingDescs =
+    //    std::array{Fwog::VertexInputBindingDescription{
+    //    // position
+    //    .location = 0,
+    //        .binding = 0,
+    //        .format = Fwog::Format::R32G32B32_FLOAT,
+    //        .offset = 0}};
+
+    //auto inputDescs = sceneInputBindingDescs;
+    //auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::TRIANGLE_LIST };
+
+    //return Fwog::GraphicsPipeline{{
+    //        .vertexShader = &vertexShader,
+    //            .fragmentShader = &fragmentShader,
+    //            .inputAssemblyState = primDescs,
+    //            .vertexInputState = { inputDescs },
+    //            .depthState = { .depthTestEnable = true,
+    //            .depthWriteEnable = true,
+    //            .depthCompareOp = Fwog::CompareOp::LESS_OR_EQUAL },
+    //    }};
 }

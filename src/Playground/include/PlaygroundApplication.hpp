@@ -3,7 +3,7 @@
 #include <Albuquerque/Application.hpp>
 #include <Albuquerque/Camera.hpp>
 #include <Albuquerque/DrawObject.hpp>
-
+#include <Voxel.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
@@ -54,84 +54,28 @@ struct GameObject
     Albuquerque::FwogHelpers::DrawObject drawData;
 };
 
-struct ViewData
+
+
+//More for debug lines and stuff I guess? Can have multiple instances. I'll make this a class later
+struct LineRenderer
 {
-    ViewData();
+    //To Do: Move this rant somewhere else
+    //I need to figure out a different pattern in C++ to call the constructors without member initilization lists (which I don't like)
+    //and without having it be std::optional. I think the only other alternatives are the following:
+    // 1) Create some kind of class that works similar to std::optional but without the bool that represents uninitalized
+    // 2) Use unqiue_ptr (but this is heap allocated memeory so I don't want to if I don't need to)
 
-    struct ViewUniform {
-        glm::mat4 viewProj;
-        glm::vec3 eyePos;
-    };
+    std::optional<Fwog::GraphicsPipeline> linePipeline;
+    
+    //These points are passed in in worldspace coordinates
+    std::optional<Fwog::Buffer> vertexBuffer;
 
-    std::optional<Fwog::TypedBuffer<ViewUniform>> viewBuffer;
+    //Passing in colors for each point here. Another option can be an SSBO but I'd need to profile which performs better. 
+    //This is more simple to prototype with though and probably good enough
+    std::optional<Fwog::Buffer> colorBuffer;
 
-    //Skybox doesn't have translation
-    std::optional<Fwog::TypedBuffer<ViewUniform>> skyboxBuffer;
-
-    void Update(Albuquerque::Camera const& camera);
+    LineRenderer();
 };
-
-
-struct Transform
-{
-    glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
-};
-
-namespace VoxelStuff
-{
-    struct ObjectUniform
-    {
-        glm::mat4 modelTransform;
-    };
-
-
-    //So this is like one voxel object. Right now it naively uses one draw call per voxel
-    //which I predict will have tons of performance issues very quickly, but we gonna avoid premature optimization
-    struct Voxel
-    {
-        Voxel(Transform transform = Transform()); //Imagine making a default constructor (cant be me)
-
-        //bool isRendering;
-
-        //Maybe I might as well build that modelTransform in place anyways?
-        Transform transform;
-
-        //Fwog example for 02_deferred
-        ObjectUniform objectUniform;
-
-    };
-
-    struct Grid
-    {
-        Grid();
-
-        // Lets try just an array of Voxels first
-        // except I am going to make it a vector because of really good reasons:
-        // (1): the big lazy
-
-        //To Do: Do a 2D grid displacement
-        static size_t constexpr numVoxelMax = 100;
-        std::vector<Voxel> voxelGrid;
-
-        //Fwog example for 02_deferred
-
-        std::vector<ObjectUniform> objectUniforms;
-        std::optional<Fwog::Buffer> objectBuffer;
-
-        //non owning pointer to the mesh buffer
-        Albuquerque::FwogHelpers::MeshBuffer* voxelMeshBufferRef;
-
-        std::optional<Fwog::GraphicsPipeline> pipeline;
-
-        void Update();
-
-        void Draw(Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler, ViewData const& viewData);
-    };
-
-}
-
-
 
 
 class PlaygroundApplication final : public Albuquerque::Application
@@ -167,8 +111,6 @@ protected:
 
 
 private:
-   
-
     std::optional<Fwog::GraphicsPipeline> pipelineTextured_;
     std::optional<Fwog::Texture> cubeTexture_;
     Albuquerque::Camera sceneCamera_;
@@ -183,7 +125,5 @@ private:
     bool skyboxVisible_ = false;
 
     bool fwogScene_ = true;
-
-
     std::optional<VoxelStuff::Grid> voxelGrid_;
 };
