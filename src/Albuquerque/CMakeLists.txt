@@ -7,6 +7,7 @@ set(sourceFiles
     DrawObject.cpp
     Camera.cpp
     Application.cpp
+    FwogHelpers.cpp
 )
 
 set(headerFiles

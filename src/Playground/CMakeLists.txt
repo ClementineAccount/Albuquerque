@@ -7,6 +7,7 @@ add_custom_target(copy_playground_data ALL COMMAND ${CMAKE_COMMAND} -E copy_dire
 set(sourceFiles
     Main.cpp
     SandboxApplication.cpp
+    Voxel.cpp
     PlaygroundApplication.cpp
 )
 
