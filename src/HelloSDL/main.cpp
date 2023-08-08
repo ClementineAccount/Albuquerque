@@ -1,6 +1,8 @@
 /*This source code copyrighted by Lazy Foo' Productions 2004-2023
 and may not be redistributed without written permission.*/
 
+//I am just using this for the Hello World its gonna look really different really fast Mr Lazy Foo... (https://lazyfoo.net/tutorials/SDL/01_hello_SDL/index2.php)
+
 //Using SDL and standard IO
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
