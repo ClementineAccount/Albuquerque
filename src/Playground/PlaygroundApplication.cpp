@@ -336,6 +336,29 @@ bool PlaygroundApplication::LoadFwog()
     //It does not
     //std::cout << "Does this go to spdlog?\n";
 
+    line_renderer = LineRenderer();
+
+    constexpr float current_axis_length = 100000.0f;
+
+    //Do axis line as example
+    auto drawAxis = [&](float axisLength)
+    {
+        line_renderer->AddPoint(glm::vec3(0.0f, 0.0f, 0.0f));
+        line_renderer->AddPoint(glm::vec3(axisLength, 0.0f, 0.0f));
+
+        line_renderer->AddPoint(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        line_renderer->AddPoint(glm::vec3(0.0f, axisLength, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+        line_renderer->AddPoint(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        line_renderer->AddPoint(glm::vec3(0.0f, 0.0f, axisLength), glm::vec3(0.0f, 0.0f, 1.0f));
+    };
+
+    drawAxis(current_axis_length);
+
+
+
+
+
     return true;
 }
 
@@ -565,6 +588,8 @@ void PlaygroundApplication::RenderFwog(double dt)
         {
             if (fwogScene_)
             {
+                line_renderer->Draw(*viewData_);
+
                 for (size_t i = 0; i < numCubes_; ++i)
                 {
                     //drawObject(exampleCubes_[i].drawData, cubeTexture_.value(), nearestSampler, viewData_.value());
@@ -577,7 +602,7 @@ void PlaygroundApplication::RenderFwog(double dt)
                 //Fwog::Cmd::BindGraphicsPipeline(pipelineTextured_.value());
                 //Fwog::Cmd::BindUniformBuffer(0, viewData_.value().viewBuffer.value());
                 //Fwog::Cmd::BindSampledImage(0, cubeTexture_.value(), nearestSampler);
-                voxelGrid_->Draw(cubeTexture_.value(), nearestSampler, viewData_.value());
+                //voxelGrid_->Draw(cubeTexture_.value(), nearestSampler, viewData_.value());
             }
         }
         );
@@ -616,8 +641,8 @@ void PlaygroundApplication::RenderUI(double dt)
 LineRenderer::LineRenderer()
 {
     //To Do: Have this passed in as parameters
-    constexpr char vertexShaderPath[] = ".../data/lines.vs.glsl";
-    constexpr char fragmentShaderPath[] = ".../data/lines.fs.glsl";
+    constexpr char vertexShaderPath[] = "./data/shaders/lines.vert.glsl";
+    constexpr char fragmentShaderPath[] = "./data/shaders/lines.frag.glsl";
 
     //Create pipeline 
     auto LoadFile = [](std::string_view path)

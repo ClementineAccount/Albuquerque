@@ -83,7 +83,8 @@ struct LineRenderer
 
     void AddPoint(glm::vec3 point_position, glm::vec3 point_color = default_line_color);
 
-
+    //To Do: Decouple this from viewData
+    void Draw(ViewData const& viewData);
 };
 
 
@@ -135,4 +136,7 @@ private:
 
     bool fwogScene_ = true;
     std::optional<VoxelStuff::Grid> voxelGrid_;
+
+
+    std::optional<LineRenderer> line_renderer;
 };
