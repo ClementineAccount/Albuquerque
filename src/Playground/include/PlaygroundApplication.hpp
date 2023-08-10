@@ -66,17 +66,20 @@ struct LineRenderer
     // 2) Use unqiue_ptr (but this is heap allocated memeory so I don't want to if I don't need to)
 
     static constexpr size_t maxPoints = 1024;
+    static constexpr glm::vec3 default_line_color = glm::vec3(1.0f, 0.0f, 0.0f);
 
     std::optional<Fwog::GraphicsPipeline> pipeline;
     
     //These points are passed in in worldspace coordinates
-    std::optional<Fwog::TypedBuffer<glm::vec3>> vertexBuffer;
+    std::optional<Fwog::TypedBuffer<glm::vec3>> vertex_buffer;
 
-    //Passing in colors for each point here. Another option can be an SSBO but I'd need to profile which performs better. 
+    //Passing in colors for each point here. Another option can be an SSBO (Why did I write this its still one drawcall???) but I'd need to profile which performs better. 
     //This is more simple to prototype with though and probably good enough
-    std::optional<Fwog::TypedBuffer<glm::vec3>> colorBuffer;
+    std::optional<Fwog::TypedBuffer<glm::vec3>> color_buffer;
 
-    void AddPoint(glm::vec3 pointAdd);
+    size_t point_count = 0;
+
+    void AddPoint(glm::vec3 point_position, glm::vec3 point_color = default_line_color);
 
     LineRenderer();
 };

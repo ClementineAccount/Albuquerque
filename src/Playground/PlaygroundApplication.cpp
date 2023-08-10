@@ -627,8 +627,8 @@ LineRenderer::LineRenderer()
         return returnString;
     };
 
-    auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile(vertexShaderPath));
-    auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, LoadFile(fragmentShaderPath));
+    auto vertex_shader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile(vertexShaderPath));
+    auto fragment_shader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, LoadFile(fragmentShaderPath));
 
     static constexpr auto sceneInputBindingDescs = std::array{
     Fwog::VertexInputBindingDescription{
@@ -649,8 +649,8 @@ LineRenderer::LineRenderer()
     auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::LINE_LIST };
 
     pipeline =  Fwog::GraphicsPipeline{{
-            .vertexShader = &vertexShader,
-                .fragmentShader = &fragmentShader,
+            .vertexShader = &vertex_shader,
+                .fragmentShader = &fragment_shader,
                 .inputAssemblyState = primDescs,
                 .vertexInputState = { inputDescs },
                 .depthState = { .depthTestEnable = true,
@@ -658,7 +658,16 @@ LineRenderer::LineRenderer()
                 .depthCompareOp = Fwog::CompareOp::LESS_OR_EQUAL },
     }};
 
-    vertexBuffer = Fwog::TypedBuffer<glm::vec3>(maxPoints, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-    colorBuffer = Fwog::TypedBuffer<glm::vec3>(maxPoints, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+    //Create buffers
+    vertex_buffer = Fwog::TypedBuffer<glm::vec3>(maxPoints, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+    color_buffer = Fwog::TypedBuffer<glm::vec3>(maxPoints, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+}
 
+void LineRenderer::AddPoint(glm::vec3 point_position, glm::vec3 point_color)
+{
+    vertex_buffer->UpdateData(point_position, point_count);
+    color_buffer->UpdateData(point_color, point_count);
+    ++point_count;
+
+    //TODO: Add consideration for when point_count > max amount... right now Fwog will crash instead
 }
