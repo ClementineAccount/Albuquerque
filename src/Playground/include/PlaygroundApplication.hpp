@@ -68,11 +68,13 @@ struct LineRenderer
     std::optional<Fwog::GraphicsPipeline> linePipeline;
     
     //These points are passed in in worldspace coordinates
-    std::optional<Fwog::Buffer> vertexBuffer;
+    std::optional<Fwog::TypedBuffer> vertexBuffer;
 
     //Passing in colors for each point here. Another option can be an SSBO but I'd need to profile which performs better. 
     //This is more simple to prototype with though and probably good enough
-    std::optional<Fwog::Buffer> colorBuffer;
+    std::optional<Fwog::TypedBuffer> colorBuffer;
+
+    void AddPoint(glm::vec3 pointAdd);
 
     LineRenderer();
 };

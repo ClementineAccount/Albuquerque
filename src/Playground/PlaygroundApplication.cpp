@@ -615,39 +615,48 @@ void PlaygroundApplication::RenderUI(double dt)
 
 LineRenderer::LineRenderer()
 {
-    ////To Do: Have this passed in as parameters
-    //constexpr char vertexShaderPath[] = ".../data/lines.vs.glsl";
-    //constexpr char fragmentShaderPath[] = ".../data/lines.fs.glsl";
+    //To Do: Have this passed in as parameters
+    constexpr char vertexShaderPath[] = ".../data/lines.vs.glsl";
+    constexpr char fragmentShaderPath[] = ".../data/lines.fs.glsl";
 
-    ////Create pipeline 
-    //auto LoadFile = [](std::string_view path)
-    //{
-    //    std::ifstream file{ path.data() };
-    //    std::string returnString { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
-    //    return returnString;
-    //};
+    //Create pipeline 
+    auto LoadFile = [](std::string_view path)
+    {
+        std::ifstream file{ path.data() };
+        std::string returnString { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
+        return returnString;
+    };
 
-    //auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile(vertexShaderPath));
-    //auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, LoadFile(fragmentShaderPath));
+    auto vertexShader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile(vertexShaderPath));
+    auto fragmentShader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, LoadFile(fragmentShaderPath));
 
-    //static constexpr auto sceneInputBindingDescs =
-    //    std::array{Fwog::VertexInputBindingDescription{
-    //    // position
-    //    .location = 0,
-    //        .binding = 0,
-    //        .format = Fwog::Format::R32G32B32_FLOAT,
-    //        .offset = 0}};
+    static constexpr auto sceneInputBindingDescs = std::array{
+    Fwog::VertexInputBindingDescription{
+        // position
+        .location = 0,
+            .binding = 0,
+            .format = Fwog::Format::R32G32B32_FLOAT,
+            .offset = 0
+    },
+    Fwog::VertexInputBindingDescription{
+        .location = 1,
+            .binding = 1,
+            .format = Fwog::Format::R32G32B32_FLOAT,
+            .offset = 0,
+    }};
 
-    //auto inputDescs = sceneInputBindingDescs;
-    //auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::TRIANGLE_LIST };
+    auto inputDescs = sceneInputBindingDescs;
+    auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::LINE_LIST };
 
-    //return Fwog::GraphicsPipeline{{
-    //        .vertexShader = &vertexShader,
-    //            .fragmentShader = &fragmentShader,
-    //            .inputAssemblyState = primDescs,
-    //            .vertexInputState = { inputDescs },
-    //            .depthState = { .depthTestEnable = true,
-    //            .depthWriteEnable = true,
-    //            .depthCompareOp = Fwog::CompareOp::LESS_OR_EQUAL },
-    //    }};
+    pipeline =  Fwog::GraphicsPipeline{{
+            .vertexShader = &vertexShader,
+                .fragmentShader = &fragmentShader,
+                .inputAssemblyState = primDescs,
+                .vertexInputState = { inputDescs },
+                .depthState = { .depthTestEnable = true,
+                .depthWriteEnable = true,
+                .depthCompareOp = Fwog::CompareOp::LESS_OR_EQUAL },
+    }};
+
+
 }
