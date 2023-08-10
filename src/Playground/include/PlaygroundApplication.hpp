@@ -65,14 +65,16 @@ struct LineRenderer
     // 1) Create some kind of class that works similar to std::optional but without the bool that represents uninitalized
     // 2) Use unqiue_ptr (but this is heap allocated memeory so I don't want to if I don't need to)
 
-    std::optional<Fwog::GraphicsPipeline> linePipeline;
+    static constexpr size_t maxPoints = 1024;
+
+    std::optional<Fwog::GraphicsPipeline> pipeline;
     
     //These points are passed in in worldspace coordinates
-    std::optional<Fwog::TypedBuffer> vertexBuffer;
+    std::optional<Fwog::TypedBuffer<glm::vec3>> vertexBuffer;
 
     //Passing in colors for each point here. Another option can be an SSBO but I'd need to profile which performs better. 
     //This is more simple to prototype with though and probably good enough
-    std::optional<Fwog::TypedBuffer> colorBuffer;
+    std::optional<Fwog::TypedBuffer<glm::vec3>> colorBuffer;
 
     void AddPoint(glm::vec3 pointAdd);
 

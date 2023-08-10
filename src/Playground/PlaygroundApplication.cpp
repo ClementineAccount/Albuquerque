@@ -658,5 +658,7 @@ LineRenderer::LineRenderer()
                 .depthCompareOp = Fwog::CompareOp::LESS_OR_EQUAL },
     }};
 
+    vertexBuffer = Fwog::TypedBuffer<glm::vec3>(maxPoints, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+    colorBuffer = Fwog::TypedBuffer<glm::vec3>(maxPoints, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 
 }
