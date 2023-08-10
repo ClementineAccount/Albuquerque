@@ -3,7 +3,7 @@
 #include <Albuquerque/Application.hpp>
 #include <Albuquerque/Camera.hpp>
 #include <Albuquerque/DrawObject.hpp>
-
+#include <Voxel.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
@@ -54,30 +54,38 @@ struct GameObject
     Albuquerque::FwogHelpers::DrawObject drawData;
 };
 
-struct ViewData
+
+
+//More for debug lines and stuff I guess? Can have multiple instances. I'll make this a class later
+struct LineRenderer
 {
-    ViewData();
+    LineRenderer();
 
-    struct ViewUniform {
-        glm::mat4 viewProj;
-        glm::vec3 eyePos;
-    };
+    //To Do: Move this rant somewhere else
+    //I need to figure out a different pattern in C++ to call the constructors without member initilization lists (which I don't like)
+    //and without having it be std::optional. I think the only other alternatives are the following:
+    // 1) Create some kind of class that works similar to std::optional but without the bool that represents uninitalized
+    // 2) Use unqiue_ptr (but this is heap allocated memeory so I don't want to if I don't need to)
 
-    std::optional<Fwog::TypedBuffer<ViewUniform>> viewBuffer;
+    static constexpr size_t maxPoints = 1024;
+    static constexpr glm::vec3 default_line_color = glm::vec3(1.0f, 0.0f, 0.0f);
 
-    //Skybox doesn't have translation
-    std::optional<Fwog::TypedBuffer<ViewUniform>> skyboxBuffer;
+    std::optional<Fwog::GraphicsPipeline> pipeline;
+    
+    //These points are passed in in worldspace coordinates
+    std::optional<Fwog::TypedBuffer<glm::vec3>> vertex_buffer;
 
-    void Update(Albuquerque::Camera const& camera);
+    //Passing in colors for each point here. Another option can be an SSBO (Why did I write this its still one drawcall???) but I'd need to profile which performs better. 
+    //This is more simple to prototype with though and probably good enough
+    std::optional<Fwog::TypedBuffer<glm::vec3>> color_buffer;
+
+    size_t point_count = 0;
+
+    void AddPoint(glm::vec3 point_position, glm::vec3 point_color = default_line_color);
+
+    //To Do: Decouple this from viewData
+    void Draw(ViewData const& viewData);
 };
-
-
-//struct Transform
-//{
-//    glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
-//    glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
-//};
-
 
 
 class PlaygroundApplication final : public Albuquerque::Application
@@ -113,8 +121,6 @@ protected:
 
 
 private:
-   
-
     std::optional<Fwog::GraphicsPipeline> pipelineTextured_;
     std::optional<Fwog::Texture> cubeTexture_;
     Albuquerque::Camera sceneCamera_;
@@ -129,7 +135,8 @@ private:
     bool skyboxVisible_ = false;
 
     bool fwogScene_ = true;
-
-
     std::optional<VoxelStuff::Grid> voxelGrid_;
+
+
+    std::optional<LineRenderer> line_renderer;
 };

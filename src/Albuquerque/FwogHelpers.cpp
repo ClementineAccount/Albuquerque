@@ -1,11 +1,25 @@
 #include "include/Albuquerque/FwogHelpers.hpp"
+#include "include/Albuquerque/Primitives.hpp"
 
-
-#include <string_view>
+#include <unordered_map>
+#include <filesystem>
+#include <algorithm>
+#include <iterator>
+#include <fstream>
 #include <vector>
-#include <memory>
-#include <array>
-#include <optional>
+#include <queue>
+#include <set>
+#include <span>
+#include <iostream>
+
+
+#include <Fwog/BasicTypes.h>
+#include <Fwog/Buffer.h>
+#include <Fwog/Pipeline.h>
+#include <Fwog/Rendering.h>
+#include <Fwog/Shader.h>
+#include <Fwog/Texture.h>
+
 
 namespace Albuquerque
 {

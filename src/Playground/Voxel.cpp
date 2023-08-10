@@ -1,4 +1,7 @@
-#include "include/Voxel.hpp"
+
+#include <Voxel.hpp>
+
+#include <Albuquerque/Primitives.hpp>
 #include <Albuquerque/FwogHelpers.hpp>
 #include <Albuquerque/DrawObject.hpp>
 

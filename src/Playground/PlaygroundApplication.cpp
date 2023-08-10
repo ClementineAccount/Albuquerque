@@ -336,6 +336,29 @@ bool PlaygroundApplication::LoadFwog()
     //It does not
     //std::cout << "Does this go to spdlog?\n";
 
+    line_renderer = LineRenderer();
+
+    constexpr float current_axis_length = 100000.0f;
+
+    //Do axis line as example
+    auto drawAxis = [&](float axisLength)
+    {
+        line_renderer->AddPoint(glm::vec3(0.0f, 0.0f, 0.0f));
+        line_renderer->AddPoint(glm::vec3(axisLength, 0.0f, 0.0f));
+
+        line_renderer->AddPoint(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        line_renderer->AddPoint(glm::vec3(0.0f, axisLength, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+        line_renderer->AddPoint(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        line_renderer->AddPoint(glm::vec3(0.0f, 0.0f, axisLength), glm::vec3(0.0f, 0.0f, 1.0f));
+    };
+
+    drawAxis(current_axis_length);
+
+
+
+
+
     return true;
 }
 
@@ -565,6 +588,8 @@ void PlaygroundApplication::RenderFwog(double dt)
         {
             if (fwogScene_)
             {
+                line_renderer->Draw(*viewData_);
+
                 for (size_t i = 0; i < numCubes_; ++i)
                 {
                     //drawObject(exampleCubes_[i].drawData, cubeTexture_.value(), nearestSampler, viewData_.value());
@@ -573,10 +598,6 @@ void PlaygroundApplication::RenderFwog(double dt)
                 if (skyboxVisible_)
                     drawSkybox(skybox_.value(), nearestSampler);
 
-                ////Draw the grid (gonna give it the frog texture)
-                //Fwog::Cmd::BindGraphicsPipeline(pipelineTextured_.value());
-                //Fwog::Cmd::BindUniformBuffer(0, viewData_.value().viewBuffer.value());
-                //Fwog::Cmd::BindSampledImage(0, cubeTexture_.value(), nearestSampler);
                 voxelGrid_->Draw(cubeTexture_.value(), nearestSampler, viewData_.value());
             }
         }
@@ -586,7 +607,6 @@ void PlaygroundApplication::RenderFwog(double dt)
 void PlaygroundApplication::RenderScene(double dt)
 {
     RenderFwog(dt);
-
 }
 
 void PlaygroundApplication::RenderUI(double dt)
@@ -610,10 +630,74 @@ void PlaygroundApplication::RenderUI(double dt)
         ImGui::Text("Framerate: %.0f Hertz", 1 / dt);
         ImGui::End();
     }
-
-
-
-
-
     //ImGui::ShowDemoWindow();
+}
+
+
+LineRenderer::LineRenderer()
+{
+    //To Do: Have this passed in as parameters
+    constexpr char vertexShaderPath[] = "./data/shaders/lines.vert.glsl";
+    constexpr char fragmentShaderPath[] = "./data/shaders/lines.frag.glsl";
+
+    //Create pipeline 
+    auto LoadFile = [](std::string_view path)
+    {
+        std::ifstream file{ path.data() };
+        std::string returnString { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
+        return returnString;
+    };
+
+    auto vertex_shader = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile(vertexShaderPath));
+    auto fragment_shader = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, LoadFile(fragmentShaderPath));
+
+    static constexpr auto sceneInputBindingDescs = std::array{
+    Fwog::VertexInputBindingDescription{
+        // position
+        .location = 0,
+            .binding = 0,
+            .format = Fwog::Format::R32G32B32_FLOAT,
+            .offset = 0
+    },
+    Fwog::VertexInputBindingDescription{
+        .location = 1,
+            .binding = 1,
+            .format = Fwog::Format::R32G32B32_FLOAT,
+            .offset = 0,
+    }};
+
+    auto inputDescs = sceneInputBindingDescs;
+    auto primDescs = Fwog::InputAssemblyState{ Fwog::PrimitiveTopology::LINE_LIST };
+
+    pipeline =  Fwog::GraphicsPipeline{{
+            .vertexShader = &vertex_shader,
+                .fragmentShader = &fragment_shader,
+                .inputAssemblyState = primDescs,
+                .vertexInputState = { inputDescs },
+                .depthState = { .depthTestEnable = true,
+                .depthWriteEnable = true,
+                .depthCompareOp = Fwog::CompareOp::LESS_OR_EQUAL },
+    }};
+
+    //Create buffers
+    vertex_buffer = Fwog::TypedBuffer<glm::vec3>(maxPoints, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+    color_buffer = Fwog::TypedBuffer<glm::vec3>(maxPoints, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+}
+
+void LineRenderer::AddPoint(glm::vec3 point_position, glm::vec3 point_color)
+{
+    vertex_buffer->UpdateData(point_position, point_count);
+    color_buffer->UpdateData(point_color, point_count);
+    ++point_count;
+
+    //TODO: Add consideration for when point_count > max amount... right now Fwog will crash instead
+}
+
+void LineRenderer::Draw(ViewData const& viewData)
+{
+    Fwog::Cmd::BindGraphicsPipeline(pipeline.value());
+    Fwog::Cmd::BindUniformBuffer(0, viewData.viewBuffer.value());
+    Fwog::Cmd::BindVertexBuffer(0, vertex_buffer.value(), 0, 3 * sizeof(float));
+    Fwog::Cmd::BindVertexBuffer(1, color_buffer.value(), 0, 3 * sizeof(float));
+    Fwog::Cmd::Draw(point_count, 1, 0, 0);
 }

@@ -1,5 +1,5 @@
 #include <Fwog/Buffer.h>
-
+#include <Fwog/Pipeline.h>
 
 namespace Albuquerque
 {
