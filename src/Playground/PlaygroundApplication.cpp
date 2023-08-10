@@ -671,3 +671,12 @@ void LineRenderer::AddPoint(glm::vec3 point_position, glm::vec3 point_color)
 
     //TODO: Add consideration for when point_count > max amount... right now Fwog will crash instead
 }
+
+void LineRenderer::Draw(ViewData const& viewData)
+{
+    Fwog::Cmd::BindGraphicsPipeline(pipeline.value());
+    Fwog::Cmd::BindUniformBuffer(0, viewData.viewBuffer.value());
+    Fwog::Cmd::BindVertexBuffer(0, vertex_buffer.value(), 0, 3 * sizeof(float));
+    Fwog::Cmd::BindVertexBuffer(1, color_buffer.value(), 0, 3 * sizeof(float));
+    Fwog::Cmd::Draw(point_count, 1, 0, 0);
+}

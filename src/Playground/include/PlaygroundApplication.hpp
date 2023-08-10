@@ -59,6 +59,8 @@ struct GameObject
 //More for debug lines and stuff I guess? Can have multiple instances. I'll make this a class later
 struct LineRenderer
 {
+    LineRenderer();
+
     //To Do: Move this rant somewhere else
     //I need to figure out a different pattern in C++ to call the constructors without member initilization lists (which I don't like)
     //and without having it be std::optional. I think the only other alternatives are the following:
@@ -81,7 +83,7 @@ struct LineRenderer
 
     void AddPoint(glm::vec3 point_position, glm::vec3 point_color = default_line_color);
 
-    LineRenderer();
+
 };
 
 
