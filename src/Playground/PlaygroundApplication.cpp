@@ -602,7 +602,7 @@ void PlaygroundApplication::RenderFwog(double dt)
                 //Fwog::Cmd::BindGraphicsPipeline(pipelineTextured_.value());
                 //Fwog::Cmd::BindUniformBuffer(0, viewData_.value().viewBuffer.value());
                 //Fwog::Cmd::BindSampledImage(0, cubeTexture_.value(), nearestSampler);
-                //voxelGrid_->Draw(cubeTexture_.value(), nearestSampler, viewData_.value());
+                voxelGrid_->Draw(cubeTexture_.value(), nearestSampler, viewData_.value());
             }
         }
         );
