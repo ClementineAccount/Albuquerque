@@ -10,15 +10,17 @@ The name 'Albuquerque' was chosen as a placeholder codename inspired by this [pa
 it was inspired by the internal codenames of Windows Operating Systems that were named after American cities. I chose Albuquerque as it is a niche and 
 unknown city in New Mexico that I have a personal connection with.
 
-It is also used to test whether OpenGL Wrapper [Fwog](https://github.com/JuanDiegoMontoya/Fwog) is suitable for use in a third party long term project.
-
-Build Instructions
+Voxel Project (Currently Working On...)
 ---
-Coming Soon! Right now it only builds on Windows. If you know Cmake, just run the CMake files and cross your fingers that it works after
-you precompile the three libraries.
-There are three libraries that were precompiled during my prototyping. I will get around to using git submodules or Fetch_Content for these libraries in the near future.
 
-Plane Game
+I am currently working on a Voxel project using this codebase. I'd add more details as it gets further developed.
+
+![image](https://github.com/ClementineAccount/Albuquerque/assets/26779639/f71d6748-0c75-42d1-be4f-da250abbb246)
+
+
+
+
+Plane Game (Completed for now...)
 ---
 
 [Pre-Alpha Release Download Link for Plane Game](https://github.com/ClementineAccount/Albuquerque/releases/tag/v0.1.0-indev)
