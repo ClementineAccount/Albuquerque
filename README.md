@@ -13,7 +13,7 @@ unknown city in New Mexico that I have a personal connection with.
 Voxel Project (Currently Working On...)
 ---
 
-I am currently working on a Voxel project using this codebase. I'd add more details as it gets further developed.
+I am currently working on a [Voxel project using this codebase](https://clementineaccount.github.io/posts/weekly-1-canvas/#voxels). I'd add more details as it gets further developed.
 
 ![image](https://github.com/ClementineAccount/Albuquerque/assets/26779639/f71d6748-0c75-42d1-be4f-da250abbb246)
 
