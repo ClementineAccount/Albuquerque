@@ -57,10 +57,10 @@ struct GameObject
 
 
 //More for debug lines and stuff I guess? Can have multiple instances. I'll make this a class later
-class LineRenderer
+class LineRendererFwog
 {
 public:
-    LineRenderer();
+    LineRendererFwog();
 
     void AddPoint(glm::vec3 point_position, glm::vec3 point_color = default_line_color);
 
@@ -134,5 +134,5 @@ private:
     std::optional<VoxelStuff::Grid> voxelGrid_;
 
 
-    std::optional<LineRenderer> line_renderer;
+    std::optional<LineRendererFwog> line_renderer;
 };

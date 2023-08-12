@@ -336,7 +336,7 @@ bool PlaygroundApplication::LoadFwog()
     //It does not
     //std::cout << "Does this go to spdlog?\n";
 
-    line_renderer = LineRenderer();
+    line_renderer = LineRendererFwog();
 
     constexpr float current_axis_length = 100000.0f;
 
@@ -634,7 +634,7 @@ void PlaygroundApplication::RenderUI(double dt)
 }
 
 
-LineRenderer::LineRenderer()
+LineRendererFwog::LineRendererFwog()
 {
     //To Do: Have this passed in as parameters
     constexpr char vertexShaderPath[] = "./data/shaders/lines.vert.glsl";
@@ -684,7 +684,7 @@ LineRenderer::LineRenderer()
     color_buffer = Fwog::TypedBuffer<glm::vec3>(maxPoints, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 }
 
-void LineRenderer::AddPoint(glm::vec3 point_position, glm::vec3 point_color)
+void LineRendererFwog::AddPoint(glm::vec3 point_position, glm::vec3 point_color)
 {
     vertex_buffer->UpdateData(point_position, point_count);
     color_buffer->UpdateData(point_color, point_count);
@@ -693,7 +693,7 @@ void LineRenderer::AddPoint(glm::vec3 point_position, glm::vec3 point_color)
     //TODO: Add consideration for when point_count > max amount... right now Fwog will crash instead
 }
 
-void LineRenderer::Draw(ViewData const& viewData)
+void LineRendererFwog::Draw(ViewData const& viewData)
 {
     Fwog::Cmd::BindGraphicsPipeline(pipeline.value());
     Fwog::Cmd::BindUniformBuffer(0, viewData.viewBuffer.value());
