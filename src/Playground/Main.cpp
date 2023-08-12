@@ -6,7 +6,7 @@
 #include <stb_image.h>
 
 
-static constexpr bool isFwog = true;
+static constexpr bool isFwog = false;
 
 int main(int argc, char* argv[])
 {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glad/glad.h>
+
 #include <Albuquerque/Application.hpp>
 #include <Albuquerque/Camera.hpp>
 #include <Albuquerque/DrawObject.hpp>
@@ -35,6 +37,32 @@ protected:
 
 
 protected:
+
+    class ShaderProgram
+    {
+    public:
+        ShaderProgram();
+        void Draw();
+        
+        GLuint GetShader();
+
+    private:
+        GLuint shader_program;
+    };
+
+    class Pipeline
+    {
+
+    public:
+        Pipeline() = delete;
+        Pipeline(std::string_view vertex_shader_path, std::string_view fragment_shader_path);
+
+        void AttachToShader(ShaderProgram& shader) const;
+
+    private:
+        GLuint vertex_shader = 0;
+        GLuint fragment_shader = 0;
+    };
 
 
 private:
