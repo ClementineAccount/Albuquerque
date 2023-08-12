@@ -4,11 +4,6 @@ struct GLFWwindow;
 
 namespace Albuquerque
 {
-
-
-
-
-
     class Application
     {
     public:

@@ -42,13 +42,14 @@ protected:
     {
     public:
         ShaderProgram();
+        ~ShaderProgram();
         void BeginDraw();
         void EndDraw();
 
         GLuint GetShader();
 
     private:
-        GLuint shader_program;
+        unsigned int shader_id;
     };
 
     class Pipeline
@@ -71,6 +72,7 @@ protected:
     {
     public:
         ExampleTriangle();
+        ~ExampleTriangle();
         void Draw(ShaderProgram& shaderProgram);
     private:
         GLuint vao;
@@ -81,5 +83,9 @@ protected:
 
 private:
 
+    //Application's constructor does not initalize GLFW so we cannot do graphical things inside constructors
+    std::optional<Pipeline> basic_pipeline;
+    std::optional<ShaderProgram> shader_program;
+    std::optional<ExampleTriangle> triangle;
 
 };

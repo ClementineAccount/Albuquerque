@@ -40,7 +40,16 @@ SandboxApplication::Pipeline::Pipeline(std::string_view vertex_shader_path, std:
         glShaderSource(shader_id, 1, &shader_contents, nullptr);
         glCompileShader(shader_id);
 
-        //To Do: Check if shader compiled correctly with glGetShaderiv()
+        GLint success;
+        glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+
+            std::string infoLog;
+            const GLsizei infoLength = 512;
+            infoLog.resize(infoLength + 1, '\0');
+            glGetShaderInfoLog(shader_id, infoLength, nullptr, infoLog.data());
+        }
     };
     
     vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -52,31 +61,41 @@ SandboxApplication::Pipeline::Pipeline(std::string_view vertex_shader_path, std:
 
 SandboxApplication::ShaderProgram::ShaderProgram()
 {
-    shader_program = glCreateProgram();
+    shader_id = glCreateProgram();
     //To Do: Check for errors
+}
+
+SandboxApplication::ShaderProgram::~ShaderProgram()
+{
+    glDeleteProgram(shader_id);     
 }
 
 GLuint SandboxApplication::ShaderProgram::GetShader()
 {
     //Read-only... but OpenGL is a global state machine so who cares honestly
-    return shader_program; 
+    return shader_id; 
 }
 
 void SandboxApplication::Pipeline::AttachToShader(ShaderProgram& shader) const
 {
-    if (vertex_shader != 0)
-        glAttachShader(shader.GetShader(), vertex_shader);
-    if (fragment_shader != 0)
-        glAttachShader(shader.GetShader(), fragment_shader);
+    GLuint shader_id = shader.GetShader();
+    glAttachShader(shader_id, vertex_shader);
+    glAttachShader(shader_id, fragment_shader);
 
 
     //To Do: Error checking
     glLinkProgram(shader.GetShader());
 }
 
+SandboxApplication::Pipeline::~Pipeline()
+{
+    glDeleteShader(vertex_shader);
+    glDeleteShader(fragment_shader);
+}
+
 void SandboxApplication::ShaderProgram::BeginDraw()
 {
-    glUseProgram(shader_program);
+    glUseProgram(shader_id);
 }
 
 void SandboxApplication::ShaderProgram::EndDraw()
@@ -96,15 +115,19 @@ SandboxApplication::ExampleTriangle::ExampleTriangle()
     GLuint vbo = 0;
     vao = 0;
 
-    glCreateBuffers(1, &vao);
-    glNamedBufferData(vao, sizeof(float), positions.data(), GL_STATIC_DRAW);
+    glCreateVertexArrays(1, &vao);
+    glCreateBuffers(1, &vbo);
+    glNamedBufferData(vbo, sizeof(positions), positions.data(), GL_STATIC_DRAW);
 
-    glBindVertexArray(vao);
-    glBindVertexBuffer(0, vbo, 0, sizeof(float) * 3.0);
+    glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(float) * 3);
+    glEnableVertexArrayAttrib(vao, 0);
+    glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(vao, 0, 0);
+}
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribFormat(0, 3, GL_FLOAT, GL_FALSE, 0);
-    glVertexAttribBinding(0, 0);
+SandboxApplication::ExampleTriangle::~ExampleTriangle()
+{
+    glDeleteVertexArrays(1, &vao);
 }
 
 void SandboxApplication::ExampleTriangle::Draw(ShaderProgram& shaderProgram)
@@ -114,6 +137,8 @@ void SandboxApplication::ExampleTriangle::Draw(ShaderProgram& shaderProgram)
     glDrawArrays(GL_TRIANGLES, 0, num_points);
     shaderProgram.EndDraw();
 }
+
+
 
 void SandboxApplication::AfterCreatedUiContext()
 {
@@ -134,7 +159,10 @@ bool SandboxApplication::Load()
     }
     SetWindowTitle("Sandbox");
 
-
+    shader_program.emplace();
+    triangle.emplace();
+    basic_pipeline.emplace("./data/shaders/triangle.vert.glsl", "./data/shaders/triangle.frag.glsl");
+    basic_pipeline->AttachToShader(*shader_program);
 
     return true;
 }
@@ -150,7 +178,8 @@ void SandboxApplication::Update(double dt)
 
 void SandboxApplication::RenderScene(double dt)
 {
-
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    triangle->Draw(*shader_program);
 }
 
 void SandboxApplication::RenderUI(double dt)
