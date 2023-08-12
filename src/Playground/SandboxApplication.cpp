@@ -115,6 +115,7 @@ SandboxApplication::ExampleTriangle::ExampleTriangle()
     GLuint vbo = 0;
     vao = 0;
 
+    //https://github.com/fendevel/Guide-to-Modern-OpenGL-Functions#glbuffer
     glCreateVertexArrays(1, &vao);
     glCreateBuffers(1, &vbo);
     glNamedBufferData(vbo, sizeof(positions), positions.data(), GL_STATIC_DRAW);
