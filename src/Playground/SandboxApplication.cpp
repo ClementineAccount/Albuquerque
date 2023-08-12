@@ -84,13 +84,36 @@ void SandboxApplication::ShaderProgram::EndDraw()
     glUseProgram(0);
 }
 
-void SandboxApplication::DrawShaderOnly(ShaderProgram& shaderProgram)
+SandboxApplication::ExampleTriangle::ExampleTriangle()
 {
-    shaderProgram.BeginDraw();
-    glDrawArrays(GL_TRIANGLES, 0, 1);
-    shaderProgram.EndDraw();
+
+    std::array<float, num_points * 3> positions = {
+       -1.0f, -1.0f, 0.0f,
+        1.0f, -1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,
+    };
+
+    GLuint vbo = 0;
+    vao = 0;
+
+    glCreateBuffers(1, &vao);
+    glNamedBufferData(vao, sizeof(float), positions.data(), GL_STATIC_DRAW);
+
+    glBindVertexArray(vao);
+    glBindVertexBuffer(0, vbo, 0, sizeof(float) * 3.0);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribFormat(0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexAttribBinding(0, 0);
 }
 
+void SandboxApplication::ExampleTriangle::Draw(ShaderProgram& shaderProgram)
+{
+    shaderProgram.BeginDraw();
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, num_points);
+    shaderProgram.EndDraw();
+}
 
 void SandboxApplication::AfterCreatedUiContext()
 {
@@ -110,6 +133,8 @@ bool SandboxApplication::Load()
         return false;
     }
     SetWindowTitle("Sandbox");
+
+
 
     return true;
 }

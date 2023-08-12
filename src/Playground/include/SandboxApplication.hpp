@@ -67,9 +67,17 @@ protected:
         GLuint fragment_shader = 0;
     };
 
-    //No VBO example.
-    void DrawShaderOnly(ShaderProgram& shaderProgram);
+    class ExampleTriangle
+    {
+    public:
+        ExampleTriangle();
+        void Draw(ShaderProgram& shaderProgram);
+    private:
+        GLuint vao;
+        static constexpr size_t num_points = 3;
+    };
 
+    
 
 private:
 
