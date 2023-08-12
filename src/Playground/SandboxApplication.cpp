@@ -34,7 +34,9 @@ SandboxApplication::Pipeline::Pipeline(std::string_view vertex_shader_path, std:
 
     auto LoadShader = [&LoadFile](GLuint shader_id, std::string_view path)
     {
-        const GLchar* shader_contents = LoadFile(path).data();
+        //Prevent dangling pointer by moving it to local variable
+        std::string returnString = std::move(LoadFile(path));
+        const GLchar* shader_contents = returnString.data();
         glShaderSource(shader_id, 1, &shader_contents, nullptr);
         glCompileShader(shader_id);
 
@@ -66,6 +68,27 @@ void SandboxApplication::Pipeline::AttachToShader(ShaderProgram& shader) const
         glAttachShader(shader.GetShader(), vertex_shader);
     if (fragment_shader != 0)
         glAttachShader(shader.GetShader(), fragment_shader);
+
+
+    //To Do: Error checking
+    glLinkProgram(shader.GetShader());
+}
+
+void SandboxApplication::ShaderProgram::BeginDraw()
+{
+    glUseProgram(shader_program);
+}
+
+void SandboxApplication::ShaderProgram::EndDraw()
+{
+    glUseProgram(0);
+}
+
+void SandboxApplication::DrawShaderOnly(ShaderProgram& shaderProgram)
+{
+    shaderProgram.BeginDraw();
+    glDrawArrays(GL_TRIANGLES, 0, 1);
+    shaderProgram.EndDraw();
 }
 
 

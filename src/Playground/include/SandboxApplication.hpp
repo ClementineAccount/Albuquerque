@@ -42,8 +42,9 @@ protected:
     {
     public:
         ShaderProgram();
-        void Draw();
-        
+        void BeginDraw();
+        void EndDraw();
+
         GLuint GetShader();
 
     private:
@@ -55,7 +56,9 @@ protected:
 
     public:
         Pipeline() = delete;
+        ~Pipeline();
         Pipeline(std::string_view vertex_shader_path, std::string_view fragment_shader_path);
+
 
         void AttachToShader(ShaderProgram& shader) const;
 
@@ -63,6 +66,9 @@ protected:
         GLuint vertex_shader = 0;
         GLuint fragment_shader = 0;
     };
+
+    //No VBO example.
+    void DrawShaderOnly(ShaderProgram& shaderProgram);
 
 
 private:
