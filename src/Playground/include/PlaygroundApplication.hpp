@@ -57,34 +57,30 @@ struct GameObject
 
 
 //More for debug lines and stuff I guess? Can have multiple instances. I'll make this a class later
-struct LineRenderer
+class LineRenderer
 {
+public:
     LineRenderer();
-
-    //To Do: Move this rant somewhere else
-    //I need to figure out a different pattern in C++ to call the constructors without member initilization lists (which I don't like)
-    //and without having it be std::optional. I think the only other alternatives are the following:
-    // 1) Create some kind of class that works similar to std::optional but without the bool that represents uninitalized
-    // 2) Use unqiue_ptr (but this is heap allocated memeory so I don't want to if I don't need to)
-
-    static constexpr size_t maxPoints = 1024;
-    static constexpr glm::vec3 default_line_color = glm::vec3(1.0f, 0.0f, 0.0f);
-
-    std::optional<Fwog::GraphicsPipeline> pipeline;
-    
-    //These points are passed in in worldspace coordinates
-    std::optional<Fwog::TypedBuffer<glm::vec3>> vertex_buffer;
-
-    //Passing in colors for each point here. Another option can be an SSBO (Why did I write this its still one drawcall???) but I'd need to profile which performs better. 
-    //This is more simple to prototype with though and probably good enough
-    std::optional<Fwog::TypedBuffer<glm::vec3>> color_buffer;
-
-    size_t point_count = 0;
 
     void AddPoint(glm::vec3 point_position, glm::vec3 point_color = default_line_color);
 
     //To Do: Decouple this from viewData
     void Draw(ViewData const& viewData);
+
+private:
+
+    static constexpr size_t maxPoints = 1024;
+    static constexpr glm::vec3 default_line_color = glm::vec3(1.0f, 0.0f, 0.0f);
+
+
+    std::optional<Fwog::GraphicsPipeline> pipeline;
+
+    //These points are passed in in worldspace coordinates
+    std::optional<Fwog::TypedBuffer<glm::vec3>> vertex_buffer;
+    std::optional<Fwog::TypedBuffer<glm::vec3>> color_buffer;
+
+    size_t point_count = 0;
+
 };
 
 
