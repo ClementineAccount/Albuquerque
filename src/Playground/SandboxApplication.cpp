@@ -179,6 +179,7 @@ void SandboxApplication::Update(double dt)
 
 void SandboxApplication::RenderScene(double dt)
 {
+    glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     triangle->Draw(*shader_program);
 }
