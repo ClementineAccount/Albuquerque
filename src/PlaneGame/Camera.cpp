@@ -33,7 +33,7 @@ namespace PlaneGame
         cameraStruct.viewProj = proj * view;
         cameraStruct.eyePos = camPos;
 
-        cameraUniformsBuffer.SubData(cameraStruct, 0);
+        cameraUniformsBuffer.UpdateData(cameraStruct, 0);
 
         //Update();
 	}

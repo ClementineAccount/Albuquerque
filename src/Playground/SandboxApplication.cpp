@@ -22,6 +22,7 @@
 
 static constexpr float PI = 3.1415926f;
 
+char shaderText[1024];
 
 SandboxApplication::Pipeline::Pipeline(std::string_view vertex_shader_path, std::string_view fragment_shader_path)
 {
@@ -36,6 +37,7 @@ SandboxApplication::Pipeline::Pipeline(std::string_view vertex_shader_path, std:
     {
         //Prevent dangling pointer by moving it to local variable
         std::string returnString = std::move(LoadFile(path));
+        strcpy(shaderText, returnString.c_str());
         const GLchar* shader_contents = returnString.data();
         glShaderSource(shader_id, 1, &shader_contents, nullptr);
         glCompileShader(shader_id);
@@ -188,7 +190,8 @@ void SandboxApplication::RenderUI(double dt)
 {
     ImGui::Begin("Window");
     {
-        ImGui::TextUnformatted("Hello World!");
+        static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
+        ImGui::InputTextMultiline("##source", shaderText, IM_ARRAYSIZE(shaderText), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
         ImGui::End();
     }
 

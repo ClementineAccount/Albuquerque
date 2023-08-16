@@ -303,13 +303,13 @@ void DrawCall::SetBuffers(Fwog::Buffer const& vertex_buffer, Fwog::Buffer const&
 void DrawCall::SetModelTransformation(glm::mat4 const& model)
 {
     uniform.model = model;
-    object_buffer.SubData(uniform, 0);
+    object_buffer.UpdateData(uniform, 0);
 }
 
 void DrawCall::SetColor(glm::vec4 color)
 {
     uniform.color = color;
-    object_buffer.SubData(uniform, 0);
+    object_buffer.UpdateData(uniform, 0);
 }
 
 void DrawCall::Draw(uint64_t stride,uint32_t index_buffer_index, uint32_t object_buffer_index) const
@@ -356,9 +356,9 @@ void ProjectApplication::AddDebugDrawLine(glm::vec3 ptA, glm::vec3 ptB,
                                           glm::vec3 color) {
   std::array<glm::vec3, 2> linePos{ptA, ptB};
   std::array<glm::vec3, 2> colorPos{color, color};
-  vertex_buffer_draw_lines.value().SubData(
+  vertex_buffer_draw_lines.value().UpdateData(
       linePos, sizeof(glm::vec3) * curr_num_draw_points);
-  vertex_buffer_draw_colors.value().SubData(
+  vertex_buffer_draw_colors.value().UpdateData(
       colorPos, sizeof(glm::vec3) * curr_num_draw_points);
 
   curr_num_draw_points += 2;
@@ -527,7 +527,7 @@ void ProjectApplication::AddCheckpoint(glm::vec3 position, glm::mat4 transform,
 
   checkpoint.object_buffer = Fwog::TypedBuffer<ObjectUniforms>(
       Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-  checkpoint.object_buffer.value().SubData(uniform, 0);
+  checkpoint.object_buffer.value().UpdateData(uniform, 0);
 
   checkpointList.push_back(std::move(checkpoint));
 }
@@ -595,25 +595,18 @@ void ProjectApplication::CreateSkybox() {
 
   skybox_texture = Fwog::Texture(createInfo);
 
-  // groundAlbedo = Fwog::CreateTexture2DMip({ Fwog::ImageType::TEX_CUBEMAP,
-  // static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight)
-  // }, Fwog::Format::R8G8B8A8_SRGB, uint32_t(1 +
-  // floor(log2(glm::max(textureWidth, textureHeight)))));
-
   auto upload_face = [&](uint32_t curr_face,
-                         unsigned char* texture_pixel_data) {
-    Fwog::TextureUpdateInfo updateInfo{
-        .dimension = Fwog::UploadDimension::THREE,
-        .level = 0,
-        .offset = {.depth = curr_face},
-        .size = {static_cast<uint32_t>(textureWidth),
-                 static_cast<uint32_t>(textureHeight), 1},
-        .format = Fwog::UploadFormat::RGBA,
-        .type = Fwog::UploadType::UBYTE,
-        .pixels = texture_pixel_data};
-    skybox_texture.value().SubImage(updateInfo);
+      unsigned char* texture_pixel_data) {
+          Fwog::TextureUpdateInfo updateInfo{
+              .offset = { .z = curr_face },
+                  .extent{static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight), 1},
+                  .format = Fwog::UploadFormat::RGBA,
+                  .type = Fwog::UploadType::UBYTE,
+                  .pixels = texture_pixel_data
+          };
+          skybox_texture->UpdateImage(updateInfo);
 
-    stbi_image_free(texture_pixel_data);
+          stbi_image_free(texture_pixel_data);
   };
 
   upload_face(right_id, textureData_skybox_right);
@@ -649,7 +642,7 @@ void ProjectApplication::LoadGroundPlane() {
       Fwog::Format::R8G8B8A8_SRGB,
       uint32_t(1 + floor(log2(glm::max(textureWidth, textureHeight)))));
   
-  Fwog::TextureUpdateInfo updateInfo{
+ /* Fwog::TextureUpdateInfo updateInfo{
       .dimension = Fwog::UploadDimension::TWO,
       .level = 0,
       .offset = {},
@@ -657,9 +650,17 @@ void ProjectApplication::LoadGroundPlane() {
                static_cast<uint32_t>(textureHeight), 1},
       .format = Fwog::UploadFormat::RGBA,
       .type = Fwog::UploadType::UBYTE,
-      .pixels = textureData};
+      .pixels = textureData};*/
+
+
+  Fwog::TextureUpdateInfo updateInfo{
+      .extent = { static_cast<uint32_t>(textureWidth),
+      static_cast<uint32_t>(textureHeight), 1 },
+          .format = Fwog::UploadFormat::RGBA,
+          .type = Fwog::UploadType::UBYTE,
+          .pixels = textureData};
   
-  groundAlbedo.value().SubImage(updateInfo);
+  groundAlbedo.value().UpdateImage(updateInfo);
   groundAlbedo.value().GenMipmaps();
   stbi_image_free(textureData);
 
@@ -669,7 +670,7 @@ void ProjectApplication::LoadGroundPlane() {
   planeUniform.model = modelPlane;
   objectBufferPlane = Fwog::TypedBuffer<ObjectUniforms>(
       Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-  objectBufferPlane.value().SubData(planeUniform, 0);
+  objectBufferPlane.value().UpdateData(planeUniform, 0);
 
   vertex_buffer_plane.emplace(Primitives::plane_vertices);
   index_buffer_plane.emplace(Primitives::plane_indices);
@@ -703,8 +704,8 @@ void ProjectApplication::LoadBuffers() {
         max_num_draw_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
     vertex_buffer_draw_colors = Fwog::TypedBuffer<glm::vec3>(
         max_num_draw_points, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-    vertex_buffer_draw_lines.value().SubData(linePts, 0);
-    vertex_buffer_draw_colors.value().SubData(linePts, 0);
+    vertex_buffer_draw_lines.value().UpdateData(linePts, 0);
+    vertex_buffer_draw_colors.value().UpdateData(linePts, 0);
   }
 
   // Camera Settings
@@ -724,8 +725,8 @@ void ProjectApplication::LoadBuffers() {
         Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
     globalUniformsBuffer_skybox = Fwog::TypedBuffer<GlobalUniforms>(
         Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-    globalUniformsBuffer.value().SubData(globalStruct, 0);
-    globalUniformsBuffer_skybox.value().SubData(globalStruct, 0);
+    globalUniformsBuffer.value().UpdateData(globalStruct, 0);
+    globalUniformsBuffer_skybox.value().UpdateData(globalStruct, 0);
   }
 
   // Creating ground plane
@@ -752,11 +753,11 @@ void ProjectApplication::LoadBuffers() {
         Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
     object_buffer_propeller = Fwog::TypedBuffer<ObjectUniforms>(
         Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-    objectBufferaircraft.value().SubData(aircraftUniform, 0);
+    objectBufferaircraft.value().UpdateData(aircraftUniform, 0);
 
     aircraftUniform.color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
 
-    object_buffer_propeller.value().SubData(aircraftUniform, 0);
+    object_buffer_propeller.value().UpdateData(aircraftUniform, 0);
   }
 
   // Load the actual scene vertices here
@@ -828,7 +829,7 @@ void ProjectApplication::CreateGroundChunks() {
     chunk.ground_uniform.model = model;
     chunk.object_buffer = Fwog::TypedBuffer<ObjectUniforms>(
         Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-    chunk.object_buffer.value().SubData(chunk.ground_uniform, 0);
+    chunk.object_buffer.value().UpdateData(chunk.ground_uniform, 0);
   };
 
   create_chunk(forward_chunk_offset);
@@ -849,7 +850,7 @@ void ProjectApplication::AddCollectable(glm::vec3 position, glm::vec3 scale,
   collectableUniform.model = glm::scale(collectableUniform.model, scale);
   collectableUniform.color = glm::vec4(color, 1.0f);
 
-  collectableObjectBuffers.value().SubData(
+  collectableObjectBuffers.value().UpdateData(
       collectableUniform, sizeof(collectableUniform) * collectableList.size());
   collectableList.emplace_back(position, scale, false);
 }
@@ -1072,7 +1073,7 @@ void ProjectApplication::StartLevel() {
   aircraft_sphere_collider.center = aircraftPos;
 
   aircraftUniform.color = aircraftColor;
-  objectBufferaircraft.value().SubData(aircraftUniform, 0);
+  objectBufferaircraft.value().UpdateData(aircraftUniform, 0);
 
   SetMouseCursorDisabled(true);
   current_player_level_time = 0.0f;
@@ -1333,11 +1334,11 @@ void ProjectApplication::Update(double dt) {
     globalStruct.viewProj = viewProj;
     globalStruct.eyePos = editorCamera.position;
 
-    globalUniformsBuffer.value().SubData(globalStruct, 0);
+    globalUniformsBuffer.value().UpdateData(globalStruct, 0);
 
     glm::mat4 view_rot_only = glm::mat4(glm::mat3(view));
     globalStruct.viewProj = proj * view_rot_only;
-    globalUniformsBuffer_skybox.value().SubData(globalStruct, 0);
+    globalUniformsBuffer_skybox.value().UpdateData(globalStruct, 0);
 
     static bool wasKeyPressed_Gameplay = false;
     if (!wasKeyPressed_Editor && IsKeyPressed(GLFW_KEY_2)) {
@@ -1523,12 +1524,12 @@ void ProjectApplication::Update(double dt) {
         model *= aircraft_body.rotMatrix;
 
         ObjectUniforms a(model, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
-        objectBufferaircraft.value().SubData(a, 0);
+        objectBufferaircraft.value().UpdateData(a, 0);
 
         a.model = propModel;
         a.color = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
 
-        object_buffer_propeller.value().SubData(a, 0);
+        object_buffer_propeller.value().UpdateData(a, 0);
       }
 
       {
@@ -1552,12 +1553,12 @@ void ProjectApplication::Update(double dt) {
         glm::mat4 viewProj = proj * view;
 
         globalStruct.viewProj = proj * view_rot_only;
-        globalUniformsBuffer_skybox.value().SubData(globalStruct, 0);
+        globalUniformsBuffer_skybox.value().UpdateData(globalStruct, 0);
 
         globalStruct.viewProj = viewProj;
         globalStruct.eyePos = gameplayCamera.position;
 
-        globalUniformsBuffer.value().SubData(globalStruct, 0);
+        globalUniformsBuffer.value().UpdateData(globalStruct, 0);
       }
     }
 
@@ -1586,7 +1587,7 @@ void ProjectApplication::Update(double dt) {
         // it to not render. Maybe there is a better way?
         ObjectUniforms temp;
         temp.model = glm::scale(temp.model, glm::vec3(0.0f, 0.0f, 0.0f));
-        collectableObjectBuffers.value().SubData(temp,
+        collectableObjectBuffers.value().UpdateData(temp,
                                                  sizeof(ObjectUniforms) * i);
       }
     }
@@ -1612,7 +1613,7 @@ void ProjectApplication::Update(double dt) {
         uniform.model = checkpointList[curr_active_checkpoint].model;
         uniform.color =
             glm::vec4(checkpointList[curr_active_checkpoint].color, 1.0f);
-        checkpointList[curr_active_checkpoint].object_buffer.value().SubData(
+        checkpointList[curr_active_checkpoint].object_buffer.value().UpdateData(
             uniform, 0);
         // checkpointList[curr_active_checkpoint].activated = true;
       } else {
@@ -1728,7 +1729,7 @@ void ProjectApplication::MouseRaycast(camera const& cam) {
   //model = glm::scale(model, building_hit->building_scale);
   //temp.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
   //temp.model = model;
-  //building_hit->object_buffer.value().SubData(temp, 0);
+  //building_hit->object_buffer.value().UpdateData(temp, 0);
 
   // AddDebugDrawLine(cam.position, cam.position + ray_world_vec3 *
   // debug_mouse_click_length, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -1739,7 +1740,7 @@ void ProjectApplication::RenderScene(double dt) {
 
   ZoneScopedC(tracy::Color::Red);
 
-  Fwog::BeginSwapchainRendering(Fwog::SwapchainRenderInfo{
+  Fwog::RenderToSwapchain(Fwog::SwapchainRenderInfo{
       .viewport =
           Fwog::Viewport{.drawRect{.offset = {0, 0},
                                    .extent = {windowWidth, windowHeight}},
@@ -1749,167 +1750,170 @@ void ProjectApplication::RenderScene(double dt) {
       .clearColorValue = {skyColorFoggy.r, skyColorFoggy.g, skyColorFoggy.b,
                           1.0f},
       .depthLoadOp = Fwog::AttachmentLoadOp::CLEAR,
-      .clearDepthValue = 1.0f});
-
-  // Drawing a ground plane
+      .clearDepthValue = 1.0f},
+  [&]
   {
-    Fwog::SamplerState ss;
-    ss.minFilter = Fwog::Filter::LINEAR;
-    ss.magFilter = Fwog::Filter::LINEAR;
-    ss.mipmapFilter = Fwog::Filter::LINEAR;
-    ss.addressModeU = Fwog::AddressMode::REPEAT;
-    ss.addressModeV = Fwog::AddressMode::REPEAT;
-    ss.anisotropy = Fwog::SampleCount::SAMPLES_16;
-    auto nearestSampler = Fwog::Sampler(ss);
 
-    Fwog::Cmd::BindGraphicsPipeline(pipeline_textured.value());
-    Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-    Fwog::Cmd::BindUniformBuffer(1, objectBufferPlane.value());
-    Fwog::Cmd::BindSampledImage(0, groundAlbedo.value(), nearestSampler);
-    Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0,
-                                sizeof(Primitives::Vertex));
-    Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(),
-                               Fwog::IndexType::UNSIGNED_INT);
-    Fwog::Cmd::DrawIndexed(
-        static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
+      // Drawing a ground plane
+      {
+          Fwog::SamplerState ss;
+          ss.minFilter = Fwog::Filter::LINEAR;
+          ss.magFilter = Fwog::Filter::LINEAR;
+          ss.mipmapFilter = Fwog::Filter::LINEAR;
+          ss.addressModeU = Fwog::AddressMode::REPEAT;
+          ss.addressModeV = Fwog::AddressMode::REPEAT;
+          ss.anisotropy = Fwog::SampleCount::SAMPLES_16;
+          auto nearestSampler = Fwog::Sampler(ss);
 
-    // Drawing the other ground planes
-    for (auto const& ground : grond_chunk_list) {
-      Fwog::Cmd::BindUniformBuffer(1, ground.object_buffer.value());
-      Fwog::Cmd::BindSampledImage(0, groundAlbedo.value(), nearestSampler);
-      Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0,
-                                  sizeof(Primitives::Vertex));
-      Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(),
-                                 Fwog::IndexType::UNSIGNED_INT);
-      Fwog::Cmd::DrawIndexed(
-          static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
-    }
-  }
+          Fwog::Cmd::BindGraphicsPipeline(pipeline_textured.value());
+          Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+          Fwog::Cmd::BindUniformBuffer(1, objectBufferPlane.value());
+          Fwog::Cmd::BindSampledImage(0, groundAlbedo.value(), nearestSampler);
+          Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0,
+              sizeof(Primitives::Vertex));
+          Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(),
+              Fwog::IndexType::UNSIGNED_INT);
+          Fwog::Cmd::DrawIndexed(
+              static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
 
-  // Drawing buildings
-  {
-    static constexpr uint64_t stride = sizeof(Utility::Vertex);
-    for (auto const& building : buildingObjectList) {
-      Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
-      Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-      building.drawcall.Draw(stride);
-    }
-  }
-
-  // Drawing the collectables
-  {
-    if (!collectableList.empty()) {
-      Fwog::Cmd::BindGraphicsPipeline(pipeline_colored_indexed.value());
-      Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-      Fwog::Cmd::BindStorageBuffer(1, collectableObjectBuffers.value());
-      Fwog::Cmd::BindVertexBuffer(0, scene_collectable.meshes[0].vertexBuffer,
-                                  0, sizeof(Utility::Vertex));
-      Fwog::Cmd::BindIndexBuffer(scene_collectable.meshes[0].indexBuffer,
-                                 Fwog::IndexType::UNSIGNED_INT);
-      Fwog::Cmd::DrawIndexed(
-          static_cast<uint32_t>(
-              scene_collectable.meshes[0].indexBuffer.Size()) /
-              sizeof(uint32_t),
-          collectableList.size(), 0, 0, 0);
-    }
-  }
-
-  // Drawing checkpoints
-  {
-    // Assumptions: All checkpoints are allocated in collection sequence
-    // linearly.
-    if (!all_checkpoints_collected) {
-      for (size_t i = curr_active_checkpoint; i < checkpointList.size(); ++i) {
-        Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
-        Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-        Fwog::Cmd::BindUniformBuffer(1,
-                                     checkpointList[i].object_buffer.value());
-        Fwog::Cmd::BindVertexBuffer(
-            0, scene_checkpoint_ring.meshes[0].vertexBuffer, 0,
-            sizeof(Primitives::Vertex));
-        Fwog::Cmd::BindIndexBuffer(scene_checkpoint_ring.meshes[0].indexBuffer,
-                                   Fwog::IndexType::UNSIGNED_INT);
-        Fwog::Cmd::DrawIndexed(
-            static_cast<uint32_t>(
-                scene_checkpoint_ring.meshes[0].indexBuffer.Size()) /
-                sizeof(uint32_t),
-            1, 0, 0, 0);
+          // Drawing the other ground planes
+          for (auto const& ground : grond_chunk_list) {
+              Fwog::Cmd::BindUniformBuffer(1, ground.object_buffer.value());
+              Fwog::Cmd::BindSampledImage(0, groundAlbedo.value(), nearestSampler);
+              Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_plane.value(), 0,
+                  sizeof(Primitives::Vertex));
+              Fwog::Cmd::BindIndexBuffer(index_buffer_plane.value(),
+                  Fwog::IndexType::UNSIGNED_INT);
+              Fwog::Cmd::DrawIndexed(
+                  static_cast<uint32_t>(Primitives::plane_indices.size()), 1, 0, 0, 0);
+          }
       }
-    }
+
+      // Drawing buildings
+      {
+          static constexpr uint64_t stride = sizeof(Utility::Vertex);
+          for (auto const& building : buildingObjectList) {
+              Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
+              Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+              building.drawcall.Draw(stride);
+          }
+      }
+
+      // Drawing the collectables
+      {
+          if (!collectableList.empty()) {
+              Fwog::Cmd::BindGraphicsPipeline(pipeline_colored_indexed.value());
+              Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+              Fwog::Cmd::BindStorageBuffer(1, collectableObjectBuffers.value());
+              Fwog::Cmd::BindVertexBuffer(0, scene_collectable.meshes[0].vertexBuffer,
+                  0, sizeof(Utility::Vertex));
+              Fwog::Cmd::BindIndexBuffer(scene_collectable.meshes[0].indexBuffer,
+                  Fwog::IndexType::UNSIGNED_INT);
+              Fwog::Cmd::DrawIndexed(
+                  static_cast<uint32_t>(
+                      scene_collectable.meshes[0].indexBuffer.Size()) /
+                  sizeof(uint32_t),
+                  collectableList.size(), 0, 0, 0);
+          }
+      }
+
+      // Drawing checkpoints
+      {
+          // Assumptions: All checkpoints are allocated in collection sequence
+          // linearly.
+          if (!all_checkpoints_collected) {
+              for (size_t i = curr_active_checkpoint; i < checkpointList.size(); ++i) {
+                  Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
+                  Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+                  Fwog::Cmd::BindUniformBuffer(1,
+                      checkpointList[i].object_buffer.value());
+                  Fwog::Cmd::BindVertexBuffer(
+                      0, scene_checkpoint_ring.meshes[0].vertexBuffer, 0,
+                      sizeof(Primitives::Vertex));
+                  Fwog::Cmd::BindIndexBuffer(scene_checkpoint_ring.meshes[0].indexBuffer,
+                      Fwog::IndexType::UNSIGNED_INT);
+                  Fwog::Cmd::DrawIndexed(
+                      static_cast<uint32_t>(
+                          scene_checkpoint_ring.meshes[0].indexBuffer.Size()) /
+                      sizeof(uint32_t),
+                      1, 0, 0, 0);
+              }
+          }
+      }
+
+      // Drawing a aircraft
+      if (render_plane) {
+          Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
+          Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+          Fwog::Cmd::BindUniformBuffer(1, objectBufferaircraft.value());
+          Fwog::Cmd::BindVertexBuffer(0, scene_aircraft.meshes[1].vertexBuffer, 0,
+              sizeof(Utility::Vertex));
+          Fwog::Cmd::BindIndexBuffer(scene_aircraft.meshes[1].indexBuffer,
+              Fwog::IndexType::UNSIGNED_INT);
+          Fwog::Cmd::DrawIndexed(
+              static_cast<uint32_t>(scene_aircraft.meshes[1].indexBuffer.Size()) /
+              sizeof(uint32_t),
+              1, 0, 0, 0);
+
+          Fwog::Cmd::BindUniformBuffer(1, object_buffer_propeller.value());
+          Fwog::Cmd::BindVertexBuffer(0, scene_aircraft.meshes[0].vertexBuffer, 0,
+              sizeof(Utility::Vertex));
+          Fwog::Cmd::BindIndexBuffer(scene_aircraft.meshes[0].indexBuffer,
+              Fwog::IndexType::UNSIGNED_INT);
+          Fwog::Cmd::DrawIndexed(
+              static_cast<uint32_t>(scene_aircraft.meshes[0].indexBuffer.Size()) /
+              sizeof(uint32_t),
+              1, 0, 0, 0);
+      }
+
+      // Drawing axis lines
+      {
+          Fwog::Cmd::BindGraphicsPipeline(pipeline_lines.value());
+          Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
+          if (renderAxis) {
+              Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_pos_line.value(), 0,
+                  3 * sizeof(float));
+              Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_color_line.value(), 0,
+                  3 * sizeof(float));
+              Fwog::Cmd::Draw(num_points_world_axis, 1, 0, 0);
+          }
+
+          // Drawing collision lines
+          if (curr_num_draw_points != 0 &&
+              curr_num_draw_points < max_num_draw_points) {
+              Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_draw_lines.value(), 0,
+                  3 * sizeof(float));
+              Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_draw_colors.value(), 0,
+                  3 * sizeof(float));
+              Fwog::Cmd::Draw(curr_num_draw_points, 1, 0, 0);
+
+              // Allows DrawLine to be called every frame without creating buffers.
+              // Should make new buffer  if want presistent lines ofc
+              ClearLines();
+          }
+      }
+
+      // Drawing skybox last depth buffer
+      {
+          Fwog::SamplerState ss;
+          ss.minFilter = Fwog::Filter::LINEAR;
+          ss.magFilter = Fwog::Filter::LINEAR;
+          ss.mipmapFilter = Fwog::Filter::LINEAR;
+          ss.addressModeU = Fwog::AddressMode::REPEAT;
+          ss.addressModeV = Fwog::AddressMode::REPEAT;
+          ss.anisotropy = Fwog::SampleCount::SAMPLES_16;
+          auto nearestSampler = Fwog::Sampler(ss);
+
+          Fwog::Cmd::BindGraphicsPipeline(pipeline_skybox.value());
+          Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer_skybox.value());
+          Fwog::Cmd::BindSampledImage(0, skybox_texture.value(), nearestSampler);
+          Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_skybox.value(), 0,
+              3 * sizeof(float));
+          Fwog::Cmd::Draw(Primitives::skybox_vertices.size() / 3, 1, 0, 0);
+      }
   }
-
-  // Drawing a aircraft
-  if (render_plane) {
-    Fwog::Cmd::BindGraphicsPipeline(pipeline_flat.value());
-    Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-    Fwog::Cmd::BindUniformBuffer(1, objectBufferaircraft.value());
-    Fwog::Cmd::BindVertexBuffer(0, scene_aircraft.meshes[1].vertexBuffer, 0,
-                                sizeof(Utility::Vertex));
-    Fwog::Cmd::BindIndexBuffer(scene_aircraft.meshes[1].indexBuffer,
-                               Fwog::IndexType::UNSIGNED_INT);
-    Fwog::Cmd::DrawIndexed(
-        static_cast<uint32_t>(scene_aircraft.meshes[1].indexBuffer.Size()) /
-            sizeof(uint32_t),
-        1, 0, 0, 0);
-
-    Fwog::Cmd::BindUniformBuffer(1, object_buffer_propeller.value());
-    Fwog::Cmd::BindVertexBuffer(0, scene_aircraft.meshes[0].vertexBuffer, 0,
-                                sizeof(Utility::Vertex));
-    Fwog::Cmd::BindIndexBuffer(scene_aircraft.meshes[0].indexBuffer,
-                               Fwog::IndexType::UNSIGNED_INT);
-    Fwog::Cmd::DrawIndexed(
-        static_cast<uint32_t>(scene_aircraft.meshes[0].indexBuffer.Size()) /
-            sizeof(uint32_t),
-        1, 0, 0, 0);
-  }
-
-  // Drawing axis lines
-  {
-    Fwog::Cmd::BindGraphicsPipeline(pipeline_lines.value());
-    Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer.value());
-    if (renderAxis) {
-      Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_pos_line.value(), 0,
-                                  3 * sizeof(float));
-      Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_color_line.value(), 0,
-                                  3 * sizeof(float));
-      Fwog::Cmd::Draw(num_points_world_axis, 1, 0, 0);
-    }
-
-    // Drawing collision lines
-    if (curr_num_draw_points != 0 &&
-        curr_num_draw_points < max_num_draw_points) {
-      Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_draw_lines.value(), 0,
-                                  3 * sizeof(float));
-      Fwog::Cmd::BindVertexBuffer(1, vertex_buffer_draw_colors.value(), 0,
-                                  3 * sizeof(float));
-      Fwog::Cmd::Draw(curr_num_draw_points, 1, 0, 0);
-
-      // Allows DrawLine to be called every frame without creating buffers.
-      // Should make new buffer  if want presistent lines ofc
-      ClearLines();
-    }
-  }
-
-  // Drawing skybox last depth buffer
-  {
-    Fwog::SamplerState ss;
-    ss.minFilter = Fwog::Filter::LINEAR;
-    ss.magFilter = Fwog::Filter::LINEAR;
-    ss.mipmapFilter = Fwog::Filter::LINEAR;
-    ss.addressModeU = Fwog::AddressMode::REPEAT;
-    ss.addressModeV = Fwog::AddressMode::REPEAT;
-    ss.anisotropy = Fwog::SampleCount::SAMPLES_16;
-    auto nearestSampler = Fwog::Sampler(ss);
-
-    Fwog::Cmd::BindGraphicsPipeline(pipeline_skybox.value());
-    Fwog::Cmd::BindUniformBuffer(0, globalUniformsBuffer_skybox.value());
-    Fwog::Cmd::BindSampledImage(0, skybox_texture.value(), nearestSampler);
-    Fwog::Cmd::BindVertexBuffer(0, vertex_buffer_skybox.value(), 0,
-                                3 * sizeof(float));
-    Fwog::Cmd::Draw(Primitives::skybox_vertices.size() / 3, 1, 0, 0);
-  }
-
-  Fwog::EndRendering();
+  );
+  //Fwog::EndRendering();
 }
 
 void ProjectApplication::RenderUI(double dt) {
