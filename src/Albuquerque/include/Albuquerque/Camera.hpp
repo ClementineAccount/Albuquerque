@@ -24,6 +24,9 @@ namespace Albuquerque
 
         float nearPlane = 0.01f;
         float farPlane = 5000.0f;
+        float fovDegrees = 90.0f;
+
+        //why not just keep the projection matrix? A mystery we will never uncover
 
 
         //Accounts for y-axis pointing down coordinate systems (such as for 2D cameras)
@@ -52,6 +55,5 @@ namespace Albuquerque
 
     private:
         void CalibrateDirectional();
-
     };
 }

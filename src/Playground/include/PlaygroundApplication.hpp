@@ -84,6 +84,8 @@ private:
 };
 
 
+
+
 class PlaygroundApplication final : public Albuquerque::Application
 {
 public:
@@ -102,9 +104,14 @@ protected:
 
     //void UpdateViewBuffers(Albuquerque::Camera const& camera);
 
-
+    //TODO: Move these to their own helper functions
+    
+protected:
     //Testing out the concept of right click mouse movement
     void UpdateMouseOffset(double dt, double& xOffset, double& yOffset);
+
+    //For mouse picking
+    glm::vec3 RaycastScreenToWorld(Albuquerque::Camera const& cam);
 
 
 protected:

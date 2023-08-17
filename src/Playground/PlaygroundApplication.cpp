@@ -8,6 +8,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -264,6 +266,7 @@ Fwog::Texture PlaygroundApplication::MakeTexture(std::string_view texturePath, i
 }
 
 
+
 ViewData::ViewData()
 {
     viewBuffer = Fwog::TypedBuffer<ViewUniform>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
@@ -286,8 +289,6 @@ void ViewData::Update(Albuquerque::Camera const& camera)
 
     skyboxBuffer.value().UpdateData(viewUniform, 0);
 }
-
-
 
 void PlaygroundApplication::AfterCreatedUiContext()
 {
@@ -510,8 +511,18 @@ void PlaygroundApplication::UpdateFwog(double dt)
 
     updateCamera(sceneCamera_);
 
+    //Draws a line from origin to raycast point. Acts as a 'test' for both functions
+    auto rayCastTest = [&](Albuquerque::Camera const& currCamera, LineRendererFwog& lineRenderer)
+    {
+        //This will **add** more lines there too... every frame as well which is cursed
+        if (IsMouseKeyPressed(GLFW_MOUSE_BUTTON_1)) {
+            glm::vec3 ray = RaycastScreenToWorld(currCamera);
+            lineRenderer.AddPoint(glm::vec3(0.0f, 0.0f, 0.0f));
+            lineRenderer.AddPoint(ray * 20.0f);
+        }
+    };
 
-
+    rayCastTest(sceneCamera_, line_renderer.value());
 }
 
 void PlaygroundApplication::Update(double dt)
@@ -633,6 +644,36 @@ void PlaygroundApplication::RenderUI(double dt)
     //ImGui::ShowDemoWindow();
 }
 
+glm::vec3 PlaygroundApplication::RaycastScreenToWorld(Albuquerque::Camera const& cam)
+{
+    glm::mat4 proj = glm::perspective((PI / 2.0f), 1.6f, cam.nearPlane, cam.farPlane);
+    glm::mat4 view = glm::lookAt(cam.camPos, cam.camTarget, cam.camUp);
+    // https://antongerdelan.net/opengl/raycasting.html
+
+    // Viewport Coordinate
+    static double mouseX = windowWidth / 2;
+    static double mouseY = windowHeight / 2;
+    GetMousePosition(mouseX, mouseY);
+
+    // NDC Coordinate
+    float x = (2.0f * mouseX) / windowWidth - 1.0f;
+    float y = 1.0f - (2.0f * mouseY) / windowHeight;
+    float z = 1.0f;
+    glm::vec3 ray_nds = glm::vec3(x, y, z);
+
+    // Homogenous Clip Coordinates
+    glm::vec4 ray_clip = glm::vec4(ray_nds.x, ray_nds.y, -1.0, 1.0);
+
+    // View Space Coordinates
+    glm::vec4 ray_eye = inverse(proj) * ray_clip;
+
+    ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0, 0.0);
+
+    // World Coordinates
+    glm::vec4 ray_wor = (inverse(view) * ray_eye);
+    glm::vec3 ray_world_vec3 = glm::vec3(ray_wor.x, ray_wor.y, ray_wor.z);
+    return glm::normalize(ray_world_vec3);
+}
 
 LineRendererFwog::LineRendererFwog()
 {
@@ -701,3 +742,5 @@ void LineRendererFwog::Draw(ViewData const& viewData)
     Fwog::Cmd::BindVertexBuffer(1, color_buffer.value(), 0, 3 * sizeof(float));
     Fwog::Cmd::Draw(point_count, 1, 0, 0);
 }
+
+
