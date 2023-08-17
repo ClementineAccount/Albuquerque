@@ -56,6 +56,8 @@ struct GameObject
 
 
 
+
+
 //More for debug lines and stuff I guess? Can have multiple instances. I'll make this a class later
 class LineRendererFwog
 {
@@ -63,6 +65,7 @@ public:
     LineRendererFwog();
 
     void AddPoint(glm::vec3 point_position, glm::vec3 point_color = default_line_color);
+    void Clear();
 
     //To Do: Decouple this from viewData
     void Draw(ViewData const& viewData);
@@ -72,7 +75,6 @@ private:
     static constexpr size_t maxPoints = 1024;
     static constexpr glm::vec3 default_line_color = glm::vec3(1.0f, 0.0f, 0.0f);
 
-
     std::optional<Fwog::GraphicsPipeline> pipeline;
 
     //These points are passed in in worldspace coordinates
@@ -80,6 +82,13 @@ private:
     std::optional<Fwog::TypedBuffer<glm::vec3>> color_buffer;
 
     size_t point_count = 0;
+
+
+    struct Tests
+    {
+        //Must be called after Fwog is initalized
+        //static void TestAddRemove();
+    };
 
 };
 

@@ -519,6 +519,8 @@ void PlaygroundApplication::UpdateFwog(double dt)
         //TODO: Make IsKeyJustPressed check
         static bool wasClicked = false;
         if (IsMouseKeyPressed(GLFW_MOUSE_BUTTON_1) && !wasClicked) {
+            lineRenderer.Clear();
+
             wasClicked = true;
             //TODO: Check if normalization does anything even
             glm::vec3 ray = glm::normalize(RaycastScreenToWorld(currCamera));
@@ -754,4 +756,11 @@ void LineRendererFwog::Draw(ViewData const& viewData)
     Fwog::Cmd::Draw(point_count, 1, 0, 0);
 }
 
+void LineRendererFwog::Clear()
+{
+    //Not needed. Just keep the old data and just don't pass it during rendering (and new data will override it)
+    //vertex_buffer->ClearSubData(Fwog::BufferClearInfo());
+    //color_buffer->ClearSubData(Fwog::BufferClearInfo());
 
+    point_count = 0;
+}
