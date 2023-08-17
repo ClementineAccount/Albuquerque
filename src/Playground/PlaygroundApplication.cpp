@@ -515,10 +515,20 @@ void PlaygroundApplication::UpdateFwog(double dt)
     auto rayCastTest = [&](Albuquerque::Camera const& currCamera, LineRendererFwog& lineRenderer)
     {
         //This will **add** more lines there too... every frame as well which is cursed
-        if (IsMouseKeyPressed(GLFW_MOUSE_BUTTON_1)) {
-            glm::vec3 ray = RaycastScreenToWorld(currCamera);
-            lineRenderer.AddPoint(glm::vec3(0.0f, 0.0f, 0.0f));
-            lineRenderer.AddPoint(ray * 20.0f);
+
+        //TODO: Make IsKeyJustPressed check
+        static bool wasClicked = false;
+        if (IsMouseKeyPressed(GLFW_MOUSE_BUTTON_1) && !wasClicked) {
+            wasClicked = true;
+            //TODO: Check if normalization does anything even
+            glm::vec3 ray = glm::normalize(RaycastScreenToWorld(currCamera));
+            glm::vec3 worldPoint = currCamera.camPos + ray;
+            lineRenderer.AddPoint(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+            lineRenderer.AddPoint(worldPoint, glm::vec3(1.0f, 1.0f, 1.0f));
+        }
+        else if (!IsMouseKeyPressed(GLFW_MOUSE_BUTTON_1) && wasClicked)
+        {
+            wasClicked = false;
         }
     };
 
@@ -672,7 +682,8 @@ glm::vec3 PlaygroundApplication::RaycastScreenToWorld(Albuquerque::Camera const&
     // World Coordinates
     glm::vec4 ray_wor = (inverse(view) * ray_eye);
     glm::vec3 ray_world_vec3 = glm::vec3(ray_wor.x, ray_wor.y, ray_wor.z);
-    return glm::normalize(ray_world_vec3);
+    //Caller normalizes it, not the callee (as non-normalized gets the world point)
+    return ray_world_vec3;
 }
 
 LineRendererFwog::LineRendererFwog()

@@ -23,6 +23,7 @@ namespace Albuquerque
         bool IsKeyRelease(int32_t key);
 
         bool IsMouseKeyPressed(int32_t key);
+        bool IsMouseKeyReleased(int32_t key);
         void GetMousePosition(double& mouseX, double& mouseY);
 
         virtual void AfterCreatedUiContext();

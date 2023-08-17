@@ -75,6 +75,11 @@ namespace Albuquerque
         return glfwGetMouseButton(_windowHandle, key) == GLFW_PRESS;
     }
 
+    bool Application::IsMouseKeyReleased(int32_t key)
+    {
+        return glfwGetMouseButton(_windowHandle, key) == GLFW_RELEASE;
+    }
+
     bool Application::IsKeyRelease(int32_t key)
     {
         return glfwGetKey(_windowHandle, key) == GLFW_RELEASE;
