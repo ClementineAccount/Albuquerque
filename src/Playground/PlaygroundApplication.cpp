@@ -550,7 +550,7 @@ void PlaygroundApplication::UpdateFwog(double dt)
             lineRenderer.AddPoint(voxelGrid_->gridMin, glm::vec3(1.0f, 1.0f, 1.0f));
             lineRenderer.AddPoint(voxelGrid_->gridMax, glm::vec3(1.0f, 1.0f, 1.0f));
 
-            if (IsPointCollideVoxel(*voxelGrid_, glm::vec3(1.0f, 0.0f, 0.0f)))
+            if (IsPointCollideVoxel(*voxelGrid_, voxelGrid_->gridMin + (voxelGrid_->gridMax - voxelGrid_->gridMin) * 0.5f))
             {
                 std::cout << "Hit\n";
             }
