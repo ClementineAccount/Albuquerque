@@ -511,11 +511,23 @@ void PlaygroundApplication::UpdateFwog(double dt)
 
     updateCamera(sceneCamera_);
 
-    //I really need more consistent naming conventions here for real
-    //auto IsPointCollideVoxel[&](VoxelStuff::Grid const& grid, glm::vec3 point)
-    //{
-    //    //glm::vec3 gridMin = 
-    //}
+    auto IsPointCollideVoxel = [&](VoxelStuff::Grid const& grid, glm::vec3 point)
+    {
+        //TODO: Create generic 'aabb min, aabb max, point' function
+        auto checkAABB = [](glm::vec3 minPoint, glm::vec3 maxPoint, glm::vec3 point)
+        {
+            //I lift from PlaneGame now which I know works
+                 // Early rejection
+            if (point.x > maxPoint.x || point.x < minPoint.x || point.y > maxPoint.y ||
+                point.y < minPoint.y || point.z > maxPoint.z || point.z < minPoint.z) {
+                return false;
+            }
+
+            return true;
+        };
+
+        return checkAABB(grid.gridMin, grid.gridMax, point);
+    };
 
     //Draws a line from origin to raycast point. Acts as a 'test' for both functions
     auto rayCastTest = [&](Albuquerque::Camera const& currCamera, LineRendererFwog& lineRenderer)
@@ -525,14 +537,23 @@ void PlaygroundApplication::UpdateFwog(double dt)
         //TODO: Make IsKeyJustPressed check
         static bool wasClicked = false;
         if (IsMouseKeyPressed(GLFW_MOUSE_BUTTON_1) && !wasClicked) {
-            lineRenderer.Clear();
+            //lineRenderer.Clear();
             wasClicked = true;
 
             //TODO: Check if normalization does anything even
             glm::vec3 ray = glm::normalize(RaycastScreenToWorld(currCamera));
-            glm::vec3 worldPoint = currCamera.camPos + ray;
-            lineRenderer.AddPoint(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-            lineRenderer.AddPoint(worldPoint, glm::vec3(1.0f, 1.0f, 1.0f));
+            glm::vec3 worldPoint = currCamera.camPos + ray * 20.0f;
+            //lineRenderer.AddPoint(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+            //lineRenderer.AddPoint(worldPoint, glm::vec3(1.0f, 1.0f, 1.0f));
+
+            //Visualize the actual result (too lazy to write actual test right now will do so after)
+            lineRenderer.AddPoint(voxelGrid_->gridMin, glm::vec3(1.0f, 1.0f, 1.0f));
+            lineRenderer.AddPoint(voxelGrid_->gridMax, glm::vec3(1.0f, 1.0f, 1.0f));
+
+            if (IsPointCollideVoxel(*voxelGrid_, glm::vec3(1.0f, 0.0f, 0.0f)))
+            {
+                std::cout << "Hit\n";
+            }
 
         }
         else if (!IsMouseKeyPressed(GLFW_MOUSE_BUTTON_1) && wasClicked)

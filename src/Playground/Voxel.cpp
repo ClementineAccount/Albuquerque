@@ -48,7 +48,7 @@ VoxelStuff::Grid::Grid(glm::vec3 gridOrigin)
     voxelMeshBufferRef = &Albuquerque::FwogHelpers::MeshBuffer::GetMap()[meshName];
 
     //Create a row of voxels with an offset
-    float distanceOffset = 1.05f;
+    distanceOffset = 1.05f;
 
     glm::vec3 currPos = gridOrigin;
 
@@ -74,6 +74,17 @@ VoxelStuff::Grid::Grid(glm::vec3 gridOrigin)
     //};
 
 
+    //TODO: Move this documentation to somewhere else
+    //Important:
+    // x -> Column
+    // (-z) -> Row
+    // (-y) -> Stacks
+
+
+
+
+    //TODO: GridMax can be calculated in less registers using math instead of 'piggybacking' the loop traversal
+    
     auto createGrid3D = [&](size_t numCol, size_t numRows, size_t numStacks)
     {
         for (size_t s = 0; s < numStacks; ++s)
@@ -88,16 +99,28 @@ VoxelStuff::Grid::Grid(glm::vec3 gridOrigin)
                     currPos.x += distanceOffset;
                 }
                 currPos.x = gridOrigin.x;
+                //The z-axis was set away for no good reason but because I wanted the scene's camera to already be pointed at 'top left' corner... ok
                 currPos.z -= distanceOffset;
+
             }
             currPos.x = gridOrigin.x;
             currPos.z = gridOrigin.z;
             currPos.y -= distanceOffset;
         }
-    };
 
+    };
     //createGrid2D(10, 2);
-    createGrid3D(300, 300, 5);
+    numCol = 5;
+    numRows = 5;
+    numStacks = 5;
+    createGrid3D(numCol, numRows, numStacks);
+
+
+
+    gridMin = glm::vec3(gridOrigin.x, gridOrigin.y - numStacks * 0.5f * (voxelSize + distanceOffset), gridOrigin.z);
+    gridMax = glm::vec3(gridOrigin.x + numCol *  0.5f * (voxelSize / 2 + distanceOffset), gridOrigin.y, gridOrigin.z - numRows *  0.5f * (voxelSize / 2 + distanceOffset));
+
+
 
     objectBuffer.emplace(std::span(objectUniforms), Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
 

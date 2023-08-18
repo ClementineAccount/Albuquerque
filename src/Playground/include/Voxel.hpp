@@ -101,7 +101,15 @@ namespace VoxelStuff
         void Draw(Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler, ViewData const& viewData);
 
         glm::vec3 gridOrigin = glm::vec3(0.0f, 0.0f, 0.0f);
+        glm::vec3 gridMin = glm::vec3(0.0f, 0.0f, 0.0f);
+        glm::vec3 gridMax = glm::vec3(0.0f, 0.0f, 0.0f);
+        
+        size_t numCol;
+        size_t numRows;  
+        size_t numStacks;
 
+        float voxelSize = 1.0f;
+        float distanceOffset;
 
     };
 
