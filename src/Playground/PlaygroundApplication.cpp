@@ -332,7 +332,7 @@ bool PlaygroundApplication::LoadFwog()
 
     skybox_ = Skybox();
 
-    voxelGrid_ = VoxelStuff::Grid();
+    voxelGrid_ = VoxelStuff::Grid(glm::vec3(0.0f, 0.0f, 0.0f));
 
     //It does not
     //std::cout << "Does this go to spdlog?\n";
@@ -511,6 +511,12 @@ void PlaygroundApplication::UpdateFwog(double dt)
 
     updateCamera(sceneCamera_);
 
+    //I really need more consistent naming conventions here for real
+    //auto IsPointCollideVoxel[&](VoxelStuff::Grid const& grid, glm::vec3 point)
+    //{
+    //    //glm::vec3 gridMin = 
+    //}
+
     //Draws a line from origin to raycast point. Acts as a 'test' for both functions
     auto rayCastTest = [&](Albuquerque::Camera const& currCamera, LineRendererFwog& lineRenderer)
     {
@@ -520,13 +526,14 @@ void PlaygroundApplication::UpdateFwog(double dt)
         static bool wasClicked = false;
         if (IsMouseKeyPressed(GLFW_MOUSE_BUTTON_1) && !wasClicked) {
             lineRenderer.Clear();
-
             wasClicked = true;
+
             //TODO: Check if normalization does anything even
             glm::vec3 ray = glm::normalize(RaycastScreenToWorld(currCamera));
             glm::vec3 worldPoint = currCamera.camPos + ray;
             lineRenderer.AddPoint(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
             lineRenderer.AddPoint(worldPoint, glm::vec3(1.0f, 1.0f, 1.0f));
+
         }
         else if (!IsMouseKeyPressed(GLFW_MOUSE_BUTTON_1) && wasClicked)
         {

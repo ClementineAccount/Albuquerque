@@ -62,7 +62,7 @@ namespace VoxelStuff
     //which I predict will have tons of performance issues very quickly, but we gonna avoid premature optimization
     struct Voxel
     {
-        Voxel(Transform transform = Transform()); //Imagine making a default constructor (cant be me)
+        Voxel(Transform setTransform = Transform()); //Imagine making a default constructor (cant be me)
 
         //bool isRendering;
 
@@ -76,7 +76,7 @@ namespace VoxelStuff
 
     struct Grid
     {
-        Grid();
+        Grid(glm::vec3 gridOrigin = glm::vec3(0.0f, 0.0f, 0.0f));
 
         // Lets try just an array of Voxels first
         // except I am going to make it a vector because of really good reasons:
@@ -99,6 +99,10 @@ namespace VoxelStuff
         void Update();
 
         void Draw(Fwog::Texture const& textureAlbedo, Fwog::Sampler const& sampler, ViewData const& viewData);
+
+        glm::vec3 gridOrigin = glm::vec3(0.0f, 0.0f, 0.0f);
+
+
     };
 
 }

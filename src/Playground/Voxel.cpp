@@ -11,14 +11,14 @@
 #include <glm/vec2.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-VoxelStuff::Voxel::Voxel(Transform transform)
+VoxelStuff::Voxel::Voxel(Transform setTransform)
 {
     //Create the drawData based off a cube (..for now...)
     //using namespace Albuquerque;
     //gameObject.drawData = Albuquerque::FwogHelpers::DrawObject::Init("cube");
 
-    transform.position = transform.position;
-    transform.scale = transform.scale;
+    transform.position = setTransform.position;
+    transform.scale = setTransform.scale;
 
     //its like midnight and i dont remember if its row-order or column-order in glm so imma just do it the glm way
     //To Do: Just set the values in the matrix directly instead of calling the function
@@ -33,7 +33,7 @@ VoxelStuff::Voxel::Voxel(Transform transform)
     //gameObject.UpdateDraw();
 }
 
-VoxelStuff::Grid::Grid()
+VoxelStuff::Grid::Grid(glm::vec3 gridOrigin)
 {
     //Make the pipeline
     constexpr char vertexShaderPath[] = "";
@@ -50,8 +50,7 @@ VoxelStuff::Grid::Grid()
     //Create a row of voxels with an offset
     float distanceOffset = 1.05f;
 
-    glm::vec3 startPosition = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 currPos = startPosition;
+    glm::vec3 currPos = gridOrigin;
 
     //for (size_t i = 0; i < numVoxelMax; ++i)
     //{
@@ -88,11 +87,11 @@ VoxelStuff::Grid::Grid()
                     objectUniforms.emplace_back(voxelGrid.back().objectUniform);
                     currPos.x += distanceOffset;
                 }
-                currPos.x = 0;
+                currPos.x = gridOrigin.x;
                 currPos.z -= distanceOffset;
             }
-            currPos.x = 0;
-            currPos.z = 0;
+            currPos.x = gridOrigin.x;
+            currPos.z = gridOrigin.z;
             currPos.y -= distanceOffset;
         }
     };
