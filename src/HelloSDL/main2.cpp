@@ -17,12 +17,18 @@ int main(int argc, char* args[])
 
 	struct Block
 	{
-		float pos_x = 0;
-		float pos_y = 0;
-		uint32_t size = 10;
+		int pos_x = 0;
+		int pos_y = 0;
+		int size = 10;
+		Uint8 r = 0xFF;
+		Uint8 g = 0x00;
+		Uint8 b = 0x00;
+		Uint8 a = 0xFF;
+
 	};
 
 	Block block{ 10, 10 };
+	Block bigBlock{ 30, 20, 100, 0x00, 0x00, 0xFF, 0xFF };
 
 	//The window we'll be rendering to
 	SDL_Window* window = NULL;
@@ -30,9 +36,9 @@ int main(int argc, char* args[])
 	//The surface contained by the window
 	SDL_Surface* screenSurface = NULL;
 
-	Uint64 prevFrame = SDL_GetTicks64();
-	Uint64 currFrame = SDL_GetTicks64();
-	double deltaTime = (currFrame - prevFrame) / 1000.0f;
+	Uint64 prevFrame = 0;
+	Uint64 currFrame = 0;
+	double deltaTime = 0;
 
 	//Initialize SDL
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -52,7 +58,7 @@ int main(int argc, char* args[])
 		while (quit == false)
 		{
 			currFrame = SDL_GetTicks64();
-			deltaTime = (static_cast<double>(currFrame) - static_cast<double>(prevFrame)) / 1000.0;
+			deltaTime = (static_cast<double>(currFrame) - static_cast<double>(prevFrame));
 			prevFrame = currFrame;
 
 			SDL_PollEvent(&e);
@@ -63,18 +69,41 @@ int main(int argc, char* args[])
 			//deltaTime = SDL_GetTicks() - deltaTime;
 			//printf("%f\n", deltaTime);
 
-			static float q speed = 15;
-			block.pos_x += static_cast<float>(deltaTime) * speed;
-			block.pos_y += static_cast<float>(deltaTime) * speed;
+
+			static float speed = 1.0f;
+
+			static bool isLeft = false;
+			isLeft = false;
+			if (e.type == SDL_KEYDOWN)
+			{
+				if (e.key.keysym.sym == SDLK_LEFT)
+				{
+					block.pos_x -= 1 * deltaTime;
+				}
+				else if (e.key.keysym.sym == SDLK_RIGHT)
+				{
+					block.pos_x += 1 * deltaTime;
+				}
+			}
+
+			//block.pos_y += static_cast<float>(deltaTime) * speed;
+
+
 
 			static SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
 			SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 			SDL_RenderClear(renderer);
 
-			SDL_Rect fillRect = { block.pos_x, block.pos_y, block.size, block.size };
-			SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
-			SDL_RenderFillRect(renderer, &fillRect);
+			auto drawBlock = [&](const Block& block)
+			{
+				SDL_Rect fillRect = { block.pos_x, block.pos_y, block.size, block.size };
+				SDL_SetRenderDrawColor(renderer, block.r, block.g, block.b, block.a);
+				SDL_RenderFillRect(renderer, &fillRect);
+			};
+
+			drawBlock(block);
+			drawBlock(bigBlock);
 
 			SDL_RenderPresent(renderer);
 		}
