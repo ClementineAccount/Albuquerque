@@ -36,9 +36,9 @@ int main(int argc, char* args[])
 	//The surface contained by the window
 	SDL_Surface* screenSurface = NULL;
 
-	Uint64 prevFrame = 0;
-	Uint64 currFrame = 0;
-	double deltaTime = 0;
+	uint32_t prevFrame = 0;
+	//Uint64 currFrame = 0;
+	uint32_t deltaTime = 0;
 
 	//Initialize SDL
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -57,8 +57,8 @@ int main(int argc, char* args[])
 		bool quit = false; 
 		while (quit == false)
 		{
-			currFrame = SDL_GetTicks64();
-			deltaTime = (static_cast<double>(currFrame) - static_cast<double>(prevFrame));
+			uint32_t currFrame = SDL_GetTicks64();
+			deltaTime = currFrame - prevFrame;
 			prevFrame = currFrame;
 
 			SDL_PollEvent(&e);
@@ -86,8 +86,21 @@ int main(int argc, char* args[])
 				}
 			}
 
-			//block.pos_y += static_cast<float>(deltaTime) * speed;
+			block.pos_y += deltaTime * 0.1f;
 
+			auto checkBlockIntersection = [&](const Block& lhs, const Block& rhs)
+			{
+				SDL_Rect lhs_rect = { lhs.pos_x, lhs.pos_y, lhs.size, lhs.size };
+				SDL_Rect rhs_rect = { rhs.pos_x, rhs.pos_y, rhs.size, rhs.size };
+				return SDL_HasIntersection(&lhs_rect, &rhs_rect);
+			};
+
+			//Set the big block to green if red block enters it
+			if (checkBlockIntersection(block, bigBlock))
+			{
+				bigBlock.b = 0xFF;
+				bigBlock.g = 255;
+			}
 
 
 			static SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
