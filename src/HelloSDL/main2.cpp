@@ -8,6 +8,8 @@ and may not be redistributed without written permission.*/
 #include <SDL.h>
 #include <stdio.h>
 
+#include <string>
+
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -24,7 +26,6 @@ int main(int argc, char* args[])
 		Uint8 g = 0x00;
 		Uint8 b = 0x00;
 		Uint8 a = 0xFF;
-
 	};
 
 	Block block{ 10, 10 };
@@ -39,6 +40,8 @@ int main(int argc, char* args[])
 	uint32_t prevFrame = 0;
 	//Uint64 currFrame = 0;
 	uint32_t deltaTime = 0;
+
+	std::string frameRate;
 
 	//Initialize SDL
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -59,6 +62,7 @@ int main(int argc, char* args[])
 		{
 			uint32_t currFrame = SDL_GetTicks64();
 			deltaTime = currFrame - prevFrame;
+			float frameRate = 1000.0f / (deltaTime);
 			prevFrame = currFrame;
 
 			SDL_PollEvent(&e);
@@ -68,6 +72,8 @@ int main(int argc, char* args[])
 
 			//deltaTime = SDL_GetTicks() - deltaTime;
 			//printf("%f\n", deltaTime);
+
+			SDL_SetWindowTitle(window, std::to_string(frameRate).c_str());
 
 
 			static float speed = 1.0f;
