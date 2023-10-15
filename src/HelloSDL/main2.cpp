@@ -21,7 +21,7 @@ int main(int argc, char* args[])
 	{
 		int pos_x = 0;
 		int pos_y = 0;
-		int size = 10;
+		int size = 25;
 		Uint8 r = 0xFF;
 		Uint8 g = 0x00;
 		Uint8 b = 0x00;
@@ -30,6 +30,12 @@ int main(int argc, char* args[])
 
 	Block block{ 10, 10 };
 	Block bigBlock{ 30, 20, 100, 0x00, 0x00, 0xFF, 0xFF };
+
+
+	constexpr size_t num_breakout_blocks = 10;
+	Block breakout_blocks[num_breakout_blocks];
+
+
 
 	//The window we'll be rendering to
 	SDL_Window* window = NULL;
@@ -58,6 +64,20 @@ int main(int argc, char* args[])
 		}
 		SDL_Event e; 
 		bool quit = false; 
+
+		constexpr int gap_size = 5;
+		auto init_breakout_blocks = [&](int start_x = 10, int start_y = 10)
+		{
+			for (size_t i = 0; i < num_breakout_blocks; ++i)
+			{
+				breakout_blocks[i].pos_x = start_x + i * (breakout_blocks[i].size + gap_size);
+				breakout_blocks[i].pos_y = start_y;
+			}
+		};
+
+		init_breakout_blocks(10, 20);
+		const Uint8* keyboard_state_array = SDL_GetKeyboardState(NULL);
+
 		while (quit == false)
 		{
 			uint32_t currFrame = SDL_GetTicks64();
@@ -66,6 +86,7 @@ int main(int argc, char* args[])
 			prevFrame = currFrame;
 
 			SDL_PollEvent(&e);
+			
 
 			if (e.type == SDL_QUIT) 
 				quit = true;
@@ -82,17 +103,41 @@ int main(int argc, char* args[])
 			isLeft = false;
 			if (e.type == SDL_KEYDOWN)
 			{
-				if (e.key.keysym.sym == SDLK_LEFT)
+				//This works even if you press a different key
 				{
-					block.pos_x -= 1 * deltaTime;
+					if (keyboard_state_array[SDL_SCANCODE_DOWN])
+					{
+						bigBlock.pos_y += 1 * deltaTime;
+					}
+					if (keyboard_state_array[SDL_SCANCODE_LEFT])
+					{
+						bigBlock.pos_x -= 1 * deltaTime;
+					}
+					if (keyboard_state_array[SDL_SCANCODE_RIGHT])
+					{
+						bigBlock.pos_x += 1 * deltaTime;
+					}
 				}
-				else if (e.key.keysym.sym == SDLK_RIGHT)
+
 				{
-					block.pos_x += 1 * deltaTime;
+					//This works only for the latest key
+					if (e.key.keysym.sym == SDLK_LEFT)
+					{
+						bigBlock.pos_x -= 1 * deltaTime;
+					}
+					if (e.key.keysym.sym == SDLK_RIGHT)
+					{
+						bigBlock.pos_x += 1 * deltaTime;
+					}
+
+					if (e.key.keysym.sym == SDLK_DOWN)
+					{
+						bigBlock.pos_y += 1 * deltaTime;
+					}
 				}
 			}
 
-			block.pos_y += deltaTime * 0.1f;
+			//block.pos_y += deltaTime * 0.1f;
 
 			auto checkBlockIntersection = [&](const Block& lhs, const Block& rhs)
 			{
@@ -121,7 +166,12 @@ int main(int argc, char* args[])
 				SDL_RenderFillRect(renderer, &fillRect);
 			};
 
-			drawBlock(block);
+			for (size_t i = 0; i < num_breakout_blocks; ++i)
+			{
+				drawBlock(breakout_blocks[i]);
+			}
+
+			//drawBlock(block);
 			drawBlock(bigBlock);
 
 			SDL_RenderPresent(renderer);
