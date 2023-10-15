@@ -40,7 +40,7 @@ void RemoveComponent(Entity e, Tag tag)
 }
 
 
-//Add entity and then remove it lol
+//Add entity and then remove it
 void test1()
 {
 	spdlog::info("test1()\n");
@@ -55,7 +55,7 @@ void test1()
 	{
 		if (Data::tags[e] & CompareTags::Position)
 		{
-			spdlog::info("Entity: {0:d} contains the position tag", e);
+			spdlog::info("Entity {0:d} contains the position tag", e);
 			//std::cout << "Entity: " << e << " contains the position tag!";
 			return true;
 		}
@@ -69,6 +69,7 @@ void test1()
 	RemoveComponent(e, CompareTags::Position);
 	assert(!hasPosition(e));
 }
+
 
 int main()
 {
