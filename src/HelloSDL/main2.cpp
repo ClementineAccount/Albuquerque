@@ -77,6 +77,15 @@ int main(int argc, char* args[])
 
 		init_breakout_blocks(10, 20);
 		const Uint8* keyboard_state_array = SDL_GetKeyboardState(NULL);
+		SDL_version compiled;
+		SDL_version linked;
+
+		SDL_VERSION(&compiled);
+		SDL_GetVersion(&linked);
+		SDL_Log("We compiled against SDL version %u.%u.%u ...\n",
+			compiled.major, compiled.minor, compiled.patch);
+		SDL_Log("We are linking against SDL version %u.%u.%u.\n",
+			linked.major, linked.minor, linked.patch);
 
 		while (quit == false)
 		{
