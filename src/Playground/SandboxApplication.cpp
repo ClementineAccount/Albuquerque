@@ -24,6 +24,8 @@ static constexpr float PI = 3.1415926f;
 
 char shaderText[1024];
 
+bool isShaderText = false;
+
 SandboxApplication::Pipeline::Pipeline(std::string_view vertex_shader_path, std::string_view fragment_shader_path)
 {
     auto LoadFile = [](std::string_view path)
@@ -33,12 +35,24 @@ SandboxApplication::Pipeline::Pipeline(std::string_view vertex_shader_path, std:
         return returnString;
     };
 
-    auto LoadShader = [&LoadFile](GLuint shader_id, std::string_view path)
+    auto LoadShader = [&LoadFile](GLuint shader_id, std::string_view path, bool isFrag = false)
     {
         //Prevent dangling pointer by moving it to local variable
         std::string returnString = std::move(LoadFile(path));
-        strcpy(shaderText, returnString.c_str());
-        const GLchar* shader_contents = returnString.data();
+        const GLchar* shader_contents;
+
+        if (!isShaderText || !isFrag)
+        {
+            shader_contents = returnString.data();
+            if (!isShaderText)
+                strcpy(shaderText, returnString.c_str());
+        }
+        else
+        {
+            shader_contents = shaderText;
+        }
+            
+
         glShaderSource(shader_id, 1, &shader_contents, nullptr);
         glCompileShader(shader_id);
 
@@ -46,7 +60,6 @@ SandboxApplication::Pipeline::Pipeline(std::string_view vertex_shader_path, std:
         glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
         if (!success)
         {
-
             std::string infoLog;
             const GLsizei infoLength = 512;
             infoLog.resize(infoLength + 1, '\0');
@@ -58,7 +71,7 @@ SandboxApplication::Pipeline::Pipeline(std::string_view vertex_shader_path, std:
     fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 
     LoadShader(vertex_shader, vertex_shader_path);
-    LoadShader(fragment_shader, fragment_shader_path);
+    LoadShader(fragment_shader, fragment_shader_path, true);
 }
 
 SandboxApplication::ShaderProgram::ShaderProgram()
@@ -83,7 +96,6 @@ void SandboxApplication::Pipeline::AttachToShader(ShaderProgram& shader) const
     GLuint shader_id = shader.GetShader();
     glAttachShader(shader_id, vertex_shader);
     glAttachShader(shader_id, fragment_shader);
-
 
     //To Do: Error checking
     glLinkProgram(shader.GetShader());
@@ -175,6 +187,12 @@ void SandboxApplication::Update(double dt)
     if (IsKeyPressed(GLFW_KEY_ESCAPE))
     {
         Close();
+    }
+
+    if (IsKeyPressed(GLFW_KEY_Q))
+    {
+        isShaderText = true;
+        Load();
     }
 
 }
