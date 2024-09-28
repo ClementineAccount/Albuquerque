@@ -10,7 +10,7 @@ The name 'Albuquerque' was chosen as a placeholder codename inspired by this [pa
 it was inspired by the internal codenames of Windows Operating Systems that were named after American cities. I chose Albuquerque as it is a niche and 
 unknown city in New Mexico that I have a personal connection with.
 
-Voxel Project (Currently Working On...)
+Voxel Project (Was Working On last...)
 ---
 
 I am currently working on a [Voxel project using this codebase](https://clementineaccount.github.io/posts/weekly-1-canvas/#voxels). I'd add more details as it gets further developed.
