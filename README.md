@@ -1,5 +1,7 @@
 Albuquerque
 ---
+(Abandoned)
+
 Albuquerque is the repository containing the sapling of a soon to be personal custom game and rendering engine and editor following the principles described
 in the blog post [Write Games, Not Engines](https://geometrian.com/programming/tutorials/write-games-not-engines/).
 
