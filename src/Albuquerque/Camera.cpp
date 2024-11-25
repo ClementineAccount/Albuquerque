@@ -28,7 +28,7 @@ namespace Albuquerque
         //To Do: Move this const somewhere else
         static constexpr glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-        //it actually points behind the camera's head because we live in a society
+
         camForward = glm::normalize(camForward);
         camRight = glm::cross(camForward, worldUp);
         camUp = glm::cross(camRight, camForward);

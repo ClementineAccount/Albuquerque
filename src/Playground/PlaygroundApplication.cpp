@@ -433,8 +433,18 @@ void PlaygroundApplication::UpdateFwog(double dt)
         bool isUpdate = false;
         static float camSpeedBase = 2.0f;
         static float camSpeedMouseBase = 0.5f;
-        float camSpeed = camSpeedBase * static_cast<float>(dt);
+
+        static float camSpeedMod = 1.0f;
+        camSpeedMod = 1.0f;
+
+        if (IsKeyPressed(GLFW_KEY_LEFT_SHIFT))
+        {
+            camSpeedMod = 5.0f;
+        }
+
+        float camSpeed = camSpeedBase * static_cast<float>(dt) * camSpeedMod;
         float camSpeedMouse = camSpeedMouseBase * static_cast<float>(dt);
+
 
         if (IsKeyPressed(GLFW_KEY_A))
         {
@@ -469,6 +479,7 @@ void PlaygroundApplication::UpdateFwog(double dt)
             currCamera.MoveFly(Camera::directionalInput::moveBack, camSpeed);
         }
 
+
         //Testing if rotations are working ok
 
         //Left and Right
@@ -497,12 +508,13 @@ void PlaygroundApplication::UpdateFwog(double dt)
         static double y = 0;
         UpdateMouseOffset(dt, x, y);
 
-        if (x != 0 || y != 0)
+        double thresholdForMove = 30;
+
+        if (abs(x) > thresholdForMove || abs(y) > thresholdForMove)
         {
             isUpdate = true;
             currCamera.RotateFly(camSpeedMouse * x, -camSpeedMouse * y);
         }
-
 
         //we only need to recalculate the viewProj if camera data did change
         if (isUpdate)

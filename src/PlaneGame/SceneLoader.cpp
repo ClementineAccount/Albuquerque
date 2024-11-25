@@ -9,8 +9,13 @@
 #include <chrono>
 #include <algorithm>
 #include <ranges>
+
+
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/transform.hpp>
+
 
 #include FWOG_OPENGL_HEADER
 

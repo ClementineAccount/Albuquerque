@@ -9,6 +9,9 @@
 //This must be included before GLFW or else you'd get https://stackoverflow.com/questions/3927810/how-to-prevent-macro-redefinition
 //https://web.archive.org/web/20230630052623/https://stackoverflow.com/questions/3927810/how-to-prevent-macro-redefinition
 
+
+
+
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 
@@ -42,6 +45,8 @@
 
 #include "SceneLoader.h"
 #include "stb_image.h"
+
+
 
 namespace PlaneGame {
     

@@ -8,6 +8,9 @@
 
 //Just trying to learn and understand how demongod's ECS thing works...
 //https://old.reddit.com/r/cpp_questions/comments/r4rll0/comment/hmp300u/
+//https://www.reddit.com/r/gameenginedevs/comments/o8s5u3/comment/h36ysw3/?utm_source=share&utm_medium=web2x&context=3
+
+
 
 using Entity = uint32_t;
 using Position = glm::vec3;
@@ -16,7 +19,8 @@ using Tag = uint32_t;
 
 namespace CompareTags
 {
-	constexpr Tag Position = 0x1;
+	constexpr Tag Position = 0x1 << 0;
+	constexpr Tag Velocity = 0x1 << 1;
 }
 
 constexpr size_t N_ENTS = 100;
@@ -24,7 +28,6 @@ constexpr size_t N_ENTS = 100;
 namespace Data
 {
 	std::array<Tag, N_ENTS> tags;
-
 	std::array<Position, N_ENTS> positions;
 }
 

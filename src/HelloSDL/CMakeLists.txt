@@ -3,7 +3,7 @@ project(HelloSDL)
 
 #Could also consider 'glob'-ing it here to prevent a FetchContent call
 set(sourceFiles
-    main2.cpp
+    main_load_image.cpp
 )
 
 add_library(SDL2 STATIC IMPORTED)
@@ -24,4 +24,4 @@ target_include_directories(glad PUBLIC include)
 
 add_executable(HelloSDL ${sourceFiles})
 target_include_directories(HelloSDL PRIVATE include)
-target_link_libraries(HelloSDL PRIVATE glad opengl32 glu32 SDL2 SDL2_Mixer)
+target_link_libraries(HelloSDL PRIVATE glad opengl32 glu32 SDL2 SDL2_Mixer SDL2_image)
