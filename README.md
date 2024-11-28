@@ -2,15 +2,10 @@ Albuquerque
 ---
 (Abandoned)
 
-Albuquerque is the repository containing the sapling of a soon to be personal custom game and rendering engine and editor following the principles described
-in the blog post [Write Games, Not Engines](https://geometrian.com/programming/tutorials/write-games-not-engines/).
-
-Currently, it is being actively used to develop 'Plane Game' which is contained under 'Projects'. Eventually, as more and more games
-are developed in the same codebase and shared code become interfaces and abstractions, it will slowly grow to become a game engine.
+Albuquerque is just some repo where i write ogl and vulkan prototypes
 
 The name 'Albuquerque' was chosen as a placeholder codename inspired by this [page](https://wiki.osdev.org/Beginner_Mistakes) on the osdev wiki. Specifically, 
-it was inspired by the internal codenames of Windows Operating Systems that were named after American cities. I chose Albuquerque as it is a niche and 
-unknown city in New Mexico that I have a personal connection with.
+it was inspired by the internal codenames of Windows Operating Systems that were named after American cities.
 
 Voxel Project (Was Working On last...)
 ---
